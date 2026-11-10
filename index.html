@@ -420,7 +420,6 @@ html, body {
 }
 
 .btn-row-puzzle { display: none; }
-.bottom-bar.puzzle-mode .btn-row-sub { display: none; }
 /* 闯关模式下提示为主操作，妙招降级为次操作 */
 .bottom-bar.puzzle-mode #btn-brilliant {
   background: #faf3e3;
@@ -1890,20 +1889,40 @@ body { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
   box-shadow: 0 1px 3px rgba(107, 20, 20, 0.3);
 }
 
-.start-challenge {
+.start-tools {
   width: 100%;
-  padding: 11px;
-  border: 1px dashed #bfa678;
-  border-radius: 10px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  margin-top: 4px;
+}
+.start-tool {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 6px;
+  border: 1px solid #d4b88a;
+  border-radius: 12px;
   background: rgba(255, 250, 238, 0.72);
   color: #7d5c2e;
   font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+.start-tool:active {
+  background: #efe2c4;
+  transform: scale(0.97);
+}
+.start-tool .st-icon {
+  font-size: 22px;
+  line-height: 1;
+}
+.start-tool .st-name {
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 1px;
-  cursor: pointer;
 }
-.start-challenge:active { background: #efe2c4; }
 
 .start-foot {
   font-size: 11px;
@@ -2116,7 +2135,20 @@ body { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
       </button>
     </div>
 
-    <button class="start-challenge" data-start-mode="challenge">杀法闯关 · 28 局古籍残局</button>
+    <div class="start-tools">
+      <button class="start-tool" data-start-mode="demo">
+        <span class="st-icon">📖</span>
+        <span class="st-name">棋谱</span>
+      </button>
+      <button class="start-tool" data-start-mode="atlas">
+        <span class="st-icon">📚</span>
+        <span class="st-name">杀法图鉴</span>
+      </button>
+      <button class="start-tool" data-start-mode="challenge">
+        <span class="st-icon">🎯</span>
+        <span class="st-name">杀法闯关</span>
+      </button>
+    </div>
     <div class="start-foot">无需登录 · 打开即玩</div>
   </div>
 </div>
@@ -2279,11 +2311,6 @@ body { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
       <button class="btn btn-accent" id="btn-brilliant">✨ 妙招</button>
       <button class="btn" id="btn-undo">↶ 悔棋</button>
       <button class="btn" id="btn-reset">↻ 重开</button>
-    </div>
-    <div class="btn-row btn-row-sub">
-      <button class="btn btn-quiet" id="btn-demo">📖 棋谱</button>
-      <button class="btn btn-quiet" id="btn-atlas">📚 杀法</button>
-      <button class="btn btn-quiet" id="btn-challenge">🎯 挑战</button>
     </div>
     <div class="btn-row btn-row-puzzle" id="puzzle-bar">
       <button class="btn btn-accent" id="btn-puzzle-hint">💡 提示</button>
@@ -3155,6 +3182,78 @@ var OPENING_BOOKS = [
       { fromRow: 0, fromCol: 0, toRow: 0, toCol: 1, notation: '车1平2' },
       { fromRow: 7, fromCol: 1, toRow: 4, toCol: 1, notation: '炮八进三' },
       { fromRow: 2, fromCol: 7, toRow: 2, toCol: 5, notation: '炮8平6' },
+    ],
+  },  {
+    id: 'xian-ren-zhi-lu',
+    group: '兵局',
+    name: '仙人指路对卒底炮',
+    intent: '红方挺兵试探，黑方卒底炮针锋相对，流行的柔性布局体系',
+    category: 'opening',
+    moves: [
+      { fromRow: 6, fromCol: 6, toRow: 5, toCol: 6, notation: '兵三进一' },
+      { fromRow: 2, fromCol: 1, toRow: 2, toCol: 6, notation: '炮2平7' },
+      { fromRow: 7, fromCol: 7, toRow: 7, toCol: 4, notation: '炮二平五' },
+      { fromRow: 0, fromCol: 7, toRow: 2, toCol: 6, notation: '马8进7' },
+      { fromRow: 9, fromCol: 7, toRow: 7, toCol: 6, notation: '马二进三' },
+      { fromRow: 3, fromCol: 6, toRow: 4, toCol: 6, notation: '卒7进1' },
+      { fromRow: 5, fromCol: 6, toRow: 4, toCol: 6, notation: '兵三进一' },
+      { fromRow: 2, fromCol: 6, toRow: 4, toCol: 6, notation: '炮7进3' },
+      { fromRow: 9, fromCol: 8, toRow: 9, toCol: 7, notation: '车一平二' },
+      { fromRow: 4, fromCol: 6, toRow: 4, toCol: 7, notation: '炮7平8' },
+    ],
+  },  {
+    id: 'fei-xiang-ju',
+    group: '相局',
+    name: '飞相局对左中炮',
+    intent: '红方飞相固防，黑方还架中炮对攻，刚柔并济的经典对抗',
+    category: 'opening',
+    moves: [
+      { fromRow: 9, fromCol: 2, toRow: 7, toCol: 4, notation: '相三进五' },
+      { fromRow: 2, fromCol: 7, toRow: 2, toCol: 4, notation: '炮8平5' },
+      { fromRow: 9, fromCol: 7, toRow: 7, toCol: 6, notation: '马二进三' },
+      { fromRow: 0, fromCol: 7, toRow: 2, toCol: 6, notation: '马8进7' },
+      { fromRow: 9, fromCol: 8, toRow: 9, toCol: 7, notation: '车一平二' },
+      { fromRow: 0, fromCol: 8, toRow: 0, toCol: 7, notation: '车9平8' },
+      { fromRow: 9, fromCol: 1, toRow: 7, toCol: 2, notation: '马八进七' },
+      { fromRow: 0, fromCol: 1, toRow: 2, toCol: 2, notation: '马2进3' },
+      { fromRow: 7, fromCol: 1, toRow: 7, toCol: 0, notation: '炮八平九' },
+      { fromRow: 0, fromCol: 0, toRow: 0, toCol: 1, notation: '车1平2' },
+    ],
+  },  {
+    id: 'qi-ma-ju',
+    group: '马局',
+    name: '起马局对挺卒',
+    intent: '红方起马静观其变，黑方挺卒制马，斗智斗力的细腻布局',
+    category: 'opening',
+    moves: [
+      { fromRow: 9, fromCol: 7, toRow: 7, toCol: 6, notation: '马二进三' },
+      { fromRow: 3, fromCol: 6, toRow: 4, toCol: 6, notation: '卒7进1' },
+      { fromRow: 9, fromCol: 1, toRow: 7, toCol: 2, notation: '马八进七' },
+      { fromRow: 0, fromCol: 7, toRow: 2, toCol: 6, notation: '马8进7' },
+      { fromRow: 7, fromCol: 6, toRow: 5, toCol: 7, notation: '马三进四' },
+      { fromRow: 0, fromCol: 1, toRow: 2, toCol: 2, notation: '马2进3' },
+      { fromRow: 5, fromCol: 7, toRow: 4, toCol: 5, notation: '马四进六' },
+      { fromRow: 2, fromCol: 2, toRow: 4, toCol: 3, notation: '马3进4' },
+      { fromRow: 4, fromCol: 5, toRow: 3, toCol: 7, notation: '马六进四' },
+      { fromRow: 4, fromCol: 3, toRow: 5, toCol: 5, notation: '马4进6' },
+    ],
+  },  {
+    id: 'guo-gong-pao',
+    group: '炮局',
+    name: '过宫炮对起马',
+    intent: '红方双炮集结一侧过宫，黑方起马应战，独特的子力配置',
+    category: 'opening',
+    moves: [
+      { fromRow: 7, fromCol: 1, toRow: 7, toCol: 3, notation: '炮八平六' },
+      { fromRow: 0, fromCol: 1, toRow: 2, toCol: 2, notation: '马2进3' },
+      { fromRow: 9, fromCol: 7, toRow: 7, toCol: 6, notation: '马二进三' },
+      { fromRow: 0, fromCol: 7, toRow: 2, toCol: 8, notation: '马8进9' },
+      { fromRow: 9, fromCol: 8, toRow: 9, toCol: 7, notation: '车一平二' },
+      { fromRow: 2, fromCol: 7, toRow: 2, toCol: 6, notation: '炮8平7' },
+      { fromRow: 9, fromCol: 1, toRow: 7, toCol: 2, notation: '马八进七' },
+      { fromRow: 0, fromCol: 0, toRow: 0, toCol: 1, notation: '车1平2' },
+      { fromRow: 7, fromCol: 3, toRow: 7, toCol: 4, notation: '炮六平五' },
+      { fromRow: 0, fromCol: 8, toRow: 0, toCol: 7, notation: '车9平8' },
     ],
   },  // ============================================================
   // 全局谱（8 本）
@@ -4728,6 +4827,62 @@ var PST_N = [
   [  0,  0,  0,  0,  0,  0,  0,  0,  0]
 ];
 
+// 车：控制肋道、深入敌阵
+var PST_R = [
+  [ 14, 14, 12, 18, 16, 18, 12, 14, 14],
+  [ 16, 20, 18, 24, 26, 24, 18, 20, 16],
+  [ 12, 12, 12, 18, 18, 18, 12, 12, 12],
+  [ 12, 18, 16, 22, 22, 22, 16, 18, 12],
+  [ 12, 14, 12, 18, 18, 18, 12, 14, 12],
+  [ 12, 16, 14, 20, 20, 20, 14, 16, 12],
+  [  6, 10,  8, 14, 14, 14,  8, 10,  6],
+  [  4,  8,  6, 12, 12, 12,  6,  8,  4],
+  [  8,  4,  8, 16, 16, 16,  8,  4,  8],
+  [ -2, 10,  6, 14, 12, 14,  6, 10, -2]
+];
+
+// 炮：中路和肋道价值高，宜在己方半区待机
+var PST_C = [
+  [  6,  4,  0, -2, -2, -2,  0,  4,  6],
+  [  2,  2,  0, -4, -4, -4,  0,  2,  2],
+  [  2,  2,  0, -6, -6, -6,  0,  2,  2],
+  [  0,  0, -2, -8, -8, -8, -2,  0,  0],
+  [  0,  0,  0, -2, -2, -2,  0,  0,  0],
+  [  0,  0,  0,  0,  2,  0,  0,  0,  0],
+  [ -2,  0,  4,  6, 10,  6,  4,  0, -2],
+  [  0,  2,  4,  6, 12,  6,  4,  2,  0],
+  [  0,  0,  2,  6, 10,  6,  2,  0,  0],
+  [  0,  0,  4,  6, 12,  6,  4,  0,  0]
+];
+
+// 士：九宫原位最佳
+var PST_A = [
+  [  0,  0,  0,  0,  0,  0,  0,  0,  0],
+  [  0,  0,  0,  0,  0,  0,  0,  0,  0],
+  [  0,  0,  0,  0,  0,  0,  0,  0,  0],
+  [  0,  0,  0,  0,  0,  0,  0,  0,  0],
+  [  0,  0,  0,  0,  0,  0,  0,  0,  0],
+  [  0,  0,  0,  0,  0,  0,  0,  0,  0],
+  [  0,  0,  0,  0,  0,  0,  0,  0,  0],
+  [  0,  0,  0, 20,  0, 20,  0,  0,  0],
+  [  0,  0,  0,  0, 20,  0,  0,  0,  0],
+  [  0,  0,  0, 20,  0, 20,  0,  0,  0]
+];
+
+// 象：河口相位最佳
+var PST_B = [
+  [  0,  0,  0,  0,  0,  0,  0,  0,  0],
+  [  0,  0,  0,  0,  0,  0,  0,  0,  0],
+  [  0,  0,  0,  0,  0,  0,  0,  0,  0],
+  [  0,  0,  0,  0,  0,  0,  0,  0,  0],
+  [  0,  0,  0,  0,  0,  0,  0,  0,  0],
+  [  0,  0, 20,  0,  0,  0, 20,  0,  0],
+  [  0,  0,  0,  0,  0,  0,  0,  0,  0],
+  [ 18,  0,  0,  0, 24,  0,  0,  0, 18],
+  [  0,  0,  0,  0,  0,  0,  0,  0,  0],
+  [  0,  0, 20,  0,  0,  0, 20,  0,  0]
+];
+
 // 局面评估（正数 = 红优），单次遍历 90 格
 function evaluateBoard(board) {
   var score = 0;
@@ -4738,21 +4893,23 @@ function evaluateBoard(board) {
       if (!p) continue;
       var rr = (p.color === 'red') ? r : 9 - r;
       var v = PIECE_VALUE[p.type] || 0;
-      if (p.type === 'P') {
-        v += PST_P[rr][c];
-      } else if (p.type === 'N') {
-        v += PST_N[rr][c];
-      } else if (p.type === 'R') {
-        v += rr <= 2 ? 14 : rr <= 4 ? 10 : 4;
-      } else if (p.type === 'C') {
-        v += (4 - Math.abs(c - 4)) * 3 + (rr <= 4 ? 6 : 0);
-      } else if (p.type === 'K') {
-        // 老将离底线越远越危险
-        v -= (p.color === 'red' ? (9 - r) : r) * 4;
+      switch (p.type) {
+        case 'P': v += PST_P[rr][c]; break;
+        case 'N': v += PST_N[rr][c]; break;
+        case 'R': v += PST_R[rr][c]; break;
+        case 'C': v += PST_C[rr][c]; break;
+        case 'A': v += PST_A[rr][c]; break;
+        case 'B': v += PST_B[rr][c]; break;
+        case 'K':
+          // 将/帅：居中守位，离原位越远越危险
+          v -= Math.abs(c - 4) * 3;
+          v -= (p.color === 'red' ? (9 - r) : r) * 5;
+          break;
       }
       score += (p.color === 'red') ? v : -v;
     }
   }
+  // 先手加成
   return score;
 }
 
@@ -5051,12 +5208,50 @@ function aiGetMoveTimed(board, aiColor, timeMs) {
   return best;
 }
 
+// 开局库：根据当前走子序列匹配棋谱首着，返回推荐走法
+function tryOpeningBook(board, movesHistory) {
+  // movesHistory: 已走的走法数组（fromRow,fromCol,toRow,toCol）
+  var len = movesHistory.length;
+  for (var i = 0; i < OPENING_BOOKS.length; i++) {
+    var book = OPENING_BOOKS[i];
+    if (!book.moves || book.category !== 'opening') continue;
+    if (book.moves.length <= len) continue;
+    // 比对已走的着法
+    var match = true;
+    for (var j = 0; j < len; j++) {
+      var bm = book.moves[j];
+      var hm = movesHistory[j];
+      if (bm.fromRow !== hm.fromRow || bm.fromCol !== hm.fromCol ||
+          bm.toRow !== hm.toRow || bm.toCol !== hm.toCol) {
+        match = false;
+        break;
+      }
+    }
+    if (match) return book.moves[len];
+  }
+  return null;
+}
+
 // 统一 AI 入口：easy=随机贪心 normal=限时搜索 hard=深度搜索
-function aiGetMove(board, aiColor, difficulty) {
+function aiGetMove(board, aiColor, difficulty, movesHistory) {
+  // 开局库：布局阶段优先照谱走
+  if (movesHistory && movesHistory.length < 12) {
+    var bookMove = tryOpeningBook(board, movesHistory);
+    if (bookMove) {
+      // 验证合法性
+      var legal = getLegalMoves(board, aiColor);
+      for (var k = 0; k < legal.length; k++) {
+        if (legal[k].fromRow === bookMove.fromRow && legal[k].fromCol === bookMove.fromCol &&
+            legal[k].toRow === bookMove.toRow && legal[k].toCol === bookMove.toCol) {
+          return legal[k];
+        }
+      }
+    }
+  }
   if (difficulty === 'easy') {
     return aiGetMoveLight(board, aiColor, 'easy');
   }
-  var budget = difficulty === 'hard' ? 800 : 300;
+  var budget = difficulty === 'hard' ? 1500 : 350;
   try {
     return aiGetMoveTimed(board, aiColor, budget) || aiGetMoveLight(board, aiColor, 'normal');
   } catch (e) {
@@ -7270,7 +7465,6 @@ window.XQ = {
     els.watchTakeBlack = document.getElementById('watch-take-black');
     els.watchSpeedBtns = document.querySelectorAll('#watch-bar .speed-btn');
     els.btnBrilliant = document.getElementById('btn-brilliant');
-    els.btnDemo = document.getElementById('btn-demo');
     els.btnUndo = document.getElementById('btn-undo');
     els.btnReset = document.getElementById('btn-reset');
     els.modalReset = document.getElementById('modal-reset');
@@ -7285,7 +7479,6 @@ window.XQ = {
     els.btnDemoClose = document.getElementById('btn-demo-close');
     els.boardArea = document.querySelector('.board-area');
     els.boardEffects = document.getElementById('board-effects');
-    els.btnAtlas = document.getElementById('btn-atlas');
     els.checkVignette = document.getElementById('check-vignette');
     els.killOverlay = document.getElementById('kill-overlay');
     els.killName = document.getElementById('kill-name');
@@ -7293,7 +7486,6 @@ window.XQ = {
     els.modalAtlas = document.getElementById('modal-atlas');
     els.atlasList = document.getElementById('atlas-list');
     els.btnAtlasClose = document.getElementById('btn-atlas-close');
-    els.btnChallenge = document.getElementById('btn-challenge');
     els.modalChallenge = document.getElementById('modal-challenge');
     els.btnChallengeClose = document.getElementById('btn-challenge-close');
     els.challengeGrid = document.getElementById('challenge-grid');
@@ -7904,7 +8096,7 @@ window.XQ = {
         renderAll();
         return;
       }
-      var move = (XQ.aiGetMove || XQ.aiGetMoveLight)(state.board, state.currentTurn, state.difficulty);
+      var move = (XQ.aiGetMove || XQ.aiGetMoveLight)(state.board, state.currentTurn, state.difficulty, state.moveHistory);
       state.isAiThinking = false;
       if (move) {
         doMove(move);
@@ -8139,7 +8331,7 @@ window.XQ = {
               m.toRow === reply[2] && m.toCol === reply[3]) { move = m; break; }
         }
       }
-      if (!move) move = (XQ.aiGetMove || XQ.aiGetMoveLight)(state.board, 'black', 'hard');
+      if (!move) move = (XQ.aiGetMove || XQ.aiGetMoveLight)(state.board, 'black', 'hard', state.moveHistory);
       state.isAiThinking = false;
       if (move) doMove(move); else renderAll();
     }, reply ? 450 : 320);
@@ -8230,7 +8422,8 @@ window.XQ = {
   }
   function hideChallengeModal() {
     if (!els.modalChallenge) return;
-    Screen.close();
+    // 闯关只从开始界面进入，关闭后返回开始界面
+    showStartScreen();
   }
 
   // 闯关首页：进度 + 关卡网格（顺序解锁或全部开放）
@@ -8360,7 +8553,7 @@ window.XQ = {
       }
       if (!move) {
         try {
-          move = XQ.aiGetMove(state.board, state.currentTurn, 'normal');
+          move = XQ.aiGetMove(state.board, state.currentTurn, 'normal', state.moveHistory);
         } catch (e) {
           move = null;
         }
@@ -8464,6 +8657,19 @@ window.XQ = {
     sfx('click');
     if (mode === 'online') {
       showOnlinePanel();
+      return;
+    }
+    if (mode === 'demo') {
+      // 棋谱：进入对局视图后打开棋谱弹窗，关闭时返回开始界面
+      hideStartScreen();
+      handleModeSelect('pvp');
+      setTimeout(function() { showDemoModal(); }, 200);
+      return;
+    }
+    if (mode === 'atlas') {
+      hideStartScreen();
+      handleModeSelect('pvp');
+      setTimeout(function() { showAtlasModal(); }, 200);
       return;
     }
     // 从等待房间直接开始其他模式时，先退出联机
@@ -9201,7 +9407,7 @@ window.XQ = {
         renderAll();
         return;
       }
-      var move = (XQ.aiGetMove || XQ.aiGetMoveLight)(state.board, state.currentTurn, state.difficulty);
+      var move = (XQ.aiGetMove || XQ.aiGetMoveLight)(state.board, state.currentTurn, state.difficulty, state.moveHistory);
       state.isAiThinking = false;
       if (move) {
         doMove(move);
@@ -9940,7 +10146,8 @@ window.XQ = {
 
   function hideDemoModal() {
     // 清理逻辑已注册到 Screen 管理器（停止播放、重置状态）
-    Screen.close();
+    // 棋谱只从开始界面进入，关闭后返回开始界面
+    showStartScreen();
     sfx('popup-close');
   }
 
@@ -9955,7 +10162,8 @@ window.XQ = {
 
   function hideAtlasModal() {
     if (!els.modalAtlas) return;
-    Screen.close();
+    // 杀法图鉴只从开始界面进入，关闭后返回开始界面
+    showStartScreen();
   }
 
   function renderAtlasList() {
@@ -9993,8 +10201,7 @@ window.XQ = {
       handleCellClick(r, c);
     });
 
-    // 底部按钮
-    els.btnDemo.addEventListener('click', function() { sfx('click'); showDemoModal(); });
+    // 底部按钮（仅保留对局操作：妙招/悔棋/重开）
     els.btnUndo.addEventListener('click', function() { if (state.history.length > 0 && !state.isAiThinking) { sfx('click'); } handleUndo(); });
     if (els.btnBrilliant) {
       els.btnBrilliant.addEventListener('click', showBrilliant);
@@ -10058,17 +10265,11 @@ window.XQ = {
       });
     }
 
-    // 音效/特效固定开启，由手机音量键控制；图鉴按钮
-    if (els.btnAtlas) {
-      els.btnAtlas.addEventListener('click', function() { sfx('popup-open'); showAtlasModal(); });
-    }
+    // 音效/特效固定开启，由手机音量键控制；图鉴关闭
     if (els.btnAtlasClose) {
       els.btnAtlasClose.addEventListener('click', function() { sfx('popup-close'); hideAtlasModal(); });
     }
-    // 杀法闯关
-    if (els.btnChallenge) {
-      els.btnChallenge.addEventListener('click', function() { sfx('popup-open'); showChallengeModal(); });
-    }
+    // 杀法闯关关闭
     if (els.btnChallengeClose) {
       els.btnChallengeClose.addEventListener('click', function() { sfx('popup-close'); hideChallengeModal(); });
     }
