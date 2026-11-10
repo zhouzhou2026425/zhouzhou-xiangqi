@@ -7267,6 +7267,55 @@ window.XQ = {
   var gameGen = 0;
 
   // ============================================================
+  // 界面管理器：一个按钮对应一个界面，同一时刻只显示一个界面
+  // - start：开始界面（全屏）
+  // - 其余为各类弹窗（mode / reset / result / demo / atlas / challenge / online）
+  // openModal 会先关闭当前界面（并执行其清理回调）再打开新界面
+  // ============================================================
+  var Screen = {
+    current: null,        // 当前显示的界面名，'start' 或弹窗名
+    startEl: null,
+    modals: {},           // name -> element
+    cleanups: {},         // name -> function() 关闭时的清理逻辑
+    register: function(name, el, cleanup) {
+      this.modals[name] = el;
+      if (cleanup) this.cleanups[name] = cleanup;
+    },
+    setStart: function(el) { this.startEl = el; },
+    _hideAll: function() {
+      if (this.startEl) this.startEl.classList.add('hidden');
+      for (var k in this.modals) {
+        if (this.modals[k]) this.modals[k].classList.remove('show');
+      }
+    },
+    _runCleanup: function() {
+      if (this.current && this.cleanups[this.current]) {
+        try { this.cleanups[this.current](); } catch (e) {}
+      }
+    },
+    openStart: function() {
+      this._runCleanup();
+      this._hideAll();
+      if (this.startEl) this.startEl.classList.remove('hidden');
+      this.current = 'start';
+    },
+    openModal: function(name) {
+      if (this.current === name) return;
+      this._runCleanup();
+      this._hideAll();
+      var el = this.modals[name];
+      if (el) el.classList.add('show');
+      this.current = name;
+    },
+    close: function() {
+      this._runCleanup();
+      this._hideAll();
+      this.current = null;
+    },
+    isOpen: function(name) { return this.current === name; }
+  };
+
+  // ============================================================
   // DOM 元素
   // ============================================================
   var els = {};
@@ -7347,6 +7396,29 @@ window.XQ = {
     els.onlineBarText = document.getElementById('online-bar-text');
     els.btnOnlineExit = document.getElementById('btn-online-exit');
     els.btnHome = document.getElementById('btn-home');
+
+    // 注册到界面管理器：一个按钮对应一个界面，统一由 Screen 调度
+    Screen.setStart(els.startScreen);
+    Screen.register('online', els.modalOnline);
+    Screen.register('mode', els.modalMode);
+    Screen.register('reset', els.modalReset);
+    Screen.register('result', els.modalResult);
+    Screen.register('demo', els.modalDemo, function() {
+      // 关闭棋谱弹窗时的清理：停止播放并重置状态
+      demoStopPlayback();
+      demoState.selectedBook = null;
+      demoState.currentIndex = -1;
+      demoState.snapshots = [];
+      demoState.recommendation = null;
+      demoState.view = 'home';
+      demoState.category = null;
+      demoState.group = 'all';
+      updateDemoView();
+    });
+    Screen.register('atlas', els.modalAtlas);
+    Screen.register('challenge', els.modalChallenge);
+    // 开始界面默认可见，同步管理器状态
+    Screen.current = 'start';
   }
 
   // ============================================================
@@ -8209,7 +8281,7 @@ window.XQ = {
     }
     if (els.btnPassNext) els.btnPassNext.style.display = isLast ? 'none' : '';
     showChallengeView('pass');
-    els.modalChallenge.classList.add('show');
+    Screen.openModal('challenge');
     sfx('popup-open');
   }
 
@@ -8224,11 +8296,11 @@ window.XQ = {
     if (!els.modalChallenge) return;
     renderChallengeHome();
     showChallengeView('home');
-    els.modalChallenge.classList.add('show');
+    Screen.openModal('challenge');
   }
   function hideChallengeModal() {
     if (!els.modalChallenge) return;
-    els.modalChallenge.classList.remove('show');
+    Screen.close();
   }
 
   // 闯关首页：进度 + 关卡网格（顺序解锁或全部开放）
@@ -8430,12 +8502,13 @@ window.XQ = {
   // ============================================================
   function showStartScreen() {
     menuOpen = true;
-    if (els.startScreen) els.startScreen.classList.remove('hidden');
+    Screen.openStart();
   }
 
   function hideStartScreen() {
     menuOpen = false;
     if (els.startScreen) els.startScreen.classList.add('hidden');
+    if (Screen.current === 'start') Screen.current = null;
   }
 
   // 游戏内“返回桌面”：回到开始界面，保留当前棋局
@@ -8763,7 +8836,7 @@ window.XQ = {
     if (!els.modalOnline) return;
     setOnlineStatus('');
     updateOnlinePanelView();
-    els.modalOnline.classList.add('show');
+    Screen.openModal('online');
 
     var url = onlineAvailable();
     var btnCreate = document.getElementById('btn-create-room');
@@ -8779,12 +8852,14 @@ window.XQ = {
   }
 
   function hideOnlinePanel() {
-    if (els.modalOnline) els.modalOnline.classList.remove('show');
+    if (Screen.current === 'online') Screen.close();
+    else if (els.modalOnline) els.modalOnline.classList.remove('show');
   }
 
   function cancelOnlinePanel() {
     onlineLeave();
-    hideOnlinePanel();
+    // 联机面板只从开始界面打开，关闭后回到开始界面
+    showStartScreen();
   }
 
   function onlineConnect(onOpen) {
@@ -9307,12 +9382,12 @@ window.XQ = {
     }
 
     els.btnResultRestart.textContent = state.gameMode === 'online' ? '再来一局' : '重新开始';
-    els.modalResult.classList.add('show');
+    Screen.openModal('result');
     sfx('popup-open');
   }
 
   function hideResultModal() {
-    els.modalResult.classList.remove('show');
+    Screen.close();
     sfx('popup-close');
   }
 
@@ -9321,12 +9396,12 @@ window.XQ = {
       els.hintText.textContent = '联机对局不能单方重开，结束一局后点“再来一局”';
       return;
     }
-    els.modalReset.classList.add('show');
+    Screen.openModal('reset');
     sfx('popup-open');
   }
 
   function hideResetModal() {
-    els.modalReset.classList.remove('show');
+    Screen.close();
     sfx('popup-close');
   }
 
@@ -9346,7 +9421,7 @@ window.XQ = {
     }
     // 根据模式显示/隐藏颜色和难度区块
     updateModeFormVisibility();
-    els.modalMode.classList.add('show');
+    Screen.openModal('mode');
     sfx('popup-open');
   }
 
@@ -9365,7 +9440,7 @@ window.XQ = {
   }
 
   function hideModeModal() {
-    els.modalMode.classList.remove('show');
+    Screen.close();
     sfx('popup-close');
   }
 
@@ -9970,23 +10045,13 @@ window.XQ = {
 
   function showDemoModal() {
     demoShowHome(); // 打开弹窗默认回到首页
-    els.modalDemo.classList.add('show');
+    Screen.openModal('demo');
     sfx('popup-open');
   }
 
   function hideDemoModal() {
-    // 停止播放
-    demoStopPlayback();
-    demoState.selectedBook = null;
-    demoState.currentIndex = -1;
-    demoState.snapshots = [];
-    demoState.recommendation = null;
-    // 重开时回到首页
-    demoState.view = 'home';
-    demoState.category = null;
-    demoState.group = 'all';
-    updateDemoView();
-    els.modalDemo.classList.remove('show');
+    // 清理逻辑已注册到 Screen 管理器（停止播放、重置状态）
+    Screen.close();
     sfx('popup-close');
   }
 
@@ -9996,12 +10061,12 @@ window.XQ = {
   function showAtlasModal() {
     if (!els.modalAtlas) return;
     renderAtlasList();
-    els.modalAtlas.classList.add('show');
+    Screen.openModal('atlas');
   }
 
   function hideAtlasModal() {
     if (!els.modalAtlas) return;
-    els.modalAtlas.classList.remove('show');
+    Screen.close();
   }
 
   function renderAtlasList() {
@@ -10336,11 +10401,14 @@ window.XQ = {
     }
 
     // 点击遮罩层关闭（所有 .modal-overlay）
+    // 联机弹窗已有自己的取消逻辑（cancelOnlinePanel 会回到开始界面），这里跳过
     var overlays = document.querySelectorAll('.modal-overlay');
     for (var j = 0; j < overlays.length; j++) {
       overlays[j].addEventListener('click', function(e) {
         if (e.target === this) {
-          this.classList.remove('show');
+          if (els.modalOnline && this === els.modalOnline) return;
+          Screen.close();
+          sfx('popup-close');
         }
       });
     }
