@@ -8734,7 +8734,11 @@ window.XQ = {
               m.toRow === reply[2] && m.toCol === reply[3]) { move = m; break; }
         }
       }
-      if (!move) move = (XQ.aiGetMove || XQ.aiGetMoveLight)(state.board, 'black', 'hard', state.moveHistory);
+      // 脱谱或谱着非法时：用轻量 AI（残局无需开局库，hard 搜索在手机上太慢）
+      if (!move) {
+        move = XQ.aiGetMoveLight(state.board, 'black', 'normal');
+        if (!move) move = XQ.aiGetMove(state.board, 'black', 'easy', null);
+      }
       state.isAiThinking = false;
       if (move) doMove(move); else renderAll();
     }, reply ? 450 : 320);
