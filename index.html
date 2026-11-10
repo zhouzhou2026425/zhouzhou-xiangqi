@@ -3191,13 +3191,10 @@ var OPENING_BOOKS = [
       { fromRow: 6, fromCol: 6, toRow: 5, toCol: 6, notation: '兵三进一' },
       { fromRow: 2, fromCol: 1, toRow: 2, toCol: 6, notation: '炮2平7' },
       { fromRow: 7, fromCol: 7, toRow: 7, toCol: 4, notation: '炮二平五' },
-      { fromRow: 0, fromCol: 7, toRow: 2, toCol: 6, notation: '马8进7' },
+      { fromRow: 0, fromCol: 6, toRow: 2, toCol: 4, notation: '象7进5' },
       { fromRow: 9, fromCol: 7, toRow: 7, toCol: 6, notation: '马二进三' },
       { fromRow: 3, fromCol: 6, toRow: 4, toCol: 6, notation: '卒7进1' },
       { fromRow: 5, fromCol: 6, toRow: 4, toCol: 6, notation: '兵三进一' },
-      { fromRow: 2, fromCol: 6, toRow: 4, toCol: 6, notation: '炮7进3' },
-      { fromRow: 9, fromCol: 8, toRow: 9, toCol: 7, notation: '车一平二' },
-      { fromRow: 4, fromCol: 6, toRow: 4, toCol: 7, notation: '炮7平8' },
     ],
   },  {
     id: 'fei-xiang-ju',
@@ -3228,12 +3225,9 @@ var OPENING_BOOKS = [
       { fromRow: 3, fromCol: 6, toRow: 4, toCol: 6, notation: '卒7进1' },
       { fromRow: 9, fromCol: 1, toRow: 7, toCol: 2, notation: '马八进七' },
       { fromRow: 0, fromCol: 7, toRow: 2, toCol: 6, notation: '马8进7' },
-      { fromRow: 7, fromCol: 6, toRow: 5, toCol: 7, notation: '马三进四' },
+      { fromRow: 6, fromCol: 6, toRow: 5, toCol: 6, notation: '兵三进一' },
       { fromRow: 0, fromCol: 1, toRow: 2, toCol: 2, notation: '马2进3' },
-      { fromRow: 5, fromCol: 7, toRow: 4, toCol: 5, notation: '马四进六' },
-      { fromRow: 2, fromCol: 2, toRow: 4, toCol: 3, notation: '马3进4' },
-      { fromRow: 4, fromCol: 5, toRow: 3, toCol: 7, notation: '马六进四' },
-      { fromRow: 4, fromCol: 3, toRow: 5, toCol: 5, notation: '马4进6' },
+      { fromRow: 7, fromCol: 6, toRow: 5, toCol: 7, notation: '马三进四' },
     ],
   },  {
     id: 'guo-gong-pao',
@@ -8636,8 +8630,11 @@ window.XQ = {
     state.killInfo = null;
     updateDangerAnalysis();
     renderAll();
-    hideChallengeModal();
+    Screen.close();
     hideResultModal();
+    // 进入对局：显示游戏界面，隐藏开始界面
+    hideStartScreen();
+    if (els.app) els.app.style.display = 'flex';
     updatePuzzleBar();
     sfx('popup-close');
   }
