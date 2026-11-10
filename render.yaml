@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: zhouzhou-xiangqi
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /healthz
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: 20.11.1

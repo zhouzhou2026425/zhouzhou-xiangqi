@@ -1,0 +1,12 @@
+{
+  "name": "zhouzhou-xiangqi",
+  "version": "1.1.0",
+  "private": true,
+  "description": "周周象棋 - 双人联机 + 人机对战 + 杀法闯关",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
