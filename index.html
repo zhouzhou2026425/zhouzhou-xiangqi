@@ -7246,13 +7246,18 @@ window.XQ = {
   // 联机对战状态
   var online = {
     ws: null,
+    client: null,
+    clientId: '',
     code: '',
-    color: 'red',      // 服务器分配的颜色
+    color: 'red',      // 分配的颜色
     linked: false,     // 对手是否在线
     waiting: false,    // 是否在等待对手加入
     inGame: false,     // 是否已进入联机对局
     suppressSend: false,
     pingTimer: null,
+    hbTimer: null,
+    joinTimer: null,
+    lastPeerAt: 0,
     disconnected: false,
   };
 
@@ -8482,32 +8487,234 @@ window.XQ = {
   // ============================================================
   // 联机对战
   // ============================================================
-  function onlineWsUrl() {
-    if (location.protocol === 'file:') return null;
-    var proto = location.protocol === 'https:' ? 'wss://' : 'ws://';
-    return proto + location.host + '/ws';
+  // ---- MQTT over WebSocket（公共中继，静态页面也能联机）----
+  var MQTT_URLS = [
+    'wss://broker.emqx.io:8084/mqtt',
+    'wss://broker.hivemq.com:8884/mqtt'
+  ];
+  var TEXT_DECODER = new TextDecoder();
+
+  function mqttVarLen(n) {
+    var out = [];
+    do {
+      var b = n % 128;
+      n = Math.floor(n / 128);
+      if (n > 0) b |= 0x80;
+      out.push(b);
+    } while (n > 0);
+    return out;
+  }
+
+  function mqttUtf(str) {
+    var bytes = new TextEncoder().encode(str);
+    var out = [bytes.length >> 8, bytes.length & 255];
+    for (var i = 0; i < bytes.length; i++) out.push(bytes[i]);
+    return out;
+  }
+
+  function mqttPacket(header, body) {
+    return new Uint8Array([header].concat(mqttVarLen(body.length), body));
+  }
+
+  function MqttClient(cb) {
+    this.cb = cb || {};
+    this.index = 0;
+    this.ready = false;
+    this.stopped = false;
+    this.buf = new Uint8Array(0);
+    this.ws = null;
+    this.pingTimer = null;
+    this.connectTimer = null;
+    this.clientId = online.clientId;
+    this.connect();
+  }
+
+  MqttClient.prototype.connect = function() {
+    var self = this;
+    if (self.stopped) return;
+    if (self.index >= MQTT_URLS.length) {
+      if (self.cb.onError) self.cb.onError();
+      return;
+    }
+    var ws;
+    try {
+      ws = new WebSocket(MQTT_URLS[self.index], 'mqtt');
+    } catch (e) {
+      self.index++;
+      self.connect();
+      return;
+    }
+    ws.binaryType = 'arraybuffer';
+    self.ws = ws;
+    self.connectTimer = setTimeout(function() {
+      if (!self.ready) {
+        try { ws.close(); } catch (e) {}
+      }
+    }, 8000);
+    ws.onopen = function() { self.sendConnect(); };
+    ws.onmessage = function(ev) { self.onData(ev.data); };
+    ws.onclose = function() {
+      clearTimeout(self.connectTimer);
+      if (self.stopped) return;
+      if (!self.ready) {
+        self.index++;
+        self.connect();
+        return;
+      }
+      if (self.cb.onClose) self.cb.onClose();
+    };
+    ws.onerror = function() {
+      if (!self.ready) {
+        try { ws.close(); } catch (e) {}
+      }
+    };
+  };
+
+  MqttClient.prototype.sendConnect = function() {
+    var body = [0, 4, 77, 81, 84, 84, 4, 2, 0, 60].concat(mqttUtf(this.clientId));
+    this.raw(mqttPacket(0x10, body));
+  };
+
+  MqttClient.prototype.raw = function(bytes) {
+    if (this.ws && this.ws.readyState === 1) {
+      try { this.ws.send(bytes); } catch (e) {}
+    }
+  };
+
+  MqttClient.prototype.subscribe = function(topic) {
+    if (!this.ready) return;
+    var t = mqttUtf(topic);
+    this.raw(mqttPacket(0x82, [0, 1].concat(t).concat([0])));
+  };
+
+  MqttClient.prototype.publish = function(topic, payload) {
+    if (!this.ready) return;
+    var p = new TextEncoder().encode(payload);
+    var body = mqttUtf(topic);
+    for (var i = 0; i < p.length; i++) body.push(p[i]);
+    this.raw(mqttPacket(0x30, body));
+  };
+
+  MqttClient.prototype.onData = function(data) {
+    var chunk = new Uint8Array(data);
+    var merged = new Uint8Array(this.buf.length + chunk.length);
+    merged.set(this.buf);
+    merged.set(chunk, this.buf.length);
+    this.buf = merged;
+
+    while (this.buf.length >= 2) {
+      var mult = 1;
+      var value = 0;
+      var i = 1;
+      var b;
+      do {
+        if (i >= this.buf.length) return;
+        b = this.buf[i++];
+        value += (b & 127) * mult;
+        mult *= 128;
+      } while (b & 128);
+
+      var total = i + value;
+      if (this.buf.length < total) return;
+
+      var header = this.buf[0];
+      var body = this.buf.slice(i, total);
+      this.buf = this.buf.slice(total);
+      this.handlePacket(header, body);
+    }
+  };
+
+  MqttClient.prototype.handlePacket = function(header, body) {
+    var type = header >> 4;
+    if (type === 2) {
+      if (body.length < 2) return;
+      if (body[1] === 0) {
+        this.ready = true;
+        clearTimeout(this.connectTimer);
+        var self = this;
+        this.pingTimer = setInterval(function() {
+          self.raw(new Uint8Array([0xC0, 0]));
+        }, 30000);
+        if (this.cb.onOpen) this.cb.onOpen();
+      } else {
+        try { this.ws.close(); } catch (e) {}
+      }
+      return;
+    }
+    if (type === 3) {
+      if (body.length < 2) return;
+      var tl = (body[0] << 8) | body[1];
+      var topic = TEXT_DECODER.decode(body.slice(2, 2 + tl));
+      var off = 2 + tl;
+      if (((header >> 1) & 3) > 0) off += 2;
+      var payload = TEXT_DECODER.decode(body.slice(off));
+      if (this.cb.onMessage) this.cb.onMessage(payload, topic);
+    }
+  };
+
+  MqttClient.prototype.close = function() {
+    this.stopped = true;
+    clearTimeout(this.connectTimer);
+    if (this.pingTimer) clearInterval(this.pingTimer);
+    if (this.ws) {
+      try { this.raw(new Uint8Array([0xE0, 0])); } catch (e) {}
+      try { this.ws.close(); } catch (e) {}
+    }
+    this.ws = null;
+    this.ready = false;
+  };
+
+  function onlineAvailable() {
+    return location.protocol !== 'file:';
+  }
+
+  function onlineTopic(code) {
+    return 'zzxq1/' + code;
+  }
+
+  function onlineRandomCode() {
+    var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    var arr = new Uint8Array(6);
+    if (window.crypto && crypto.getRandomValues) crypto.getRandomValues(arr);
+    else for (var j = 0; j < 6; j++) arr[j] = Math.floor(Math.random() * 256);
+    var code = '';
+    for (var i = 0; i < 6; i++) code += chars[arr[i] % chars.length];
+    return code;
+  }
+
+  function stopOnlineTimers() {
+    if (online.pingTimer) { clearInterval(online.pingTimer); online.pingTimer = null; }
+    if (online.hbTimer) { clearInterval(online.hbTimer); online.hbTimer = null; }
+    if (online.joinTimer) { clearTimeout(online.joinTimer); online.joinTimer = null; }
+  }
+
+  function sendRelay(obj) {
+    if (!online.ws || !online.code) return;
+    try { online.ws.send(JSON.stringify(obj)); } catch (e) {}
   }
 
   function closeOnlineSocket() {
-    if (online.pingTimer) {
-      clearInterval(online.pingTimer);
-      online.pingTimer = null;
-    }
-    var ws = online.ws;
+    stopOnlineTimers();
+    var client = online.client;
+    online.client = null;
     online.ws = null;
-    if (ws) {
-      ws.onopen = null;
-      ws.onmessage = null;
-      ws.onclose = null;
-      ws.onerror = null;
-      try { ws.close(); } catch (e) {}
-    }
+    if (client) client.close();
+  }
+
+  function startHeartbeat() {
+    if (online.hbTimer) clearInterval(online.hbTimer);
+    online.lastPeerAt = Date.now();
+    online.hbTimer = setInterval(function() {
+      if (!online.ws) return;
+      try { online.ws.send(JSON.stringify({ type: 'hb' })); } catch (e) {}
+      if (online.linked && Date.now() - online.lastPeerAt > 20000) {
+        handlePeerLeft('对方已掉线，对局结束');
+      }
+    }, 4000);
   }
 
   function onlineLeave() {
-    if (online.ws && online.ws.readyState === 1) {
-      try { online.ws.send(JSON.stringify({ type: 'leave' })); } catch (e) {}
-    }
+    sendRelay({ type: 'leave' });
     closeOnlineSocket();
     online.code = '';
     online.linked = false;
@@ -8558,7 +8765,7 @@ window.XQ = {
     updateOnlinePanelView();
     els.modalOnline.classList.add('show');
 
-    var url = onlineWsUrl();
+    var url = onlineAvailable();
     var btnCreate = document.getElementById('btn-create-room');
     var btnJoin = document.getElementById('btn-join-room');
     if (!url) {
@@ -8581,82 +8788,80 @@ window.XQ = {
   }
 
   function onlineConnect(onOpen) {
-    var url = onlineWsUrl();
-    if (!url) {
+    if (!onlineAvailable()) {
       setOnlineStatus('联机需要通过部署后的网址访问，不能直接打开本地文件');
       return;
     }
     closeOnlineSocket();
-    var ws;
-    try {
-      ws = new WebSocket(url);
-    } catch (e) {
-      setOnlineStatus('无法连接服务器');
-      return;
-    }
-    online.ws = ws;
+    online.clientId = 'zzxq' + Math.random().toString(36).slice(2, 12);
     online.disconnected = false;
     var settled = false;
     var timer = setTimeout(function() {
       if (settled) return;
       settled = true;
-      setOnlineStatus('连接服务器超时，请检查网络后重试');
-      try { ws.close(); } catch (e) {}
-    }, 8000);
+      setOnlineStatus('连接中继服务器超时，请检查网络后重试');
+      closeOnlineSocket();
+    }, 12000);
 
-    ws.onopen = function() {
-      settled = true;
-      clearTimeout(timer);
-      if (online.pingTimer) clearInterval(online.pingTimer);
-      online.pingTimer = setInterval(function() {
-        if (online.ws && online.ws.readyState === 1) {
-          try { online.ws.send(JSON.stringify({ type: 'ping' })); } catch (e) {}
+    var client = new MqttClient({
+      onOpen: function() {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        online.client = client;
+        online.ws = {
+          readyState: 1,
+          send: function(str) {
+            try {
+              var obj = JSON.parse(str);
+              obj.from = online.clientId;
+              client.publish(onlineTopic(online.code), JSON.stringify(obj));
+            } catch (e) {}
+          },
+          close: function() { client.close(); }
+        };
+        startHeartbeat();
+        if (onOpen) onOpen();
+      },
+      onMessage: function(payload, topic) {
+        if (topic !== onlineTopic(online.code)) return;
+        handleRelayMessage(payload);
+      },
+      onClose: function() {
+        if (online.client !== client) return;
+        online.client = null;
+        online.ws = null;
+        stopOnlineTimers();
+        var wasInGame = online.inGame;
+        var wasWaiting = online.waiting;
+        online.linked = false;
+        online.disconnected = true;
+        if (wasInGame) {
+          online.inGame = false;
+          renderAll();
+        } else if (wasWaiting) {
+          online.waiting = false;
+          setOnlineStatus('连接已断开，请重新创建房间');
+          updateOnlinePanelView();
         }
-      }, 25000);
-      if (onOpen) onOpen();
-    };
-
-    ws.onmessage = function(ev) {
-      var msg;
-      try { msg = JSON.parse(ev.data); } catch (e) { return; }
-      handleOnlineMessage(msg);
-    };
-
-    ws.onclose = function() {
-      if (online.ws !== ws) return;
-      settled = true;
-      clearTimeout(timer);
-      online.ws = null;
-      if (online.pingTimer) {
-        clearInterval(online.pingTimer);
-        online.pingTimer = null;
+      },
+      onError: function() {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        setOnlineStatus('无法连接中继服务器，请检查网络后重试');
       }
-      var wasInGame = online.inGame;
-      var wasWaiting = online.waiting;
-      online.linked = false;
-      online.disconnected = true;
-      if (wasInGame) {
-        online.inGame = false;
-        renderAll();
-      } else if (wasWaiting) {
-        online.waiting = false;
-        setOnlineStatus('连接已断开，请重新创建房间');
-        updateOnlinePanelView();
-      }
-    };
-
-    ws.onerror = function() {
-      if (settled) return;
-      settled = true;
-      clearTimeout(timer);
-      setOnlineStatus('无法连接服务器，请确认已启动 server.js');
-    };
+    });
   }
 
   function createOnlineRoom() {
     setOnlineStatus('正在创建房间…');
     onlineConnect(function() {
-      if (online.ws) online.ws.send(JSON.stringify({ type: 'create' }));
+      online.code = onlineRandomCode();
+      online.color = 'red';
+      if (online.client) online.client.subscribe(onlineTopic(online.code));
+      online.lastPeerAt = Date.now();
+      handleOnlineMessage({ type: 'created', code: online.code, color: 'red' });
     });
   }
 
@@ -8668,9 +8873,68 @@ window.XQ = {
     }
     setOnlineStatus('正在加入房间…');
     onlineConnect(function() {
-      if (online.ws) online.ws.send(JSON.stringify({ type: 'join', code: code }));
+      online.code = code;
+      online.color = 'black';
+      if (online.client) online.client.subscribe(onlineTopic(code));
+      sendRelay({ type: 'join' });
+      if (online.joinTimer) clearTimeout(online.joinTimer);
+      online.joinTimer = setTimeout(function() {
+        if (online.inGame || online.linked) return;
+        setOnlineStatus('房间不存在或房主不在线');
+        online.code = '';
+        closeOnlineSocket();
+        updateOnlinePanelView();
+      }, 8000);
     });
   }
+
+  function handleRelayMessage(raw) {
+    var msg;
+    try { msg = JSON.parse(raw); } catch (e) { return; }
+    if (!msg || !msg.type) return;
+    if (msg.from && msg.from === online.clientId) return;
+    online.lastPeerAt = Date.now();
+
+    if (msg.type === 'join') {
+      if (online.color === 'red' && online.code) {
+        sendRelay({ type: 'ready' });
+        handleOnlineMessage({ type: 'ready' });
+        handleOnlineMessage({ type: 'start', code: online.code, color: 'red' });
+        online.lastPeerAt = Date.now();
+      }
+      return;
+    }
+
+    if (msg.type === 'ready' || msg.type === 'hb') {
+      if (online.color === 'black' && !online.inGame) {
+        if (online.joinTimer) {
+          clearTimeout(online.joinTimer);
+          online.joinTimer = null;
+        }
+        handleOnlineMessage({ type: 'joined', code: online.code, color: 'black' });
+        handleOnlineMessage({ type: 'start', code: online.code, color: 'black' });
+      }
+      return;
+    }
+
+    if (msg.type === 'move') {
+      handleOnlineMessage({ type: 'move', move: msg.move });
+      return;
+    }
+
+    if (msg.type === 'restart') {
+      handleOnlineMessage({ type: 'restart' });
+      return;
+    }
+
+    if (msg.type === 'leave') {
+      handleOnlineMessage({ type: 'peer-left', message: '对方已离开，对局结束' });
+    }
+  }
+
+  window.addEventListener('pagehide', function() {
+    if (online.code && online.ws) sendRelay({ type: 'leave' });
+  });
 
   function handleOnlineMessage(msg) {
     if (!msg || !msg.type) return;
@@ -8818,9 +9082,8 @@ window.XQ = {
   }
 
   function requestOnlineRestart() {
-    if (online.ws && online.ws.readyState === 1) {
-      try { online.ws.send(JSON.stringify({ type: 'restart' })); } catch (e) {}
-    }
+    sendRelay({ type: 'restart' });
+    handleOnlineMessage({ type: 'restart' });
     hideResultModal();
   }
 
