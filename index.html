@@ -8756,7 +8756,7 @@ window.XQ = {
     renderAll();
   }
 
-  // 提示：受设置次数限制；无文字提示时金圈高亮正解那一步
+  // 提示：明确写出「下一步走什么、从哪走到哪」，并用金圈在棋盘标出起点/落点
   function showPuzzleHint() {
     var pz = state.puzzle;
     if (!pz) return;
@@ -8774,15 +8774,25 @@ window.XQ = {
       return;
     }
     pz.hintsUsed++;
-    if (pz.def.hint) {
+    // 下一步着法：在谱取正解，脱谱则用 AI 算当前最优
+    var move = null;
+    var exp = pz.offBook ? null : pz.def.solution[pz.step];
+    if (exp) {
+      move = { fromRow: exp[0], fromCol: exp[1], toRow: exp[2], toCol: exp[3] };
+    } else {
+      try { move = XQ.aiGetMoveLight(state.board, state.currentTurn, 'normal'); } catch (e) { move = null; }
+      if (!move) { try { move = XQ.aiGetMove(state.board, state.currentTurn, 'easy', null); } catch (e) { move = null; } }
+    }
+    if (move && state.board[move.fromRow] && state.board[move.fromRow][move.fromCol]) {
+      state.brilliant = { fromRow: move.fromRow, fromCol: move.fromCol, toRow: move.toRow, toCol: move.toCol };
+      state.brilliantText = '';
+      pz.hintText = '💡 下一步走「' + moveToNotation(state.board, move) + '」：' +
+        describeMoveTarget(state.board, move) +
+        (pz.def.hint ? '。思路：' + pz.def.hint : '');
+    } else if (pz.def.hint) {
       pz.hintText = '💡 ' + pz.def.hint;
     } else {
-      var exp = pz.def.solution[pz.step];
-      if (exp) {
-        state.brilliant = { fromRow: exp[0], fromCol: exp[1], toRow: exp[2], toCol: exp[3] };
-        state.brilliantText = '';
-      }
-      pz.hintText = '💡 金圈标出的就是正解';
+      pz.hintText = '💡 暂无可提示的着法';
     }
     updatePuzzleBar();
     renderAll();
@@ -8913,13 +8923,30 @@ window.XQ = {
     return color === 'red' ? CN_H[8 - col] : String(col + 1);
   }
 
-  // 生成中文记谱，如 炮二平五、马8进7
+  // 生成中文记谱，如 炮二平五、马8进7、前炮平五
   function moveToNotation(board, move) {
     var p = board[move.fromRow][move.fromCol];
     if (!p) return '';
     var red = p.color === 'red';
     var name = (red ? CN_NAME_RED : CN_NAME_BLACK)[p.type] || '';
-    var text = name + fileText(p.color, move.fromCol);
+    // 同一纵线有同色同种棋子多枚时，用 前/后（或 前/中/后…）区分，如 前炮平五
+    var sameFile = [];
+    for (var rr = 0; rr < 10; rr++) {
+      var q = board[rr][move.fromCol];
+      if (q && q.color === p.color && q.type === p.type) sameFile.push(rr);
+    }
+    var text;
+    if (sameFile.length >= 2) {
+      // 前方 = 行棋方向前方：红方 row 小为前，黑方 row 大为前
+      var sorted = sameFile.slice().sort(function(a, b) { return red ? a - b : b - a; });
+      var posIdx = sorted.indexOf(move.fromRow);
+      var posNames = sameFile.length === 2
+        ? ['前', '后']
+        : (sameFile.length === 3 ? ['前', '中', '后'] : ['前', '二', '三', '四', '五']);
+      text = (posNames[posIdx] || '') + name;
+    } else {
+      text = name + fileText(p.color, move.fromCol);
+    }
     if (move.fromRow === move.toRow) {
       return text + '平' + fileText(p.color, move.toCol);
     }
@@ -8933,6 +8960,27 @@ window.XQ = {
       text += red ? CN_H[steps - 1] : String(steps);
     }
     return text;
+  }
+
+  // 白话描述一步棋「从哪走到哪」，如 把炮从二路平移到五路
+  function describeMoveTarget(board, move) {
+    var p = board[move.fromRow][move.fromCol];
+    if (!p) return '';
+    var red = p.color === 'red';
+    var name = (red ? CN_NAME_RED : CN_NAME_BLACK)[p.type] || '';
+    var fromFile = fileText(p.color, move.fromCol);
+    var toFile = fileText(p.color, move.toCol);
+    if (move.fromRow === move.toRow) {
+      return '把' + name + '从' + fromFile + '路平移到' + toFile + '路';
+    }
+    var forward = red ? (move.fromRow - move.toRow) : (move.toRow - move.fromRow);
+    var dir = forward > 0 ? '进' : '退';
+    if (p.type === 'N' || p.type === 'B' || p.type === 'A') {
+      return '把' + name + '从' + fromFile + '路' + dir + '到' + toFile + '路';
+    }
+    var steps = Math.abs(move.toRow - move.fromRow);
+    var stepsText = red ? CN_H[steps - 1] : String(steps);
+    return '把' + name + '沿' + fromFile + '路' + dir + stepsText + '步';
   }
 
   function showBrilliant() {
@@ -10932,6 +10980,9 @@ window.XQ = {
   } else {
     init();
   }
+
+  // 调试接口：暴露 state 供测试/控制台使用
+  window.__state = state;
 
 })();
 
