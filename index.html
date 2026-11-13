@@ -109,6 +109,11 @@ html, body {
   margin-bottom: 0;
   margin-top: 6px;
 }
+/* 执黑视角：己方吃子记录置于屏幕下方，河界文字左右对调 */
+#app.view-black .captured-bar.top { order: 2; margin-bottom: 0; margin-top: 6px; }
+#app.view-black .captured-bar.bottom { order: 1; margin-bottom: 6px; margin-top: 0; }
+#app.view-black .river-text span:first-child { order: 2; }
+#app.view-black .river-text span:last-child { order: 1; }
 
 .captured-label {
   font-size: 12px;
@@ -2194,7 +2199,7 @@ body { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
 }
 #seg-side { flex-wrap: nowrap; }
 #seg-side .seg-btn { flex: 1 1 0; }
-#seg-fx .seg-btn, #seg-mark .seg-btn { flex: 1 1 0; }
+#seg-fx .seg-btn { flex: 1 1 0; }
 #seg-handicap {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -2447,14 +2452,6 @@ body { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
       </div>
     </div>
 
-    <div class="settings-row">
-      <div class="settings-label">棋盘标注</div>
-      <div class="seg-group" id="seg-mark">
-        <button class="seg-btn" data-mark="0">只标红方危险</button>
-        <button class="seg-btn" data-mark="1">红危险＋黑白吃</button>
-      </div>
-    </div>
-
     <p class="settings-tip">设置会自动保存，下次打开仍然生效。</p>
   </div>
 </div>
@@ -2498,7 +2495,7 @@ body { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
   <button class="home-btn" id="btn-home">返回桌面</button>
 
   <!-- 黑方吃子记录（顶部） -->
-  <div class="captured-bar">
+  <div class="captured-bar top">
     <div class="captured-label">黑方吃子</div>
     <div class="captured-side" id="captured-red"></div>
   </div>
@@ -8456,7 +8453,6 @@ window.XQ = {
     lastMove: null,     // 最后一步，用于高亮
     showDanger: true,
     effectOn: true,
-    showBlackFree: true,   // 是否显示黑方可被白吃的绿色标记
     noCaptureHalfMoves: 0, // 连续未吃子的半回合数
     posCounts: {},         // 局面出现次数（用于三次重复判和）
     volumeLevel: 3, // 固定最高，音量交给手机系统控制
@@ -8489,6 +8485,9 @@ window.XQ = {
     joinTimer: null,
     lastPeerAt: 0,
     disconnected: false,
+    hints: { red: 3, black: 3 },   // 联机双方各自剩余提示次数
+    undos: { red: 2, black: 2 },  // 联机双方各自剩余悔棋次数
+    noticePeerLeft: false,        // 是否已弹出“对手离开”提示
   };
 
   // 是否停留在开始界面（用于拦截后台 AI 延迟走子）
@@ -8654,24 +8653,45 @@ window.XQ = {
   // ============================================================
   // 渲染棋盘
   // ============================================================
+  // 本地操作者执子颜色：联机按分配颜色，人机按玩家颜色，其余默认红方
+  function localViewColor() {
+    if (state.gameMode === 'online') return online.color;
+    if (state.gameMode === 'pve') return state.playerColor;
+    return 'red';
+  }
+  function isBlackView() { return localViewColor() === 'black'; }
+  // 标注视角：人机/联机按本地执子方，双人按当前行棋方
+  function markerSide() {
+    if (state.gameMode === 'pvp') return state.currentTurn;
+    return localViewColor();
+  }
+
   function renderBoard() {
     var html = '';
     var board = state.board;
+    var flip = isBlackView();
 
     for (var r = 0; r < 10; r++) {
       for (var c = 0; c < 9; c++) {
         var piece = board[r][c];
-        var leftPct = (c * 100 / 8).toFixed(4);
-        var topPct = (r * 100 / 9).toFixed(4);
+        var dr = flip ? 9 - r : r;
+        var dc = flip ? 8 - c : c;
+        var leftPct = (dc * 100 / 8).toFixed(4);
+        var topPct = (dr * 100 / 9).toFixed(4);
         var isSel = state.selectedPos && state.selectedPos.row === r && state.selectedPos.col === c;
         var moveInfo = getMoveInfoAt(r, c);
         var key = r + '-' + c;
         var isJustMoved = state.lastMove && state.lastMove.toRow === r && state.lastMove.toCol === c;
 
-        // 危险标记（红方棋子被黑方白吃 = 红色虚框）
-        var isDanger = piece && piece.color === 'red' && danger.blackFreeCaptures[key];
-        // 白吃机会（黑方棋子被红方白吃 = 绿色圈）
-        var isFreeCap = state.showBlackFree !== false && piece && piece.color === 'black' && danger.redFreeCaptures[key];
+        // 视角：己方=持棋方，对方=对手
+        var mine = markerSide();
+        var enemy = mine === 'red' ? 'black' : 'red';
+        var myFree = mine === 'red' ? danger.redFreeCaptures : danger.blackFreeCaptures;
+        var oppFree = mine === 'red' ? danger.blackFreeCaptures : danger.redFreeCaptures;
+        // 红标：己方无保护、对方可无风险吃掉的棋子
+        var isDanger = piece && piece.color === mine && oppFree[key];
+        // 绿标：己方可以无风险吃掉的对方棋子
+        var isFreeCap = piece && piece.color === enemy && myFree[key];
         // 将军标记
         var inCheckMark = piece && piece.type === 'K' && piece.color === danger.inCheck;
         // 妙招标记
@@ -8784,10 +8804,34 @@ window.XQ = {
     var disabled = state.history.length === 0 || state.isAiThinking || (state.gameResult && !state.puzzle);
     // 观战自动播放中不可悔
     if (state.watch.enabled && state.watch.isPlaying) disabled = true;
-    // 联机对局不允许单方悔棋/重开
-    if (state.gameMode === 'online') disabled = true;
+    var onlineMode = state.gameMode === 'online';
+    if (onlineMode) {
+      // 联机：轮到自己、尚有悔棋次数时才可回退一步；每方限 2 次
+      disabled = disabled || state.currentTurn !== online.color || online.undos[state.currentTurn] <= 0;
+      els.btnUndo.textContent = '↶ 悔棋(剩' + online.undos[state.currentTurn] + ')';
+    } else {
+      els.btnUndo.textContent = '↶ 悔棋';
+    }
     els.btnUndo.disabled = disabled;
-    if (els.btnReset) els.btnReset.disabled = state.gameMode === 'online';
+    // 联机没有“重开”
+    if (els.btnReset) els.btnReset.style.display = onlineMode ? 'none' : '';
+  }
+
+  function renderActionBar() {
+    if (!els.btnBrilliant || state.puzzle) return;
+    var onlineMode = state.gameMode === 'online';
+    var pveMode = state.gameMode === 'pve';
+    var hintable = !state.isAiThinking && !state.gameResult && !state.watch.enabled;
+    if (onlineMode) {
+      hintable = hintable && online.color === state.currentTurn && online.hints[state.currentTurn] > 0;
+      els.btnBrilliant.textContent = '💡 提示(剩' + online.hints[state.currentTurn] + ')';
+    } else if (pveMode) {
+      hintable = hintable && state.currentTurn === state.playerColor;
+      els.btnBrilliant.textContent = '💡 提示';
+    } else {
+      els.btnBrilliant.textContent = '💡 提示';
+    }
+    els.btnBrilliant.disabled = !hintable;
   }
 
   function renderOnlineBar() {
@@ -8870,10 +8914,14 @@ window.XQ = {
   }
 
   function renderAll() {
+    var appEl = document.getElementById('app');
+    if (appEl) appEl.classList.toggle('view-black', isBlackView());
     renderBoard();
+    renderFileLabels();
     renderCaptured();
     renderHintText();
     renderUndoBtn();
+    renderActionBar();
     renderOnlineBar();
     renderWatchBar();
   }
@@ -8886,6 +8934,7 @@ window.XQ = {
   function getCellPos(r, c) {
     if (!els.boardArea) return { x: 0, y: 0 };
     var rect = els.boardArea.getBoundingClientRect();
+    if (isBlackView()) { r = 9 - r; c = 8 - c; }
     var x = rect.width * (c / 8);
     var y = rect.height * (r / 9);
     return { x: x, y: y, w: rect.width, h: rect.height };
@@ -9311,6 +9360,8 @@ window.XQ = {
   // ============================================================
   function handleUndo() {
     if (state.history.length === 0 || state.isAiThinking) return;
+    // 联机：每方限悔 2 步，回退一步并同步对手
+    if (state.gameMode === 'online') { requestOnlineUndo(); return; }
     // 观战自动播放中不可悔
     if (state.watch.enabled && state.watch.isPlaying) return;
 
@@ -9732,17 +9783,19 @@ window.XQ = {
   // 纵线路标：上排黑方视角 1~9（左→右），下排红方视角 一~九（左→右为 九→一）
   // 路标行与棋盘容器同宽；主棋盘 .board-wrapper 有 4% 左右内边距，列位置需补偿
   function renderFileLabels() {
-    fillFileLabels(document.getElementById('file-labels-top'), 'black', 4);
-    fillFileLabels(document.getElementById('file-labels-bottom'), 'red', 4);
-    fillFileLabels(document.getElementById('demo-file-labels-top'), 'black', 0);
-    fillFileLabels(document.getElementById('demo-file-labels-bottom'), 'red', 0);
+    var flip = isBlackView();
+    fillFileLabels(document.getElementById('file-labels-top'), flip ? 'red' : 'black', 4, flip);
+    fillFileLabels(document.getElementById('file-labels-bottom'), flip ? 'black' : 'red', 4, flip);
+    fillFileLabels(document.getElementById('demo-file-labels-top'), 'black', 0, false);
+    fillFileLabels(document.getElementById('demo-file-labels-bottom'), 'red', 0, false);
   }
-  function fillFileLabels(el, perspective, padPct) {
+  function fillFileLabels(el, perspective, padPct, mirror) {
     if (!el) return;
     var spanPct = 100 - padPct * 2;
     var html = '';
-    for (var c = 0; c < 9; c++) {
-      html += '<span style="left:' + (padPct + c * spanPct / 8) + '%">' + fileText(perspective, c) + '</span>';
+    for (var dc = 0; dc < 9; dc++) {
+      var c = mirror ? 8 - dc : dc;
+      html += '<span style="left:' + (padPct + dc * spanPct / 8) + '%">' + fileText(perspective, c) + '</span>';
     }
     el.innerHTML = html;
   }
@@ -9812,6 +9865,8 @@ window.XQ = {
     // 杀法挑战里，妙招就是提示
     if (state.puzzle) { showPuzzleHint(); return; }
     if (state.gameMode === 'pve' && state.currentTurn !== state.playerColor) return;
+    if (state.gameMode === 'online' && state.currentTurn !== online.color) return;
+    if (state.gameMode === 'online' && online.hints[state.currentTurn] <= 0) return;
     if (state.watch.enabled) {
       var isAiSide = state.currentTurn === 'red' ? state.watch.aiRed : state.watch.aiBlack;
       if (isAiSide) return;
@@ -9821,6 +9876,7 @@ window.XQ = {
     state.brilliantText = '';
     renderBoard();
     els.hintText.textContent = '💡 正在计算提示…';
+    var hintTurn = state.currentTurn;
     // 让“计算中”先渲染出来，再同步搜索
     setTimeout(function() {
       var move = null;
@@ -9832,12 +9888,15 @@ window.XQ = {
       }
       if (!move) {
         try {
-          move = XQ.aiGetMove(state.board, state.currentTurn, 'normal', state.moveHistory);
+          move = XQ.aiGetMove(state.board, hintTurn, 'normal', state.moveHistory);
         } catch (e) {
           move = null;
         }
       }
       if (!move) { renderAll(); return; }
+      var src = state.board[move.fromRow] && state.board[move.fromRow][move.fromCol];
+      if (!src || src.color !== hintTurn) { renderAll(); return; }
+      if (state.gameMode === 'online') online.hints[hintTurn] = Math.max(0, online.hints[hintTurn] - 1);
       state.brilliant = move;
       state.brilliantText = moveToNotation(state.board, move);
       renderAll();
@@ -9943,7 +10002,6 @@ window.XQ = {
   // 游戏内“返回桌面”：回到开始界面，保留当前棋局
   function returnToMenu() {
     if (state.gameMode === 'online') {
-      if (!window.confirm('退出联机对局？对手会收到离开提示')) return;
       exitOnlineToMenu();
       return;
     }
@@ -10240,6 +10298,7 @@ window.XQ = {
     online.inGame = false;
     online.suppressSend = false;
     online.disconnected = false;
+    online.noticePeerLeft = false;
     if (state.gameMode === 'online') {
       state.gameMode = 'pvp';
       state.playerColor = 'red';
@@ -10358,7 +10417,7 @@ window.XQ = {
         online.disconnected = true;
         if (wasInGame) {
           online.inGame = false;
-          renderAll();
+          showPeerLeftModal('连接已断开，对手离线，对局结束');
         } else if (wasWaiting) {
           online.waiting = false;
           setOnlineStatus('连接已断开，请重新创建房间');
@@ -10499,6 +10558,11 @@ window.XQ = {
       return;
     }
 
+    if (msg.type === 'undo') {
+      applyRemoteUndo();
+      return;
+    }
+
     if (msg.type === 'restart') {
       if (state.gameMode === 'online') {
         hideResultModal();
@@ -10525,10 +10589,25 @@ window.XQ = {
     }
   }
 
+  function showPeerLeftModal(message) {
+    online.linked = false;
+    online.disconnected = true;
+    online.noticePeerLeft = true;
+    if (els.resultWinner) els.resultWinner.textContent = '对手已离开';
+    if (els.resultReason) els.resultReason.textContent = '对局结束';
+    if (els.resultDesc) els.resultDesc.textContent = message || '对方已退出联机，本局结束';
+    var killBox = document.getElementById('result-kill-box');
+    if (killBox) killBox.style.display = 'none';
+    if (els.btnResultRestart) els.btnResultRestart.textContent = '返回桌面';
+    renderAll();
+    Screen.openModal('result');
+    sfx('popup-open');
+  }
+
   function handlePeerLeft(message) {
     online.linked = false;
     if (online.inGame) {
-      renderAll();
+      showPeerLeftModal(message);
       return;
     }
     if (online.waiting) {
@@ -10547,6 +10626,9 @@ window.XQ = {
     online.inGame = true;
     online.waiting = false;
     online.suppressSend = false;
+    online.hints = { red: 3, black: 3 };
+    online.undos = { red: 2, black: 2 };
+    online.noticePeerLeft = false;
     hideOnlinePanel();
     hideStartScreen();
     if (state.puzzle) {
@@ -10599,6 +10681,51 @@ window.XQ = {
       toCol: move.toCol,
     });
     online.suppressSend = false;
+  }
+
+  // 联机悔棋：双方历史栈一致，回退一步并同步给对手
+  function popOnlineSnapshot() {
+    if (state.history.length === 0) return null;
+    var last = state.moveHistory[state.moveHistory.length - 1];
+    var mover = last ? last.color : state.currentTurn;
+    var prev = state.history.pop();
+    state.board = prev.board;
+    state.currentTurn = prev.currentTurn;
+    state.capturedRed = prev.capturedRed;
+    state.capturedBlack = prev.capturedBlack;
+    state.moveHistory = prev.moveHistory;
+    state.killInfo = prev.killInfo || null;
+    state.gameResult = null;
+    state.selectedPos = null;
+    state.validMoves = [];
+    state.brilliant = null;
+    state.brilliantText = '';
+    state.lastMove = state.moveHistory.length > 0
+      ? state.moveHistory[state.moveHistory.length - 1] : null;
+    state.noCaptureHalfMoves = 0;
+    state.posCounts = {};
+    updateDangerAnalysis();
+    return mover;
+  }
+
+  function applyRemoteUndo() {
+    if (state.gameMode !== 'online' || state.history.length === 0) return;
+    var mover = popOnlineSnapshot();
+    if (mover) online.undos[mover] = Math.max(0, online.undos[mover] - 1);
+    renderAll();
+    hideResultModal();
+    hideKillInfo();
+  }
+
+  function requestOnlineUndo() {
+    if (state.history.length === 0) return;
+    var mover = popOnlineSnapshot();
+    if (mover) online.undos[mover] = Math.max(0, online.undos[mover] - 1);
+    sendRelay({ type: 'undo' });
+    renderAll();
+    hideResultModal();
+    hideKillInfo();
+    sfx('undo');
   }
 
   function requestOnlineRestart() {
@@ -10897,7 +11024,7 @@ window.XQ = {
       killBox.style.display = 'none';
     }
 
-    els.btnResultRestart.textContent = state.gameMode === 'online' ? '再来一局' : '重新开始';
+    els.btnResultRestart.textContent = state.gameMode === 'online' ? '退出到桌面' : '重新开始';
     Screen.openModal('result');
     sfx('popup-open');
   }
@@ -10909,7 +11036,7 @@ window.XQ = {
 
   function showResetModal() {
     if (state.gameMode === 'online') {
-      els.hintText.textContent = '联机对局不能单方重开，结束一局后点“再来一局”';
+      els.hintText.textContent = '联机对局不能重开，结束后可点右上角“退出”返回桌面';
       return;
     }
     Screen.openModal('reset');
@@ -11585,17 +11712,14 @@ window.XQ = {
   // 事件绑定
   // ============================================================
   // ============================================================
-  // 设置面板（音效档位 / 特效开关 / 棋盘标注）
+  // 设置面板（音效档位 / 特效开关）
   // ============================================================
   var LS_FX_ON = 'zzxq_fx_on';
-  var LS_MARK_FREE = 'zzxq_mark_free';
 
   function loadSettingsFromStorage() {
     try {
       var fx = localStorage.getItem(LS_FX_ON);
       if (fx !== null) state.effectOn = fx === '1';
-      var mk = localStorage.getItem(LS_MARK_FREE);
-      if (mk !== null) state.showBlackFree = mk === '1';
       var vol = localStorage.getItem('zzxq_vol');
       if (vol !== null && window.XQSound) {
         var lv = parseInt(vol, 10);
@@ -11613,10 +11737,6 @@ window.XQ = {
     var fxBtns = document.querySelectorAll('#seg-fx .seg-btn');
     for (var j = 0; j < fxBtns.length; j++) {
       fxBtns[j].classList.toggle('active', (fxBtns[j].getAttribute('data-fx') === '1') === !!state.effectOn);
-    }
-    var markBtns = document.querySelectorAll('#seg-mark .seg-btn');
-    for (var k = 0; k < markBtns.length; k++) {
-      markBtns[k].classList.toggle('active', (markBtns[k].getAttribute('data-mark') === '1') === (state.showBlackFree !== false));
     }
   }
 
@@ -11685,6 +11805,8 @@ window.XQ = {
       var fy = (e.clientY - rect.top) / rect.height * 9;
       var r = Math.round(fy);
       var c = Math.round(fx);
+      // 执黑视角为镜像布局，需把屏幕坐标反算回原始棋盘坐标
+      if (isBlackView()) { r = 9 - r; c = 8 - c; }
       if (r < 0) r = 0; else if (r > 9) r = 9;
       if (c < 0) c = 0; else if (c > 8) c = 8;
       handleCellClick(r, c);
@@ -11814,18 +11936,6 @@ window.XQ = {
         sfx('click');
       });
     }
-    var segMark = document.getElementById('seg-mark');
-    if (segMark) {
-      segMark.addEventListener('click', function(e) {
-        var b = e.target.closest('.seg-btn');
-        if (!b) return;
-        state.showBlackFree = b.getAttribute('data-mark') === '1';
-        try { localStorage.setItem(LS_MARK_FREE, state.showBlackFree ? '1' : '0'); } catch(err) {}
-        refreshSettingsUI();
-        renderAll();
-        sfx('click');
-      });
-    }
 
     // 联机面板
     var btnCreateRoom = document.getElementById('btn-create-room');
@@ -11863,7 +11973,7 @@ window.XQ = {
     }
     if (els.btnOnlineExit) {
       els.btnOnlineExit.addEventListener('click', function() {
-        if (window.confirm('退出联机对局？对手会收到离开提示')) exitOnlineToMenu();
+        exitOnlineToMenu();
       });
     }
     if (els.modalOnline) {
@@ -11951,7 +12061,8 @@ window.XQ = {
     // 结果弹窗
     els.btnResultRestart.addEventListener('click', function() {
       if (state.gameMode === 'online') {
-        requestOnlineRestart();
+        hideResultModal();
+        exitOnlineToMenu();
         return;
       }
       hideResultModal();
@@ -12112,7 +12223,7 @@ window.XQ = {
       initDemo();
       renderFileLabels();
 
-      // 读取本地保存的音效档位、特效开关与标注设置
+      // 读取本地保存的音效档位与特效开关
       if (window.XQSound) {
         window.XQSound.setVolumeLevel(3);
         state.volumeLevel = 3;
