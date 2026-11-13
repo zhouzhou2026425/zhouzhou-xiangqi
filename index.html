@@ -313,6 +313,49 @@ html, body {
   100% { transform: scale(1); }
 }
 
+/* 上一步移动路径 */
+.move-path {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+}
+.move-path line {
+  stroke: rgba(70, 120, 210, 0.55);
+  stroke-width: 1.6;
+  stroke-dasharray: 6 5;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+/* 起点虚影：棋子原来的位置 */
+.move-ghost {
+  position: absolute;
+  inset: 4%;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: inherit;
+  font-weight: 700;
+  opacity: 0.32;
+  pointer-events: none;
+  z-index: 1;
+}
+.move-ghost.red {
+  border: 2px dashed rgba(192, 57, 43, 0.8);
+  color: #c0392b;
+  background: rgba(192, 57, 43, 0.08);
+}
+.move-ghost.black {
+  border: 2px dashed rgba(44, 62, 80, 0.8);
+  color: #2c3e50;
+  background: rgba(44, 62, 80, 0.08);
+}
+
 .piece.in-check {
   animation: checkPulse 0.9s ease-in-out infinite;
 }
@@ -2555,6 +2598,9 @@ body { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
     </div>
 
     <div class="board-points" id="board-points"></div>
+
+    <!-- 上一步移动路径 -->
+    <svg class="move-path" id="move-path" viewBox="0 0 8 9" preserveAspectRatio="none"></svg>
 
     <!-- 特效层 -->
     <div class="board-effects" id="board-effects"></div>
@@ -8681,7 +8727,10 @@ window.XQ = {
         var isSel = state.selectedPos && state.selectedPos.row === r && state.selectedPos.col === c;
         var moveInfo = getMoveInfoAt(r, c);
         var key = r + '-' + c;
-        var isJustMoved = state.lastMove && state.lastMove.toRow === r && state.lastMove.toCol === c;
+        var lm = state.lastMove;
+        var isJustMoved = lm && lm.toRow === r && lm.toCol === c;
+        var isFrom = lm && lm.fromRow === r && lm.fromCol === c;
+        var movedPiece = lm && board[lm.toRow] ? board[lm.toRow][lm.toCol] : null;
 
         // 视角：己方=持棋方，对方=对手
         var mine = markerSide();
@@ -8716,12 +8765,29 @@ window.XQ = {
         if (isFreeCap) html += '<div class="free-cap-mark"></div>';
         if (isBFrom) html += '<div class="brilliant-from-mark"></div>';
         if (isBTo) html += '<div class="brilliant-to-mark"></div>';
+        if (isFrom && !piece && movedPiece) {
+          html += '<div class="move-ghost ' + movedPiece.color + '">' + movedPiece.char + '</div>';
+        }
 
         html += '</div>';
       }
     }
 
     els.boardPoints.innerHTML = html;
+
+    // 上一步：起点到落点的虚线路径（视角翻转时同步翻转）
+    var pathSvg = document.getElementById('move-path');
+    if (pathSvg) {
+      if (lm && movedPiece) {
+        var fdr = flip ? 9 - lm.fromRow : lm.fromRow;
+        var fdc = flip ? 8 - lm.fromCol : lm.fromCol;
+        var tdr = flip ? 9 - lm.toRow : lm.toRow;
+        var tdc = flip ? 8 - lm.toCol : lm.toCol;
+        pathSvg.innerHTML = '<line x1="' + fdc + '" y1="' + fdr + '" x2="' + tdc + '" y2="' + tdr + '"/>';
+      } else {
+        pathSvg.innerHTML = '';
+      }
+    }
   }
 
   function getMoveInfoAt(r, c) {
