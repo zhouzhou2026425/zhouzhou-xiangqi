@@ -2320,6 +2320,81 @@ body { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
   color: #fff4dc;
 }
 
+/* ============================================================
+   整体美化覆层（暖木宣纸质感，不改变布局尺寸）
+   ============================================================ */
+html, body {
+  background: radial-gradient(130% 90% at 50% 0%, #fbf3df 0%, #f3e8cf 55%, #ecd9b4 100%);
+}
+
+/* 棋盘木框与盘面 */
+.board-wrapper {
+  background: linear-gradient(160deg, #c69a5b 0%, #a87a3f 58%, #8f642f 100%);
+  border: 1px solid #7a5224;
+  border-radius: 16px;
+  padding: 5% 4.5%;
+  box-shadow:
+    0 10px 24px rgba(80, 48, 12, 0.22),
+    inset 0 1px 2px rgba(255, 255, 255, 0.35);
+}
+.board-area {
+  background: linear-gradient(180deg, #f2dfb1 0%, #e6c98c 100%);
+  border-radius: 10px;
+  box-shadow: inset 0 2px 8px rgba(90, 58, 16, 0.18);
+}
+.board-svg line { stroke: #6b4a22; }
+
+/* 棋子：立体感与刻线更柔和 */
+.piece {
+  background: radial-gradient(circle at 32% 26%, #fffdf6 0%, #f8ebcb 34%, #e8d0a2 62%, #c9a86f 88%, #a9863f 100%);
+  border: 1.5px solid rgba(122, 88, 32, 0.85);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.85) inset,
+    0 -3px 6px rgba(122, 88, 32, 0.32) inset,
+    1px 3px 7px rgba(60, 38, 6, 0.34);
+}
+
+/* 首页卡片 */
+.start-mode, .start-tool {
+  box-shadow: 0 3px 10px rgba(90, 61, 26, 0.12);
+}
+.start-mode { border-radius: 15px; }
+.start-tool { border-radius: 13px; }
+
+/* 弹窗 */
+.modal {
+  background: linear-gradient(180deg, #fffaf0 0%, #f8ecd0 100%);
+  border-radius: 16px;
+  border: 1px solid #c9b896;
+  box-shadow: 0 12px 32px rgba(50, 30, 8, 0.28);
+}
+.modal-overlay {
+  background: rgba(46, 30, 10, 0.52);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+/* 按钮统一质感 */
+.btn {
+  border-radius: 11px;
+  box-shadow: 0 1px 3px rgba(90, 61, 26, 0.16);
+}
+.btn.btn-primary {
+  box-shadow: 0 3px 8px rgba(107, 20, 20, 0.3);
+}
+
+/* 提示条 */
+.hint-box {
+  background: rgba(255, 250, 238, 0.62);
+  border-radius: 10px;
+  box-shadow: 0 1px 4px rgba(90, 61, 26, 0.08);
+}
+
+/* 标题印章 */
+.start-seal {
+  box-shadow: 0 8px 18px rgba(107, 20, 20, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
 </style>
 </head>
 <body>
@@ -6565,6 +6640,32 @@ window.XQ = {
   // 具体音效
   // ============================================================
 
+  // 木磬/锣：将死收尾的长鸣，三个非和谐泛音叠加
+  function gong(o) {
+    if (!initialized || !audioCtx || !masterGain) return;
+    o = o || {};
+    var t = audioCtx.currentTime + (o.delay || 0);
+    var f = o.freq || 196;
+    var vol = o.volume !== undefined ? o.volume : 0.3;
+    var dur = o.dur || 1;
+    var partials = [1, 2.76, 4.07];
+    for (var i = 0; i < partials.length; i++) {
+      var osc = audioCtx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.value = f * partials[i];
+      var g = audioCtx.createGain();
+      var v = vol / (i + 1.6);
+      var d = dur / (i + 1);
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(v, t + 0.008);
+      g.gain.exponentialRampToValueAtTime(0.0005, t + d);
+      osc.connect(g);
+      g.connect(masterGain);
+      osc.start(t);
+      osc.stop(t + d + 0.05);
+    }
+  }
+
   // 1. 落子：木子在木盘上清脆的一下
   function playMove() {
     ensureInit();
@@ -6572,10 +6673,10 @@ window.XQ = {
     if (!canPlay('move')) return;
 
     woodHit({
-      res: 2000 + Math.random() * 500,
-      body: 175 + Math.random() * 40,
-      volume: 0.5,
-      dur: 0.06,
+      res: 2300 + Math.random() * 400,
+      body: 185 + Math.random() * 30,
+      volume: 0.48,
+      dur: 0.055,
     });
   }
 
@@ -6585,10 +6686,10 @@ window.XQ = {
     if (!enabled || volumeLevel === 0) return;
     if (!canPlay('capture')) return;
 
-    // 第一下：子与子相撞
-    woodHit({ res: 1500, body: 235, volume: 0.55, dur: 0.085 });
-    // 第二下：被吃的子/己子落盘
-    woodHit({ res: 2500, body: 185, volume: 0.35, dur: 0.05, delay: 0.06 });
+    // 第一下：子与子相撞，更闷更重
+    woodHit({ res: 1400, body: 250, volume: 0.55, dur: 0.09 });
+    // 第二下：被吃的子/己子落盘，清脆一记
+    woodHit({ res: 2600, body: 175, volume: 0.32, dur: 0.05, delay: 0.07 });
   }
 
   // 3. 将军：两下短促上扬的木鱼声
@@ -6597,8 +6698,8 @@ window.XQ = {
     if (!enabled || volumeLevel === 0) return;
     if (!canPlay('check')) return;
 
-    woodHit({ res: 2600, body: 210, volume: 0.5, dur: 0.05 });
-    woodHit({ res: 3200, body: 240, volume: 0.45, dur: 0.05, delay: 0.12 });
+    woodHit({ res: 2500, body: 215, volume: 0.5, dur: 0.05 });
+    woodHit({ res: 3300, body: 255, volume: 0.45, dur: 0.05, delay: 0.12 });
   }
 
   // 4. 将死：一串敲击，胜局上行、败局下行
@@ -6624,21 +6725,23 @@ window.XQ = {
     for (var i = 0; i < seq.length; i++) {
       woodHit({ res: seq[i].res, body: seq[i].body, volume: 0.5, dur: 0.07, delay: seq[i].d });
     }
-    // 收尾的板体长鸣
+    // 收尾木磬长鸣：胜局偏高扬，败局偏低沉
     if (isWin) {
-      woodHit({ res: 1400, body: 150, volume: 0.4, dur: 0.14, delay: 0.55 });
+      woodHit({ res: 1400, body: 150, volume: 0.38, dur: 0.14, delay: 0.55 });
+      gong({ freq: 196, volume: 0.3, dur: 1.1, delay: 0.58 });
     } else {
-      woodHit({ res: 1100, body: 120, volume: 0.35, dur: 0.16, delay: 0.62 });
+      woodHit({ res: 1100, body: 120, volume: 0.34, dur: 0.16, delay: 0.62 });
+      gong({ freq: 147, volume: 0.26, dur: 1.0, delay: 0.65 });
     }
   }
 
-  // 5. 非法走子：闷住的一声轻响
+  // 5. 非法走子：闷住的一声低钝轻响
   function playInvalid() {
     ensureInit();
     if (!enabled || volumeLevel === 0) return;
     if (!canPlay('invalid')) return;
 
-    woodHit({ res: 900, body: 130, volume: 0.18, dur: 0.045 });
+    woodHit({ res: 700, body: 120, volume: 0.16, dur: 0.05 });
   }
 
   // 6. 按钮点击：极轻的木扣声
