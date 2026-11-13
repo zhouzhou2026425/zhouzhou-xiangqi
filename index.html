@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-<head><meta property="og:image" content="https://miaoda.feishu.cn/aily/api/v1/files/static/c558503cf299026ba7cfaf3e5882538a954c63d41875a2f404aac33daba67914_ve_miaoda?x-tos-process=image%2Fresize%2Cw_120%2Ch_120%2Cm_fixed%7Crounded-corners%2Cr_14%2Fformat%2Cpng"><link rel="icon" href="https://miaoda.feishu.cn/aily/api/v1/files/static/c558503cf299026ba7cfaf3e5882538a954c63d41875a2f404aac33daba67914_ve_miaoda?x-tos-process=image%2Fresize%2Cw_120%2Ch_120%2Cm_fixed%7Crounded-corners%2Cr_14%2Fformat%2Cpng">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%238b1a1a'/%3E%3Ctext x='50' y='50' font-size='62' fill='%23f8e8c8' text-anchor='middle' dominant-baseline='central' font-family='KaiTi,STKaiti,serif'%3E%E8%B1%A1%3C/text%3E%3C/svg%3E">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#f5efe0">
-<title>象棋对弈</title>
-<meta name="description" content="打开链接即可与微信好友联机对弈，也可同机双人或人机对战，还有28局古籍杀法闯关，适配手机屏幕，无需登录轻松开局。">
+<title>周周象棋</title>
+<meta name="description" content="周周象棋：打开链接即可与微信好友联机对弈，也可同机双人或人机对战，还有28局古籍杀法闯关，适配手机屏幕，无需登录轻松开局。">
 <meta name="creative-medium" content="interactive-prototype">
 <meta itemprop="name" content="周周象棋">
-<meta itemprop="description" content="经典中国象棋对弈应用">
-<meta property="og:title" content="象棋对弈">
-<meta property="og:description" content="打开链接即可与微信好友联机对弈，也可同机双人或人机对战，还有28局古籍杀法闯关，适配手机屏幕，无需登录轻松开局。">
+<meta itemprop="description" content="周周象棋 · 经典中国象棋对弈应用">
+<meta property="og:title" content="周周象棋">
+<meta property="og:description" content="周周象棋：打开链接即可与微信好友联机对弈，也可同机双人或人机对战，还有28局古籍杀法闯关，适配手机屏幕，无需登录轻松开局。">
 
 <style>
 /* ============================================================
@@ -1922,8 +1922,8 @@ body { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
 .start-tools {
   width: 100%;
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 10px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
   margin-top: 4px;
 }
 .start-tool {
@@ -1931,7 +1931,7 @@ body { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  padding: 12px 6px;
+  padding: 11px 4px;
   border: 1px solid #d4b88a;
   border-radius: 12px;
   background: rgba(255, 250, 238, 0.72);
@@ -1945,11 +1945,11 @@ body { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
   transform: scale(0.97);
 }
 .start-tool .st-icon {
-  font-size: 22px;
+  font-size: 20px;
   line-height: 1;
 }
 .start-tool .st-name {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 1px;
 }
@@ -2111,6 +2111,62 @@ body { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
   -webkit-user-select: text;
 }
 
+
+/* ============================================================
+   设置面板
+   ============================================================ */
+.settings-modal {
+  max-width: 360px;
+}
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px dashed #e2cfa8;
+}
+.settings-row:last-of-type { border-bottom: none; }
+.settings-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #5a3d1a;
+  flex-shrink: 0;
+}
+.seg-group {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+.seg-btn {
+  padding: 7px 10px;
+  min-height: 34px;
+  border: 1px solid #b89a6a;
+  border-radius: 8px;
+  background: #fdf6e3;
+  color: #6b4c22;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, transform 0.06s;
+  white-space: nowrap;
+}
+.seg-btn:active { transform: scale(0.96); }
+.seg-btn.active {
+  background: #8b2f2f;
+  border-color: #8b2f2f;
+  color: #fff4dc;
+}
+.settings-tip {
+  margin: 12px 0 2px;
+  font-size: 11.5px;
+  color: #a58d66;
+  text-align: center;
+  letter-spacing: 0.5px;
+}
+
 </style>
 </head>
 <body>
@@ -2178,8 +2234,52 @@ body { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
         <span class="st-icon">🎯</span>
         <span class="st-name">杀法闯关</span>
       </button>
+      <button class="start-tool" data-start-mode="settings">
+        <span class="st-icon">⚙️</span>
+        <span class="st-name">设置</span>
+      </button>
     </div>
     <div class="start-foot">无需登录 · 打开即玩</div>
+  </div>
+</div>
+
+<!-- ============================================================
+     设置面板
+     ============================================================ -->
+<div class="modal-overlay" id="modal-settings">
+  <div class="modal settings-modal">
+    <div class="online-head">
+      <h2>设置</h2>
+      <button class="btn-close" id="btn-settings-close" aria-label="关闭">×</button>
+    </div>
+
+    <div class="settings-row">
+      <div class="settings-label">音效</div>
+      <div class="seg-group" id="seg-sound">
+        <button class="seg-btn" data-sound="0">关</button>
+        <button class="seg-btn" data-sound="1">低</button>
+        <button class="seg-btn" data-sound="2">中</button>
+        <button class="seg-btn" data-sound="3">高</button>
+      </div>
+    </div>
+
+    <div class="settings-row">
+      <div class="settings-label">特效</div>
+      <div class="seg-group" id="seg-fx">
+        <button class="seg-btn" data-fx="0">关</button>
+        <button class="seg-btn" data-fx="1">开</button>
+      </div>
+    </div>
+
+    <div class="settings-row">
+      <div class="settings-label">棋盘标注</div>
+      <div class="seg-group" id="seg-mark">
+        <button class="seg-btn" data-mark="0">只标红方危险</button>
+        <button class="seg-btn" data-mark="1">红危险＋黑白吃</button>
+      </div>
+    </div>
+
+    <p class="settings-tip">设置会自动保存，下次打开仍然生效。</p>
   </div>
 </div>
 
@@ -2278,7 +2378,7 @@ body { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
 
     <div class="river-text">
       <span>楚 河</span>
-      <span>漢 界</span>
+      <span>汉 界</span>
     </div>
 
     <div class="board-points" id="board-points"></div>
@@ -2446,7 +2546,7 @@ body { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
                 <line x1="3" y1="7" x2="5" y2="9"/>
                 <line x1="5" y1="7" x2="3" y2="9"/>
               </svg>
-              <div class="river-text"><span>楚 河</span><span>漢 界</span></div>
+              <div class="river-text"><span>楚 河</span><span>汉 界</span></div>
               <div class="board-points" id="demo-board-points"></div>
             </div>
           </div>
@@ -7796,6 +7896,9 @@ window.XQ = {
     lastMove: null,     // 最后一步，用于高亮
     showDanger: true,
     effectOn: true,
+    showBlackFree: true,   // 是否显示黑方可被白吃的绿色标记
+    noCaptureHalfMoves: 0, // 连续未吃子的半回合数
+    posCounts: {},         // 局面出现次数（用于三次重复判和）
     volumeLevel: 3, // 固定最高，音量交给手机系统控制
     brilliant: null,    // 妙招提示 { fromRow, fromCol, toRow, toCol }
     brilliantText: '',  // 妙招记谱
@@ -8000,7 +8103,7 @@ window.XQ = {
         // 危险标记（红方棋子被黑方白吃 = 红色虚框）
         var isDanger = piece && piece.color === 'red' && danger.blackFreeCaptures[key];
         // 白吃机会（黑方棋子被红方白吃 = 绿色圈）
-        var isFreeCap = piece && piece.color === 'black' && danger.redFreeCaptures[key];
+        var isFreeCap = state.showBlackFree !== false && piece && piece.color === 'black' && danger.redFreeCaptures[key];
         // 将军标记
         var inCheckMark = piece && piece.type === 'K' && piece.color === danger.inCheck;
         // 妙招标记
@@ -8378,6 +8481,36 @@ window.XQ = {
     }
   }
 
+  // ---- 和棋规则：三次重复局面 / 六十回合无吃子 ----
+  function drawBoardKey() {
+    var parts = [];
+    for (var r = 0; r < 10; r++) {
+      for (var c = 0; c < 9; c++) {
+        var p = state.board[r][c];
+        parts.push(p ? (p.color === 'red' ? 'R' : 'B') + p.type : '.');
+      }
+    }
+    return parts.join('') + '|' + state.currentTurn;
+  }
+
+  function checkDrawRules(captured) {
+    if (state.puzzle || state.gameMode === 'watch') return null;
+    if (captured) {
+      state.noCaptureHalfMoves = 0;
+    } else {
+      state.noCaptureHalfMoves = (state.noCaptureHalfMoves || 0) + 1;
+    }
+    var key = drawBoardKey();
+    state.posCounts[key] = (state.posCounts[key] || 0) + 1;
+    if (state.posCounts[key] >= 3) {
+      return { winner: null, reason: 'repetition' };
+    }
+    if (state.noCaptureHalfMoves >= 120) {
+      return { winner: null, reason: 'sixtymove' };
+    }
+    return null;
+  }
+
   function doMove(move) {
     // 保存历史
     state.history.push({
@@ -8472,6 +8605,17 @@ window.XQ = {
       }
       return;
     }
+    // 和棋判定：三次重复局面 / 六十回合无吃子
+    var drawResult = checkDrawRules(captured);
+    if (drawResult) {
+      state.gameResult = drawResult;
+      state.killInfo = null;
+      renderAll();
+      sfx('checkmate', false);
+      showResultModal();
+      return;
+    }
+
     if (result && result.reason === 'stalemate') {
       state.gameResult = result;
       state.killInfo = null;
@@ -8590,6 +8734,10 @@ window.XQ = {
       ? state.moveHistory[state.moveHistory.length - 1]
       : null;
 
+    // 悔棋后清空重复局面与无吃子计数，避免误判和棋
+    state.noCaptureHalfMoves = 0;
+    state.posCounts = {};
+
     updateDangerAnalysis();
     renderAll();
     hideResultModal();
@@ -8661,6 +8809,8 @@ window.XQ = {
     state.capturedBlack = [];
     state.history = [];
     state.moveHistory = [];
+    state.noCaptureHalfMoves = 0;
+    state.posCounts = {};
     state.gameResult = null;
     state.lastMove = null;
     state.isAiThinking = false;
@@ -9101,6 +9251,8 @@ window.XQ = {
     state.capturedBlack = [];
     state.history = [];
     state.moveHistory = [];
+    state.noCaptureHalfMoves = 0;
+    state.posCounts = {};
     state.gameResult = null;
     state.lastMove = null;
     state.isAiThinking = false;
@@ -9165,6 +9317,10 @@ window.XQ = {
 
   function startFromMenu(mode) {
     sfx('click');
+    if (mode === 'settings') {
+      showSettingsModal();
+      return;
+    }
     if (mode === 'online') {
       showOnlinePanel();
       return;
@@ -9996,7 +10152,9 @@ window.XQ = {
   function showResultModal() {
     var r = state.gameResult;
     var winnerText;
-    if (state.gameMode === 'pve') {
+    if (!r.winner) {
+      winnerText = '和棋';
+    } else if (state.gameMode === 'pve') {
       winnerText = r.winner === state.playerColor ? '你赢了！' : 'AI 获胜';
     } else if (state.gameMode === 'online') {
       winnerText = r.winner === state.playerColor ? '你赢了！' : '对手获胜';
@@ -10006,11 +10164,23 @@ window.XQ = {
       winnerText = r.winner === 'red' ? '红方胜' : '黑方胜';
     }
     els.resultWinner.textContent = winnerText;
-    els.resultReason.textContent = r.reason === 'checkmate' ? '将死' : '困毙';
+    var reasonText = '困毙';
+    if (r.reason === 'checkmate') reasonText = '将死';
+    else if (r.reason === 'repetition') reasonText = '三次重复局面';
+    else if (r.reason === 'sixtymove') reasonText = '六十回合无吃子';
+    els.resultReason.textContent = reasonText;
+
     var loser = r.winner === 'red' ? '黑方' : '红方';
-    var desc = r.reason === 'checkmate'
-      ? loser + '被将军且无合法应将手段'
-      : loser + '无子可动且未被将军';
+    var desc;
+    if (r.reason === 'checkmate') {
+      desc = loser + '被将军且无合法应将手段';
+    } else if (r.reason === 'repetition') {
+      desc = '同一局面出现三次，按和棋处理';
+    } else if (r.reason === 'sixtymove') {
+      desc = '连续六十回合未吃子，按和棋处理';
+    } else {
+      desc = loser + '无子可动且未被将军';
+    }
     els.resultDesc.textContent = desc;
 
     // 杀法名称显示
@@ -10593,6 +10763,8 @@ window.XQ = {
     state.capturedRed = capRed;
     state.capturedBlack = capBlack;
     state.history = []; // 重置历史栈
+    state.noCaptureHalfMoves = 0;
+    state.posCounts = {};
     state.gameResult = null;
     state.selectedPos = null;
     state.validMoves = [];
@@ -10699,6 +10871,54 @@ window.XQ = {
   // ============================================================
   // 事件绑定
   // ============================================================
+  // ============================================================
+  // 设置面板（音效档位 / 特效开关 / 棋盘标注）
+  // ============================================================
+  var LS_FX_ON = 'zzxq_fx_on';
+  var LS_MARK_FREE = 'zzxq_mark_free';
+
+  function loadSettingsFromStorage() {
+    try {
+      var fx = localStorage.getItem(LS_FX_ON);
+      if (fx !== null) state.effectOn = fx === '1';
+      var mk = localStorage.getItem(LS_MARK_FREE);
+      if (mk !== null) state.showBlackFree = mk === '1';
+      var vol = localStorage.getItem('zzxq_vol');
+      if (vol !== null && window.XQSound) {
+        var lv = parseInt(vol, 10);
+        if (!isNaN(lv)) { window.XQSound.setVolumeLevel(lv); state.volumeLevel = lv; }
+      }
+    } catch (e) {}
+  }
+
+  function refreshSettingsUI() {
+    var soundBtns = document.querySelectorAll('#seg-sound .seg-btn');
+    var vol = window.XQSound ? window.XQSound.getVolumeLevel() : (state.volumeLevel || 3);
+    for (var i = 0; i < soundBtns.length; i++) {
+      soundBtns[i].classList.toggle('active', parseInt(soundBtns[i].getAttribute('data-sound'), 10) === vol);
+    }
+    var fxBtns = document.querySelectorAll('#seg-fx .seg-btn');
+    for (var j = 0; j < fxBtns.length; j++) {
+      fxBtns[j].classList.toggle('active', (fxBtns[j].getAttribute('data-fx') === '1') === !!state.effectOn);
+    }
+    var markBtns = document.querySelectorAll('#seg-mark .seg-btn');
+    for (var k = 0; k < markBtns.length; k++) {
+      markBtns[k].classList.toggle('active', (markBtns[k].getAttribute('data-mark') === '1') === (state.showBlackFree !== false));
+    }
+  }
+
+  function showSettingsModal() {
+    var m = document.getElementById('modal-settings');
+    if (!m) return;
+    refreshSettingsUI();
+    m.classList.add('show');
+  }
+
+  function hideSettingsModal() {
+    var m = document.getElementById('modal-settings');
+    if (m) m.classList.remove('show');
+  }
+
   function bindEvents() {
     // 棋盘点击（事件委托）
     els.boardPoints.addEventListener('click', function(e) {
@@ -10731,6 +10951,47 @@ window.XQ = {
         var btn = e.target.closest('[data-start-mode]');
         if (!btn) return;
         startFromMenu(btn.getAttribute('data-start-mode'));
+      });
+    }
+
+    // 设置面板
+    var btnSettingsClose = document.getElementById('btn-settings-close');
+    if (btnSettingsClose) {
+      btnSettingsClose.addEventListener('click', function() { sfx('popup-close'); hideSettingsModal(); });
+    }
+    var segSound = document.getElementById('seg-sound');
+    if (segSound) {
+      segSound.addEventListener('click', function(e) {
+        var b = e.target.closest('.seg-btn');
+        if (!b) return;
+        var lv = parseInt(b.getAttribute('data-sound'), 10);
+        if (window.XQSound) window.XQSound.setVolumeLevel(lv);
+        state.volumeLevel = lv;
+        refreshSettingsUI();
+        if (lv > 0) sfx('click');
+      });
+    }
+    var segFx = document.getElementById('seg-fx');
+    if (segFx) {
+      segFx.addEventListener('click', function(e) {
+        var b = e.target.closest('.seg-btn');
+        if (!b) return;
+        state.effectOn = b.getAttribute('data-fx') === '1';
+        try { localStorage.setItem(LS_FX_ON, state.effectOn ? '1' : '0'); } catch(err) {}
+        refreshSettingsUI();
+        sfx('click');
+      });
+    }
+    var segMark = document.getElementById('seg-mark');
+    if (segMark) {
+      segMark.addEventListener('click', function(e) {
+        var b = e.target.closest('.seg-btn');
+        if (!b) return;
+        state.showBlackFree = b.getAttribute('data-mark') === '1';
+        try { localStorage.setItem(LS_MARK_FREE, state.showBlackFree ? '1' : '0'); } catch(err) {}
+        refreshSettingsUI();
+        renderAll();
+        sfx('click');
       });
     }
 
@@ -10973,6 +11234,8 @@ window.XQ = {
       overlays[j].addEventListener('click', function(e) {
         if (e.target === this) {
           if (els.modalOnline && this === els.modalOnline) return;
+          var mset = document.getElementById('modal-settings');
+          if (mset && this === mset) { hideSettingsModal(); sfx('popup-close'); return; }
           Screen.close();
           sfx('popup-close');
         }
@@ -10999,12 +11262,12 @@ window.XQ = {
       initDemo();
       renderFileLabels();
 
-      // 音效/特效固定开启：音量交给手机系统音量控制
+      // 读取本地保存的音效档位、特效开关与标注设置
       if (window.XQSound) {
         window.XQSound.setVolumeLevel(3);
         state.volumeLevel = 3;
       }
-      state.effectOn = true;
+      loadSettingsFromStorage();
 
       updateDangerAnalysis();
       renderAll();
