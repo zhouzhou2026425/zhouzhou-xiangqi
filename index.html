@@ -583,10 +583,22 @@ html, body {
   background: #c8a876;
   color: #fff;
 }
+.watch-source {
+  font-size: 11px;
+  color: #9a7a48;
+  text-align: center;
+  line-height: 1.4;
+  max-width: 100%;
+}
 .watch-takeover {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 8px;
   margin-top: 2px;
+}
+#watch-book-list {
+  max-height: 60vh;
 }
 .btn-takeover {
   padding: 6px 12px;
@@ -1663,7 +1675,7 @@ body { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
   overflow-y: auto;
   padding: 2px 14px 12px;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 8px;
   align-content: start;
 }
@@ -1922,7 +1934,7 @@ body { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
 .start-tools {
   width: 100%;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 8px;
   margin-top: 4px;
 }
@@ -2042,8 +2054,8 @@ body { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
   background: #e0d0ae;
 }
 
-.online-join-row { display: flex; gap: 8px; }
-.online-join-row .btn { flex: none; width: 84px; }
+.online-join-row { display: flex; gap: 8px; align-items: stretch; }
+.online-join-row .btn { flex: none; width: 84px; align-self: stretch; }
 
 .online-code-input {
   flex: 1;
@@ -2115,43 +2127,44 @@ body { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
 /* ============================================================
    设置面板
    ============================================================ */
-.settings-modal {
-  max-width: 360px;
-}
-.settings-row {
+.settings-modal, .level-modal { max-width: 360px; }
+.settings-row, .level-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+  gap: 12px;
   padding: 10px 0;
   border-bottom: 1px dashed #e2cfa8;
 }
-.settings-row:last-of-type { border-bottom: none; }
-.settings-label {
-  font-size: 14px;
+.settings-row:last-of-type, .level-row:last-of-type { border-bottom: none; }
+.settings-label, .level-row-label {
+  font-size: 13.5px;
   font-weight: 600;
   color: #5a3d1a;
-  flex-shrink: 0;
+  flex: 0 0 76px;
+  letter-spacing: 0.5px;
 }
 .seg-group {
   display: flex;
+  flex: 1;
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: 6px;
 }
 .seg-btn {
-  padding: 7px 10px;
-  min-height: 34px;
+  flex: 1 1 auto;
+  padding: 8px 10px;
+  min-height: 36px;
   border: 1px solid #b89a6a;
-  border-radius: 8px;
+  border-radius: 9px;
   background: #fdf6e3;
   color: #6b4c22;
   font-family: inherit;
   font-size: 12.5px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.12s, color 0.12s, transform 0.06s;
+  text-align: center;
   white-space: nowrap;
+  transition: background 0.12s, color 0.12s, border-color 0.12s, transform 0.06s;
 }
 .seg-btn:active { transform: scale(0.96); }
 .seg-btn.active {
@@ -2159,12 +2172,82 @@ body { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
   border-color: #8b2f2f;
   color: #fff4dc;
 }
+#seg-side { flex-wrap: nowrap; }
+#seg-side .seg-btn { flex: 1 1 0; }
+#seg-fx .seg-btn, #seg-mark .seg-btn { flex: 1 1 0; }
+#seg-handicap {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+#seg-handicap .seg-btn {
+  flex: none;
+  padding: 8px 4px;
+  min-height: 34px;
+  font-size: 12px;
+}
 .settings-tip {
   margin: 12px 0 2px;
   font-size: 11.5px;
   color: #a58d66;
   text-align: center;
   letter-spacing: 0.5px;
+}
+
+
+/* ============================================================
+   人机段位选择
+   ============================================================ */
+.level-tip { font-size: 12px; color: #a58d66; margin: 2px 0 10px; letter-spacing: 0.5px; line-height: 1.5; }
+.level-caption {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #7d5c2e;
+  letter-spacing: 1px;
+  margin: 12px 0 8px;
+}
+.level-list { display: flex; flex-direction: column; gap: 8px; margin: 0 0 14px; }
+.level-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 11px 14px;
+  border: 1px solid #d4b88a;
+  border-radius: 11px;
+  background: #fdf6e3;
+  color: #5a3d1a;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, transform 0.06s;
+}
+.level-option:active { transform: scale(0.98); }
+.level-option.active {
+  border-color: #8b2f2f;
+  background: #fbe9e7;
+  box-shadow: inset 0 0 0 1px #8b2f2f;
+}
+.lv-name { font-size: 14.5px; font-weight: 700; letter-spacing: 0.5px; }
+.lv-desc { font-size: 12px; color: #97794c; text-align: right; }
+.level-start-btn { width: 100%; min-height: 46px; margin-top: 2px; }
+.level-tabs { display: flex; gap: 8px; margin: 2px 0 12px; }
+.level-tab {
+  flex: 1;
+  padding: 10px 8px;
+  border: 1px solid #b89a6a;
+  border-radius: 10px;
+  background: #fdf6e3;
+  color: #6b4c22;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+.level-tab.active {
+  background: #8b2f2f;
+  border-color: #8b2f2f;
+  color: #fff4dc;
 }
 
 </style>
@@ -2200,8 +2283,8 @@ body { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
       <button class="start-mode" data-start-mode="pve">
         <span class="sm-icon">人</span>
         <span class="sm-texts">
-          <span class="sm-name">人机对战</span>
-          <span class="sm-desc">与电脑过招，练手首选</span>
+          <span class="sm-name">对局 · 棋谱</span>
+          <span class="sm-desc">对弈 AI，或先看开局名局棋谱</span>
         </span>
       </button>
       <button class="start-mode start-mode-online" data-start-mode="online">
@@ -2215,17 +2298,13 @@ body { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
       <button class="start-mode start-mode-wide" data-start-mode="watch">
         <span class="sm-icon">观</span>
         <span class="sm-texts">
-          <span class="sm-name">AI 观战</span>
-          <span class="sm-desc">看两位 AI 自动对弈</span>
+          <span class="sm-name">名局观战</span>
+          <span class="sm-desc">按名师对局棋谱复盘，谱毕 AI 续战</span>
         </span>
       </button>
     </div>
 
     <div class="start-tools">
-      <button class="start-tool" data-start-mode="demo">
-        <span class="st-icon">📖</span>
-        <span class="st-name">棋谱</span>
-      </button>
       <button class="start-tool" data-start-mode="atlas">
         <span class="st-icon">📚</span>
         <span class="st-name">杀法图鉴</span>
@@ -2240,6 +2319,81 @@ body { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
       </button>
     </div>
     <div class="start-foot">无需登录 · 打开即玩</div>
+  </div>
+</div>
+
+<!-- ============================================================
+     人机对战 · 段位选择
+     ============================================================ -->
+<div class="modal-overlay" id="modal-level">
+  <div class="modal level-modal">
+    <div class="online-head">
+      <h2>对局 · 棋谱</h2>
+      <button class="btn-close" id="btn-level-close" aria-label="关闭">×</button>
+    </div>
+    <p class="level-tip">与 AI 对弈，或先浏览开局、名局与杀法棋谱。</p>
+
+    <div class="level-tabs" id="level-tabs">
+      <button class="level-tab active" data-tab="battle">与 AI 对弈</button>
+      <button class="level-tab" data-tab="book">棋谱演练</button>
+    </div>
+
+    <div id="level-pane-battle">
+    <div class="level-row">
+      <div class="level-row-label">先后手</div>
+      <div class="seg-group" id="seg-side">
+        <button class="seg-btn" data-side="red">执红先行</button>
+        <button class="seg-btn" data-side="black">执黑后行</button>
+      </div>
+    </div>
+
+    <div class="level-row">
+      <div class="level-row-label">让子</div>
+      <div class="seg-group" id="seg-handicap">
+        <button class="seg-btn" data-hc="none">不让子</button>
+        <button class="seg-btn" data-hc="horse">让一马</button>
+        <button class="seg-btn" data-hc="doublehorse">让双马</button>
+        <button class="seg-btn" data-hc="rook">让一车</button>
+        <button class="seg-btn" data-hc="doublerook">让双车</button>
+        <button class="seg-btn" data-hc="cannon">让一炮</button>
+        <button class="seg-btn" data-hc="doublecannon">让双炮</button>
+        <button class="seg-btn" data-hc="horsecannon">马炮各一</button>
+      </div>
+    </div>
+
+    <div class="level-caption">对手档位</div>
+    <div class="level-list" id="level-list">
+      <button class="level-option" data-rank="r1">
+        <span class="lv-name">业余 1 段</span>
+        <span class="lv-desc">入门 · 容易漏招送子</span>
+      </button>
+      <button class="level-option" data-rank="r2">
+        <span class="lv-name">业余 2 段</span>
+        <span class="lv-desc">初级 · 会简单吃子防守</span>
+      </button>
+      <button class="level-option" data-rank="r3">
+        <span class="lv-name">业余 3 段</span>
+        <span class="lv-desc">中级 · 常规对局稳定</span>
+      </button>
+      <button class="level-option" data-rank="r4">
+        <span class="lv-name">业余 4 段</span>
+        <span class="lv-desc">中高级 · 能预判三步</span>
+      </button>
+      <button class="level-option" data-rank="r5">
+        <span class="lv-name">业余 5 段</span>
+        <span class="lv-desc">高手 · 会主动找杀</span>
+      </button>
+      <button class="level-option" data-rank="r6">
+        <span class="lv-name">业余 6 段</span>
+        <span class="lv-desc">大师 · 布局与兑子取舍</span>
+      </button>
+      <button class="level-option" data-rank="r7">
+        <span class="lv-name">业余 7 段</span>
+        <span class="lv-desc">棋王 · 深算避亏抓机会</span>
+      </button>
+    </div>
+    <button class="btn btn-primary level-start-btn" id="btn-level-start">开始对弈</button>
+    </div>
   </div>
 </div>
 
@@ -2409,7 +2563,8 @@ body { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
 
   <!-- 观战模式控制栏 -->
   <div class="watch-bar" id="watch-bar" style="display:none;">
-    <div class="watch-info" id="watch-info">AI 自战 · 第 0 着</div>
+    <div class="watch-info" id="watch-info">名局观战 · 第 0 着</div>
+    <div class="watch-source" id="watch-source"></div>
     <div class="watch-controls">
       <button class="demo-btn" id="watch-btn-prev" title="上一步">‹</button>
       <button class="demo-btn demo-btn-play" id="watch-btn-play" title="播放/暂停">▶</button>
@@ -2424,6 +2579,7 @@ body { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
     <div class="watch-takeover">
       <button class="btn btn-takeover" id="watch-take-red">接管红方</button>
       <button class="btn btn-takeover" id="watch-take-black">接管黑方</button>
+      <button class="btn btn-takeover" id="watch-btn-books">更换名局</button>
     </div>
   </div>
 
@@ -2443,12 +2599,24 @@ body { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
   <div class="bottom-bar">
     <div class="btn-row btn-row-main">
       <button class="btn btn-accent" id="btn-brilliant">💡 提示</button>
+      <button class="btn" id="btn-demo-ref">📖 棋谱</button>
       <button class="btn" id="btn-undo">↶ 悔棋</button>
       <button class="btn" id="btn-reset">↻ 重开</button>
     </div>
     <div class="btn-row btn-row-puzzle" id="puzzle-bar">
       <button class="btn btn-danger" id="btn-puzzle-exit">✖ 退出挑战</button>
     </div>
+  </div>
+</div>
+
+<!-- 观战名局选择弹窗 -->
+<div class="modal-overlay" id="modal-watch-book">
+  <div class="modal modal-demo">
+    <div class="demo-header">
+      <h2>选择名局</h2>
+      <button class="btn-close" id="btn-watch-book-close" aria-label="关闭">×</button>
+    </div>
+    <div class="demo-book-list" id="watch-book-list"></div>
   </div>
 </div>
 
@@ -3384,7 +3552,93 @@ var OPENING_BOOKS = [
       { fromRow: 7, fromCol: 3, toRow: 7, toCol: 4, notation: '炮六平五' },
       { fromRow: 0, fromCol: 8, toRow: 0, toCol: 7, notation: '车9平8' },
     ],
-  },  // ============================================================
+  },
+  {
+    id: 'opening-xianren',
+    group: '仙人指路',
+    name: '仙人指路对挺卒',
+    intent: '红方挺兵开通马头，黑方挺卒控兵，灵活多变的柔性开局',
+    category: 'opening',
+    moves: [
+      { fromRow: 6, fromCol: 2, toRow: 5, toCol: 2, notation: '兵七进一' },
+      { fromRow: 3, fromCol: 2, toRow: 4, toCol: 2, notation: '卒3进1' },
+      { fromRow: 9, fromCol: 7, toRow: 7, toCol: 6, notation: '马二进三' },
+      { fromRow: 0, fromCol: 7, toRow: 2, toCol: 6, notation: '马8进7' },
+      { fromRow: 9, fromCol: 8, toRow: 9, toCol: 7, notation: '车一平二' },
+      { fromRow: 0, fromCol: 8, toRow: 0, toCol: 7, notation: '车9平8' },
+      { fromRow: 9, fromCol: 1, toRow: 7, toCol: 2, notation: '马八进七' },
+      { fromRow: 0, fromCol: 1, toRow: 2, toCol: 2, notation: '马2进3' },
+      { fromRow: 9, fromCol: 6, toRow: 7, toCol: 4, notation: '相三进五' },
+      { fromRow: 0, fromCol: 2, toRow: 2, toCol: 4, notation: '象3进5' },
+    ],
+  },  {
+    id: 'opening-feixiang',
+    group: '飞相局',
+    name: '飞相局对左中炮',
+    intent: '红方先飞相巩固中路，黑方还以左中炮，稳正较量的布局',
+    category: 'opening',
+    moves: [
+      { fromRow: 9, fromCol: 6, toRow: 7, toCol: 4, notation: '相三进五' },
+      { fromRow: 2, fromCol: 7, toRow: 2, toCol: 4, notation: '炮8平5' },
+      { fromRow: 9, fromCol: 7, toRow: 7, toCol: 6, notation: '马二进三' },
+      { fromRow: 0, fromCol: 7, toRow: 2, toCol: 6, notation: '马8进7' },
+      { fromRow: 9, fromCol: 8, toRow: 9, toCol: 7, notation: '车一平二' },
+      { fromRow: 0, fromCol: 8, toRow: 0, toCol: 7, notation: '车9平8' },
+      { fromRow: 9, fromCol: 1, toRow: 7, toCol: 2, notation: '马八进七' },
+      { fromRow: 2, fromCol: 1, toRow: 2, toCol: 3, notation: '炮2平4' },
+    ],
+  },  {
+    id: 'opening-panhe',
+    group: '中炮系',
+    name: '中炮对左马盘河',
+    intent: '过河车压境，黑方跃马盘河伺机反扑，对攻激烈的常见变例',
+    category: 'opening',
+    moves: [
+      { fromRow: 7, fromCol: 7, toRow: 7, toCol: 4, notation: '炮二平五' },
+      { fromRow: 0, fromCol: 7, toRow: 2, toCol: 6, notation: '马8进7' },
+      { fromRow: 9, fromCol: 7, toRow: 7, toCol: 6, notation: '马二进三' },
+      { fromRow: 3, fromCol: 6, toRow: 4, toCol: 6, notation: '卒7进1' },
+      { fromRow: 9, fromCol: 8, toRow: 9, toCol: 7, notation: '车一平二' },
+      { fromRow: 0, fromCol: 8, toRow: 0, toCol: 7, notation: '车9平8' },
+      { fromRow: 9, fromCol: 1, toRow: 7, toCol: 2, notation: '马八进七' },
+      { fromRow: 0, fromCol: 1, toRow: 2, toCol: 2, notation: '马2进3' },
+      { fromRow: 9, fromCol: 7, toRow: 3, toCol: 7, notation: '车二进六' },
+      { fromRow: 2, fromCol: 6, toRow: 4, toCol: 5, notation: '马7进6' },
+    ],
+  },  {
+    id: 'opening-fangongma',
+    group: '中炮系',
+    name: '中炮对反宫马',
+    intent: '黑方双马夹炮形成反宫马，弹性十足，是抗击中炮的稳健体系',
+    category: 'opening',
+    moves: [
+      { fromRow: 7, fromCol: 7, toRow: 7, toCol: 4, notation: '炮二平五' },
+      { fromRow: 0, fromCol: 1, toRow: 2, toCol: 2, notation: '马2进3' },
+      { fromRow: 9, fromCol: 7, toRow: 7, toCol: 6, notation: '马二进三' },
+      { fromRow: 2, fromCol: 7, toRow: 2, toCol: 5, notation: '炮8平6' },
+      { fromRow: 9, fromCol: 8, toRow: 9, toCol: 7, notation: '车一平二' },
+      { fromRow: 0, fromCol: 7, toRow: 2, toCol: 6, notation: '马8进7' },
+      { fromRow: 6, fromCol: 6, toRow: 5, toCol: 6, notation: '兵三进一' },
+      { fromRow: 3, fromCol: 2, toRow: 4, toCol: 2, notation: '卒3进1' },
+    ],
+  },  {
+    id: 'opening-liepao',
+    group: '顺炮列炮',
+    name: '中炮对小列手炮',
+    intent: '双方双炮各据一侧形成列炮，盘面开阔，对抢先手',
+    category: 'opening',
+    moves: [
+      { fromRow: 7, fromCol: 7, toRow: 7, toCol: 4, notation: '炮二平五' },
+      { fromRow: 2, fromCol: 7, toRow: 2, toCol: 4, notation: '炮8平5' },
+      { fromRow: 9, fromCol: 7, toRow: 7, toCol: 6, notation: '马二进三' },
+      { fromRow: 0, fromCol: 7, toRow: 2, toCol: 6, notation: '马8进7' },
+      { fromRow: 9, fromCol: 8, toRow: 9, toCol: 7, notation: '车一平二' },
+      { fromRow: 0, fromCol: 8, toRow: 0, toCol: 7, notation: '车9平8' },
+      { fromRow: 6, fromCol: 2, toRow: 5, toCol: 2, notation: '兵七进一' },
+      { fromRow: 2, fromCol: 1, toRow: 2, toCol: 3, notation: '炮2平4' },
+    ],
+  },
+  // ============================================================
   // 全局谱（8 本）
   // ============================================================
   {
@@ -4811,6 +5065,184 @@ var OPENING_BOOKS = [
       { fromRow: 2, fromCol: 1, toRow: 2, toCol: 4, notation: '炮八平五' },
     ],
   },
+
+  {
+    id: 'famous-hu-vs-sun-1978',
+    group: '名局谱',
+    name: '胡荣华 先胜 孙恒新（鬼手跳马）',
+    intent: '1978年上海市表演赛，中炮横车七路马对屏风马，胡荣华弃子攻杀，入局虎口献马、回马金枪一剑封喉，被写入象棋教材',
+    players: '红 胡荣华　黑 孙恒新',
+    source: '1978年上海市象棋表演赛',
+    category: 'game',
+    result: '红胜',
+    mate: '回马金枪',
+    moves: [
+      { fromRow: 7, fromCol: 7, toRow: 7, toCol: 4, notation: '炮二平五' },
+      { fromRow: 0, fromCol: 7, toRow: 2, toCol: 6, notation: '马8进7' },
+      { fromRow: 9, fromCol: 7, toRow: 7, toCol: 6, notation: '马二进三' },
+      { fromRow: 0, fromCol: 8, toRow: 0, toCol: 7, notation: '车9平8' },
+      { fromRow: 6, fromCol: 2, toRow: 5, toCol: 2, notation: '兵七进一' },
+      { fromRow: 3, fromCol: 6, toRow: 4, toCol: 6, notation: '卒7进1' },
+      { fromRow: 9, fromCol: 1, toRow: 7, toCol: 2, notation: '马八进七' },
+      { fromRow: 0, fromCol: 1, toRow: 2, toCol: 2, notation: '马2进3' },
+      { fromRow: 9, fromCol: 8, toRow: 8, toCol: 8, notation: '车一进一' },
+      { fromRow: 0, fromCol: 2, toRow: 2, toCol: 4, notation: '象3进5' },
+      { fromRow: 8, fromCol: 8, toRow: 8, toCol: 5, notation: '车一平四' },
+      { fromRow: 2, fromCol: 7, toRow: 2, toCol: 8, notation: '炮8平9' },
+      { fromRow: 7, fromCol: 2, toRow: 5, toCol: 3, notation: '马七进六' },
+      { fromRow: 2, fromCol: 1, toRow: 6, toCol: 1, notation: '炮2进4' },
+      { fromRow: 6, fromCol: 4, toRow: 5, toCol: 4, notation: '兵五进一' },
+      { fromRow: 6, fromCol: 1, toRow: 5, toCol: 1, notation: '炮2退1' },
+      { fromRow: 5, fromCol: 3, toRow: 3, toCol: 2, notation: '马六进七' },
+      { fromRow: 5, fromCol: 1, toRow: 5, toCol: 4, notation: '炮2平5' },
+      { fromRow: 7, fromCol: 6, toRow: 6, toCol: 4, notation: '马三进五' },
+      { fromRow: 0, fromCol: 0, toRow: 0, toCol: 1, notation: '车1平2' },
+      { fromRow: 7, fromCol: 4, toRow: 5, toCol: 4, notation: '炮五进二' },
+      { fromRow: 0, fromCol: 1, toRow: 7, toCol: 1, notation: '车2进7' },
+      { fromRow: 8, fromCol: 5, toRow: 1, toCol: 5, notation: '车四进七' },
+      { fromRow: 7, fromCol: 1, toRow: 6, toCol: 1, notation: '车2退1' },
+      { fromRow: 5, fromCol: 4, toRow: 2, toCol: 4, notation: '炮五进三' },
+      { fromRow: 2, fromCol: 8, toRow: 2, toCol: 4, notation: '炮9平5' },
+      { fromRow: 3, fromCol: 2, toRow: 2, toCol: 4, notation: '马七进五' },
+      { fromRow: 6, fromCol: 1, toRow: 6, toCol: 4, notation: '车2平5' },
+      { fromRow: 9, fromCol: 3, toRow: 8, toCol: 4, notation: '仕六进五' },
+      { fromRow: 0, fromCol: 3, toRow: 1, toCol: 4, notation: '士4进5' },
+      { fromRow: 2, fromCol: 4, toRow: 1, toCol: 2, notation: '马五进七' },
+      { fromRow: 0, fromCol: 4, toRow: 0, toCol: 3, notation: '将5平4' },
+      { fromRow: 9, fromCol: 2, toRow: 7, toCol: 4, notation: '相七进五' },
+      { fromRow: 6, fromCol: 4, toRow: 6, toCol: 3, notation: '车5平4' },
+      { fromRow: 9, fromCol: 0, toRow: 9, toCol: 1, notation: '车九平八' },
+      { fromRow: 6, fromCol: 3, toRow: 4, toCol: 3, notation: '车4退2' },
+      { fromRow: 1, fromCol: 5, toRow: 6, toCol: 5, notation: '车四退五' },
+      { fromRow: 0, fromCol: 7, toRow: 2, toCol: 7, notation: '车8进2' },
+      { fromRow: 5, fromCol: 2, toRow: 4, toCol: 2, notation: '兵七进一' },
+      { fromRow: 4, fromCol: 3, toRow: 4, toCol: 2, notation: '车4平3' },
+      { fromRow: 6, fromCol: 5, toRow: 6, toCol: 2, notation: '车四平七' },
+      { fromRow: 4, fromCol: 2, toRow: 4, toCol: 3, notation: '车3平4' },
+      { fromRow: 6, fromCol: 2, toRow: 2, toCol: 2, notation: '车七进四' },
+      { fromRow: 4, fromCol: 3, toRow: 2, toCol: 3, notation: '车4退2' },
+      { fromRow: 1, fromCol: 2, toRow: 2, toCol: 4, notation: '马七退五' },
+    ],
+  },
+  {
+    id: 'famous-hu-vs-xu-naiji',
+    group: '名局谱',
+    name: '沿河十八打 胡荣华 先胜 徐乃基',
+    intent: '中炮对列炮经典名局，巡河炮沿河十八打、左右闪击，弃车攻杀，炮镇五子后马炮联杀',
+    players: '红 胡荣华　黑 徐乃基',
+    source: '中炮对列炮经典名局',
+    category: 'game',
+    result: '红胜',
+    moves: [
+      { fromRow: 7, fromCol: 7, toRow: 7, toCol: 4, notation: '炮二平五' },
+      { fromRow: 2, fromCol: 1, toRow: 2, toCol: 4, notation: '炮2平5' },
+      { fromRow: 9, fromCol: 7, toRow: 7, toCol: 6, notation: '马二进三' },
+      { fromRow: 0, fromCol: 7, toRow: 2, toCol: 6, notation: '马8进7' },
+      { fromRow: 9, fromCol: 8, toRow: 9, toCol: 7, notation: '车一平二' },
+      { fromRow: 0, fromCol: 8, toRow: 0, toCol: 7, notation: '车9平8' },
+      { fromRow: 9, fromCol: 7, toRow: 3, toCol: 7, notation: '车二进六' },
+      { fromRow: 2, fromCol: 7, toRow: 2, toCol: 8, notation: '炮8平9' },
+      { fromRow: 3, fromCol: 7, toRow: 3, toCol: 6, notation: '车二平三' },
+      { fromRow: 0, fromCol: 7, toRow: 2, toCol: 7, notation: '车8进2' },
+      { fromRow: 9, fromCol: 0, toRow: 8, toCol: 0, notation: '车九进一' },
+      { fromRow: 0, fromCol: 1, toRow: 2, toCol: 2, notation: '马2进3' },
+      { fromRow: 7, fromCol: 1, toRow: 5, toCol: 1, notation: '炮八进二' },
+      { fromRow: 0, fromCol: 0, toRow: 0, toCol: 1, notation: '车1平2' },
+      { fromRow: 5, fromCol: 1, toRow: 5, toCol: 2, notation: '炮八平七' },
+      { fromRow: 2, fromCol: 2, toRow: 1, toCol: 4, notation: '马3退5' },
+      { fromRow: 9, fromCol: 1, toRow: 7, toCol: 0, notation: '马八进九' },
+      { fromRow: 2, fromCol: 8, toRow: 1, toCol: 8, notation: '炮9退1' },
+      { fromRow: 8, fromCol: 0, toRow: 8, toCol: 5, notation: '车九平四' },
+      { fromRow: 1, fromCol: 8, toRow: 1, toCol: 6, notation: '炮9平7' },
+      { fromRow: 3, fromCol: 6, toRow: 3, toCol: 5, notation: '车三平四' },
+      { fromRow: 2, fromCol: 4, toRow: 6, toCol: 4, notation: '炮5进4' },
+      { fromRow: 7, fromCol: 6, toRow: 6, toCol: 4, notation: '马三进五' },
+      { fromRow: 1, fromCol: 4, toRow: 3, toCol: 5, notation: '马5进6' },
+      { fromRow: 6, fromCol: 4, toRow: 4, toCol: 3, notation: '马五进六' },
+      { fromRow: 3, fromCol: 5, toRow: 1, toCol: 4, notation: '马6退5' },
+      { fromRow: 4, fromCol: 3, toRow: 3, toCol: 5, notation: '马六进四' },
+      { fromRow: 2, fromCol: 7, toRow: 1, toCol: 7, notation: '车8退1' },
+      { fromRow: 8, fromCol: 5, toRow: 8, toCol: 1, notation: '车四平八' },
+      { fromRow: 0, fromCol: 1, toRow: 0, toCol: 0, notation: '车2平1' },
+      { fromRow: 5, fromCol: 2, toRow: 5, toCol: 0, notation: '炮七平九' },
+      { fromRow: 0, fromCol: 2, toRow: 2, toCol: 0, notation: '象3进1' },
+      { fromRow: 8, fromCol: 1, toRow: 8, toCol: 7, notation: '车八平二' },
+      { fromRow: 1, fromCol: 7, toRow: 1, toCol: 8, notation: '车8平9' },
+      { fromRow: 5, fromCol: 0, toRow: 5, toCol: 8, notation: '炮九平一' },
+      { fromRow: 0, fromCol: 6, toRow: 2, toCol: 8, notation: '象7进9' },
+      { fromRow: 8, fromCol: 7, toRow: 2, toCol: 7, notation: '车二进六' },
+      { fromRow: 1, fromCol: 6, toRow: 6, toCol: 6, notation: '炮7进5' },
+      { fromRow: 2, fromCol: 7, toRow: 2, toCol: 6, notation: '车二平三' },
+      { fromRow: 6, fromCol: 6, toRow: 6, toCol: 4, notation: '炮7平5' },
+      { fromRow: 7, fromCol: 4, toRow: 3, toCol: 4, notation: '炮五进四' },
+      { fromRow: 1, fromCol: 4, toRow: 3, toCol: 5, notation: '马5进6' },
+      { fromRow: 2, fromCol: 6, toRow: 2, toCol: 4, notation: '车三平五' },
+      { fromRow: 1, fromCol: 8, toRow: 1, toCol: 4, notation: '车9平5' },
+      { fromRow: 5, fromCol: 8, toRow: 2, toCol: 8, notation: '炮一进三' },
+      { fromRow: 6, fromCol: 4, toRow: 2, toCol: 4, notation: '炮5退4' },
+      { fromRow: 9, fromCol: 6, toRow: 7, toCol: 4, notation: '相三进五' },
+      { fromRow: 3, fromCol: 5, toRow: 1, toCol: 6, notation: '马6退7' },
+      { fromRow: 2, fromCol: 8, toRow: 2, toCol: 7, notation: '炮一平二' },
+      { fromRow: 1, fromCol: 6, toRow: 2, toCol: 8, notation: '马7进9' },
+      { fromRow: 6, fromCol: 2, toRow: 5, toCol: 2, notation: '兵七进一' },
+      { fromRow: 0, fromCol: 0, toRow: 0, toCol: 1, notation: '车1平2' },
+      { fromRow: 7, fromCol: 0, toRow: 6, toCol: 2, notation: '马九进七' },
+      { fromRow: 0, fromCol: 1, toRow: 4, toCol: 1, notation: '车2进4' },
+      { fromRow: 6, fromCol: 2, toRow: 5, toCol: 4, notation: '马七进五' },
+      { fromRow: 2, fromCol: 0, toRow: 0, toCol: 2, notation: '象1退3' },
+      { fromRow: 2, fromCol: 7, toRow: 2, toCol: 6, notation: '炮二平三' },
+      { fromRow: 2, fromCol: 8, toRow: 1, toCol: 6, notation: '马9退7' },
+      { fromRow: 5, fromCol: 4, toRow: 3, toCol: 5, notation: '马五进四' },
+      { fromRow: 4, fromCol: 1, toRow: 4, toCol: 5, notation: '车2平6' },
+      { fromRow: 3, fromCol: 5, toRow: 1, toCol: 6, notation: '马四进三' },
+      { fromRow: 4, fromCol: 5, toRow: 1, toCol: 5, notation: '车6退3' },
+      { fromRow: 1, fromCol: 6, toRow: 2, toCol: 8, notation: '马三退一' },
+      { fromRow: 1, fromCol: 5, toRow: 9, toCol: 5, notation: '车6进8' },
+    ],
+  },
+  {
+    id: 'game-guoheche',
+    group: '中炮局',
+    name: '过河车对屏风马（中局）',
+    intent: '中炮过河车进七兵，屏风马平炮兑车前的典型中局构型',
+    category: 'game',
+    result: '中局对峙',
+    moves: [
+      { fromRow: 7, fromCol: 7, toRow: 7, toCol: 4, notation: '炮二平五' },
+      { fromRow: 0, fromCol: 7, toRow: 2, toCol: 6, notation: '马8进7' },
+      { fromRow: 9, fromCol: 7, toRow: 7, toCol: 6, notation: '马二进三' },
+      { fromRow: 3, fromCol: 6, toRow: 4, toCol: 6, notation: '卒7进1' },
+      { fromRow: 9, fromCol: 8, toRow: 9, toCol: 7, notation: '车一平二' },
+      { fromRow: 0, fromCol: 8, toRow: 0, toCol: 7, notation: '车9平8' },
+      { fromRow: 6, fromCol: 2, toRow: 5, toCol: 2, notation: '兵七进一' },
+      { fromRow: 0, fromCol: 1, toRow: 2, toCol: 2, notation: '马2进3' },
+      { fromRow: 9, fromCol: 1, toRow: 7, toCol: 2, notation: '马八进七' },
+      { fromRow: 0, fromCol: 2, toRow: 2, toCol: 4, notation: '象3进5' },
+      { fromRow: 9, fromCol: 7, toRow: 3, toCol: 7, notation: '车二进六' },
+      { fromRow: 2, fromCol: 7, toRow: 2, toCol: 8, notation: '炮8平9' },
+    ],
+  },  {
+    id: 'game-shunpao-heng',
+    group: '顺炮局',
+    name: '顺炮横车对直车（中局）',
+    intent: '顺炮横车占肋，直车过河骚扰，古谱常见的对攻中局',
+    category: 'game',
+    result: '中局对攻',
+    moves: [
+      { fromRow: 7, fromCol: 7, toRow: 7, toCol: 4, notation: '炮二平五' },
+      { fromRow: 2, fromCol: 7, toRow: 2, toCol: 4, notation: '炮8平5' },
+      { fromRow: 9, fromCol: 7, toRow: 7, toCol: 6, notation: '马二进三' },
+      { fromRow: 0, fromCol: 7, toRow: 2, toCol: 6, notation: '马8进7' },
+      { fromRow: 9, fromCol: 8, toRow: 8, toCol: 8, notation: '车一进一' },
+      { fromRow: 0, fromCol: 8, toRow: 0, toCol: 7, notation: '车9平8' },
+      { fromRow: 8, fromCol: 8, toRow: 8, toCol: 3, notation: '车一平六' },
+      { fromRow: 0, fromCol: 7, toRow: 6, toCol: 7, notation: '车8进6' },
+      { fromRow: 9, fromCol: 1, toRow: 7, toCol: 2, notation: '马八进七' },
+      { fromRow: 0, fromCol: 1, toRow: 2, toCol: 2, notation: '马2进3' },
+      { fromRow: 7, fromCol: 1, toRow: 7, toCol: 0, notation: '炮八平九' },
+      { fromRow: 0, fromCol: 0, toRow: 0, toCol: 1, notation: '车1平2' },
+    ],
+  },
   // ============================================================
   // 杀法谱（22 本）
   // ============================================================
@@ -5259,7 +5691,87 @@ var OPENING_BOOKS = [
       { fromRow: 1, fromCol: 5, toRow: 0, toCol: 5, notation: '将6退1' },
       { fromRow: 1, fromCol: 4, toRow: 1, toCol: 6, notation: '车五平三' },
     ],
-  },];
+  },  {
+    id: 'mate-shuangche',
+    group: '车杀',
+    name: '双车错·三步杀',
+    intent: '红先三步成杀，双车交替叫将形成「双车错」杀型',
+    category: 'mate',
+    mate: '双车错',
+    hint: '红先，三步将死',
+    setup: [
+      ['K', 'red', 9, 4],
+      ['K', 'black', 1, 4],
+      ['R', 'red', 0, 0],
+      ['R', 'red', 2, 8],
+    ],
+    moves: [
+      { fromRow: 0, fromCol: 0, toRow: 1, toCol: 0, notation: '车九进一' },
+      { fromRow: 1, fromCol: 4, toRow: 1, toCol: 3, notation: '将5平4' },
+      { fromRow: 2, fromCol: 8, toRow: 2, toCol: 3, notation: '车二平六' },
+    ],
+  },  {
+    id: 'mate-tiemenshuan',
+    group: '车炮杀',
+    name: '铁门栓·三步杀',
+    intent: '炮镇中路、车沉底线，演示「铁门栓」的标准杀型',
+    category: 'mate',
+    mate: '铁门栓',
+    hint: '红先，三步将死',
+    setup: [
+      ['K', 'red', 9, 4],
+      ['K', 'black', 1, 5],
+      ['C', 'red', 3, 4],
+      ['R', 'red', 0, 7],
+      ['P', 'red', 4, 5],
+    ],
+    moves: [
+      { fromRow: 0, fromCol: 7, toRow: 1, toCol: 7, notation: '车二退一' },
+      { fromRow: 1, fromCol: 5, toRow: 0, toCol: 5, notation: '将6退1' },
+      { fromRow: 3, fromCol: 4, toRow: 3, toCol: 5, notation: '炮五平六' },
+    ],
+  },  {
+    id: 'mate-dadao',
+    group: '车杀',
+    name: '大刀剜心·三步杀',
+    intent: '车杀入中心逼将，次车跟进补杀，演示弃车穿心杀型',
+    category: 'mate',
+    mate: '大刀剜心',
+    hint: '红先，三步将死',
+    setup: [
+      ['K', 'red', 9, 4],
+      ['K', 'black', 0, 4],
+      ['A', 'black', 0, 3],
+      ['A', 'black', 0, 5],
+      ['R', 'red', 2, 4],
+      ['R', 'red', 3, 0],
+    ],
+    moves: [
+      { fromRow: 2, fromCol: 4, toRow: 1, toCol: 4, notation: '车五进一' },
+      { fromRow: 0, fromCol: 4, toRow: 1, toCol: 4, notation: '将5进1' },
+      { fromRow: 3, fromCol: 0, toRow: 3, toCol: 4, notation: '车九平六' },
+    ],
+  },  {
+    id: 'mate-haidilao',
+    group: '车炮杀',
+    name: '海底捞月·三步杀',
+    intent: '车炮在底线迂回抽将，演示「海底捞月」的冷杀手法',
+    category: 'mate',
+    mate: '海底捞月',
+    hint: '红先，三步将死',
+    setup: [
+      ['K', 'red', 9, 4],
+      ['K', 'black', 0, 4],
+      ['R', 'red', 1, 4],
+      ['C', 'red', 8, 7],
+    ],
+    moves: [
+      { fromRow: 8, fromCol: 7, toRow: 8, toCol: 4, notation: '炮三平五' },
+      { fromRow: 0, fromCol: 4, toRow: 0, toCol: 3, notation: '将5平4' },
+      { fromRow: 1, fromCol: 4, toRow: 1, toCol: 3, notation: '车五平六' },
+    ],
+  },
+];
 
 // 兼容旧数据：未标注分类的棋谱均视为布局谱
 for (var _bookIdx = 0; _bookIdx < OPENING_BOOKS.length; _bookIdx++) {
@@ -5734,7 +6246,7 @@ function aiGetMoveTimed(board, aiColor, timeMs) {
   gHistory = {};
 
   var guess = null, best = null;
-  for (var d = 2; d <= 7; d++) {
+  for (var d = 2; d <= 8; d++) {
     var r = searchRootAtDepth(board, aiColor, d, guess);
     if (gStop) break;          // 本轮超时，丢弃不完整结果
     if (!r) { if (!best) best = null; break; }
@@ -5770,7 +6282,18 @@ function tryOpeningBook(board, movesHistory) {
   return null;
 }
 
-// 统一 AI 入口：easy=随机贪心 normal=限时搜索 hard=深度搜索
+// 段位映射：r1..r5 / 兼容旧 easy normal hard
+function mapRank(d) {
+  if (d === 'r1' || d === 'easy') return 1;
+  if (d === 'r2') return 2;
+  if (d === 'r4') return 4;
+  if (d === 'r5' || d === 'hard') return 5;
+  if (d === 'r6') return 6;
+  if (d === 'r7') return 7;
+  return 3;
+}
+
+// 统一 AI 入口：r1 入门贪心 / r2 初级贪心 / r3 中级限时搜索 / r4 中高级 / r5 高手深度搜索
 function aiGetMove(board, aiColor, difficulty, movesHistory) {
   // 开局库：布局阶段优先照谱走
   if (movesHistory && movesHistory.length < 12) {
@@ -5786,10 +6309,14 @@ function aiGetMove(board, aiColor, difficulty, movesHistory) {
       }
     }
   }
-  if (difficulty === 'easy') {
+  var rank = mapRank(difficulty);
+  if (rank === 1) {
     return aiGetMoveLight(board, aiColor, 'easy');
   }
-  var budget = difficulty === 'hard' ? 1500 : 350;
+  if (rank === 2) {
+    return aiGetMoveLight(board, aiColor, 'normal');
+  }
+  var budget = rank === 7 ? 3000 : rank === 6 ? 2200 : rank === 5 ? 1600 : rank === 4 ? 1000 : 350;
   try {
     return aiGetMoveTimed(board, aiColor, budget) || aiGetMoveLight(board, aiColor, 'normal');
   } catch (e) {
@@ -6120,6 +6647,12 @@ window.XQ = {
     try {
       var v = localStorage.getItem('zzxq_sound');
       if (v !== null) enabled = v === '1';
+      var rk = localStorage.getItem('zzxq_rank');
+      if (rk) state.difficulty = rk;
+      var sd = localStorage.getItem('zzxq_side');
+      if (sd === 'red' || sd === 'black') state.playerColor = sd;
+      var hc = localStorage.getItem('zzxq_hc');
+      if (hc) state.handicap = hc;
       var vol = localStorage.getItem('zzxq_vol');
       if (vol !== null) {
         volumeLevel = parseInt(vol, 10) || 3;
@@ -7882,7 +8415,8 @@ window.XQ = {
     gameResult: null,   // null 或 { winner, reason }
     gameMode: 'pvp',    // pvp | pve | watch
     playerColor: 'red', // 人机模式下玩家执什么颜色
-    difficulty: 'easy', // easy | normal
+    difficulty: 'r3', // r1..r7 业余段位
+    handicap: 'none', // none | horse | doublehorse | rook
     isAiThinking: false,
     // 观战模式状态
     watch: {
@@ -7892,6 +8426,10 @@ window.XQ = {
       playTimer: null,
       aiRed: true,    // 红方是否由 AI 控制
       aiBlack: true,  // 黑方是否由 AI 控制
+      book: null,     // 本局复盘所用的名局谱
+      bookIndex: -1,  // 名局谱轮换下标
+      played: 0,      // 已按谱走出的着数
+      aiFallback: false, // 谱着对不上后转 AI
     },
     lastMove: null,     // 最后一步，用于高亮
     showDanger: true,
@@ -8004,6 +8542,11 @@ window.XQ = {
     els.watchBtnReplay = document.getElementById('watch-btn-replay');
     els.watchTakeRed = document.getElementById('watch-take-red');
     els.watchTakeBlack = document.getElementById('watch-take-black');
+    els.watchSource = document.getElementById('watch-source');
+    els.watchBtnBooks = document.getElementById('watch-btn-books');
+    els.modalWatchBook = document.getElementById('modal-watch-book');
+    els.watchBookList = document.getElementById('watch-book-list');
+    els.btnWatchBookClose = document.getElementById('btn-watch-book-close');
     els.watchSpeedBtns = document.querySelectorAll('#watch-bar .speed-btn');
     els.btnBrilliant = document.getElementById('btn-brilliant');
     els.btnUndo = document.getElementById('btn-undo');
@@ -8079,6 +8622,7 @@ window.XQ = {
     });
     Screen.register('atlas', els.modalAtlas);
     Screen.register('challenge', els.modalChallenge);
+    Screen.register('watchbook', els.modalWatchBook);
     // 开始界面默认可见，同步管理器状态
     Screen.current = 'start';
   }
@@ -8250,11 +8794,24 @@ window.XQ = {
     // 信息
     var moveCount = state.moveHistory.length;
     var roundNum = Math.ceil(moveCount / 2);
-    var info = 'AI 自战 · 第 ' + roundNum + ' 回合 · 共 ' + moveCount + ' 着';
-    if (state.gameResult) {
-      info += ' · 已结束';
+    var w = state.watch;
+    var info, source = '';
+    if (w.book) {
+      info = w.book.name + ' · 第 ' + roundNum + ' 回合';
+      source = (w.book.players || '') + (w.book.source ? '　·　' + w.book.source : '');
+      if (state.gameResult) {
+        info += ' · 已结束';
+      } else if (w.played >= w.book.moves.length) {
+        info += ' · AI 续战';
+      } else {
+        info += ' · 谱内复盘';
+      }
+    } else {
+      info = 'AI 自战 · 第 ' + roundNum + ' 回合 · 共 ' + moveCount + ' 着';
+      if (state.gameResult) info += ' · 已结束';
     }
     els.watchInfo.textContent = info;
+    if (els.watchSource) els.watchSource.textContent = source;
 
     // 播放按钮
     var finished = !!state.gameResult;
@@ -8523,6 +9080,7 @@ window.XQ = {
       pzStep: state.puzzle ? state.puzzle.step : null,
       pzOffBook: state.puzzle ? !!state.puzzle.offBook : false,
       pzFailed: state.puzzle ? !!state.puzzle.failed : false,
+      bookMove: !!move.bookMove,
     });
 
     var piece = state.board[move.fromRow][move.fromCol];
@@ -8662,6 +9220,34 @@ window.XQ = {
   }
 
   // ============================================================
+  // 观战：名局谱库与选子解析
+  // ============================================================
+  function getWatchGames() {
+    return XQ.OPENING_BOOKS.filter(function (b) { return !!b.players; });
+  }
+
+  function watchChooseMove() {
+    var w = state.watch;
+    if (w.enabled && w.book && !w.aiFallback && w.played < w.book.moves.length) {
+      var m = w.book.moves[w.played];
+      var side = state.currentTurn;
+      var pc = state.board[m.fromRow] && state.board[m.fromRow][m.fromCol];
+      if (pc && pc.color === side) {
+        var legal = XQ.getLegalMoves(state.board, side);
+        var ok = legal.some(function (l) {
+          return l.fromRow === m.fromRow && l.fromCol === m.fromCol &&
+                 l.toRow === m.toRow && l.toCol === m.toCol;
+        });
+        if (ok) return { move: m, bookMove: true };
+      }
+      // 谱着与当前局面对不上（如被接管打乱），其后转 AI 续战
+      w.aiFallback = true;
+    }
+    var ai = (XQ.aiGetMove || XQ.aiGetMoveLight)(state.board, state.currentTurn, state.difficulty, state.moveHistory);
+    return { move: ai, bookMove: false };
+  }
+
+  // ============================================================
   // AI 走子
   // ============================================================
   function aiMove() {
@@ -8677,10 +9263,12 @@ window.XQ = {
         renderAll();
         return;
       }
-      var move = (XQ.aiGetMove || XQ.aiGetMoveLight)(state.board, state.currentTurn, state.difficulty, state.moveHistory);
+      var res = watchChooseMove();
       state.isAiThinking = false;
-      if (move) {
-        doMove(move);
+      if (res.move) {
+        if (res.bookMove) state.watch.played++;
+        res.move.bookMove = res.bookMove;
+        doMove(res.move);
       } else {
         renderAll();
       }
@@ -9228,6 +9816,24 @@ window.XQ = {
   // ============================================================
   // 重置
   // ============================================================
+  // 让子：从 AI 方底线移除指定棋子
+  function applyHandicap(board, aiColor, hc) {
+    var home = aiColor === 'red' ? 9 : 0;
+    var cannonHome = aiColor === 'red' ? 7 : 2;
+    var remove = [];
+    if (hc === 'horse') remove.push([home, 1]);
+    else if (hc === 'doublehorse') remove.push([home, 1], [home, 7]);
+    else if (hc === 'rook') remove.push([home, 0]);
+    else if (hc === 'doublerook') remove.push([home, 0], [home, 8]);
+    else if (hc === 'cannon') remove.push([cannonHome, 1]);
+    else if (hc === 'doublecannon') remove.push([cannonHome, 1], [cannonHome, 7]);
+    else if (hc === 'horsecannon') remove.push([home, 1], [cannonHome, 1]);
+    for (var i = 0; i < remove.length; i++) {
+      var p = board[remove[i][0]][remove[i][1]];
+      if (p && p.color === aiColor) board[remove[i][0]][remove[i][1]] = null;
+    }
+  }
+
   function handleReset() {
     gameGen++;
     // 清理观战定时器
@@ -9243,6 +9849,11 @@ window.XQ = {
       state.puzzle.wrong = 0;
       state.puzzle.hintText = '';
       state.puzzle.hintsUsed = 0;
+    }
+    // 人机让子：按选择从 AI 方去掉棋子
+    if (state.gameMode === 'pve' && !state.puzzle && state.handicap && state.handicap !== 'none') {
+      var aiColor = state.playerColor === 'red' ? 'black' : 'red';
+      applyHandicap(state.board, aiColor, state.handicap);
     }
     state.currentTurn = 'red';
     state.selectedPos = null;
@@ -9264,6 +9875,8 @@ window.XQ = {
       state.watch.isPlaying = false;
       state.watch.aiRed = true;
       state.watch.aiBlack = true;
+      state.watch.played = 0;
+      state.watch.aiFallback = false;
     }
     updateDangerAnalysis();
     renderAll();
@@ -9325,6 +9938,10 @@ window.XQ = {
       showOnlinePanel();
       return;
     }
+    if (mode === 'pve') {
+      showLevelModal();
+      return;
+    }
     if (mode === 'demo') {
       // 棋谱：进入对局视图后打开棋谱弹窗，关闭时返回开始界面
       hideStartScreen();
@@ -9345,10 +9962,6 @@ window.XQ = {
     if (mode === 'challenge') {
       handleModeSelect('pvp');
       setTimeout(function() { showChallengeModal(); }, 260);
-      return;
-    }
-    if (mode === 'pve') {
-      handleModeSelect('pve', 'red', 'easy');
       return;
     }
     if (mode === 'watch') {
@@ -10000,7 +10613,7 @@ window.XQ = {
   // ============================================================
   // 模式切换
   // ============================================================
-  function handleModeSelect(mode, playerColor, difficulty) {
+  function handleModeSelect(mode, playerColor, difficulty, handicap) {
     // 清理观战定时器
     if (state.watch.playTimer) {
       clearTimeout(state.watch.playTimer);
@@ -10014,14 +10627,20 @@ window.XQ = {
     }
     if (mode === 'pve') {
       state.playerColor = playerColor || 'red';
-      state.difficulty = difficulty || 'easy';
+      state.difficulty = difficulty || state.difficulty || 'r3';
+      state.handicap = handicap || state.handicap || 'none';
       state.watch.enabled = false;
     } else if (mode === 'watch') {
-      state.difficulty = difficulty || 'easy';
+      state.difficulty = difficulty || 'r4';
       state.watch.enabled = true;
       state.watch.isPlaying = false;
       state.watch.aiRed = true;
       state.watch.aiBlack = true;
+      var watchGames = getWatchGames();
+      state.watch.bookIndex = watchGames.length ? (state.watch.bookIndex + 1) % watchGames.length : -1;
+      state.watch.book = watchGames.length ? watchGames[state.watch.bookIndex] : null;
+      state.watch.played = 0;
+      state.watch.aiFallback = false;
     } else {
       state.watch.enabled = false;
     }
@@ -10073,10 +10692,12 @@ window.XQ = {
         renderAll();
         return;
       }
-      var move = (XQ.aiGetMove || XQ.aiGetMoveLight)(state.board, state.currentTurn, state.difficulty, state.moveHistory);
+      var res = watchChooseMove();
       state.isAiThinking = false;
-      if (move) {
-        doMove(move);
+      if (res.move) {
+        if (res.bookMove) state.watch.played++;
+        res.move.bookMove = res.bookMove;
+        doMove(res.move);
       } else {
         renderAll();
       }
@@ -10091,6 +10712,7 @@ window.XQ = {
     if (state.isAiThinking) return;
     // 退一步
     var prev = state.history.pop();
+    if (prev.bookMove) state.watch.played = Math.max(0, state.watch.played - 1);
     state.board = prev.board;
     state.currentTurn = prev.currentTurn;
     state.capturedRed = prev.capturedRed;
@@ -10144,6 +10766,55 @@ window.XQ = {
     }
     renderAll();
     sfx('click');
+  }
+
+  function renderWatchBookList() {
+    var games = getWatchGames();
+    var html = '';
+    for (var i = 0; i < games.length; i++) {
+      var bk = games[i];
+      var active = state.watch.book && state.watch.book.id === bk.id;
+      var meta = Math.ceil(bk.moves.length / 2) + ' 着';
+      var sub = '';
+      if (bk.players) sub += bk.players;
+      if (bk.source) sub += (sub ? '　' : '') + bk.source;
+      html += '<div class="demo-book-item' + (active ? ' active' : '') + '" data-id="' + bk.id + '">';
+      html += '<div class="demo-book-name">' + bk.name + '</div>';
+      if (sub) html += '<div class="demo-book-sub">' + sub + '</div>';
+      html += '<div class="demo-book-moves">' + meta + '</div>';
+      html += '</div>';
+    }
+    els.watchBookList.innerHTML = html;
+  }
+
+  function openWatchBookModal() {
+    if (!state.watch.enabled) return;
+    renderWatchBookList();
+    Screen.openModal('watchbook');
+    sfx('click');
+  }
+
+  function selectWatchBook(id) {
+    var games = getWatchGames();
+    var idx = -1;
+    for (var i = 0; i < games.length; i++) {
+      if (games[i].id === id) { idx = i; break; }
+    }
+    if (idx < 0) return;
+    if (state.watch.playTimer) {
+      clearTimeout(state.watch.playTimer);
+      state.watch.playTimer = null;
+    }
+    state.watch.bookIndex = idx;
+    state.watch.book = games[idx];
+    state.watch.played = 0;
+    state.watch.aiFallback = false;
+    state.watch.aiRed = true;
+    state.watch.aiBlack = true;
+    state.watch.isPlaying = false;
+    handleReset(); // 重置棋盘并按观战自动播放
+    Screen.close();
+    sfx('popup-close');
   }
 
   // ============================================================
@@ -10832,7 +11503,18 @@ window.XQ = {
 
   function hideDemoModal() {
     // 清理逻辑已注册到 Screen 管理器（停止播放、重置状态）
-    // 棋谱只从开始界面进入，关闭后返回开始界面
+    if (demoReturnToLevel) {
+      // 从统一入口的「棋谱演练」进入：关闭后回到对局设置弹窗
+      demoReturnToLevel = false;
+      Screen.close();
+      showLevelModal();
+      return;
+    }
+    if (!menuOpen) {
+      // 对局内查看棋谱参考：关闭后留在当前棋盘
+      Screen.close();
+      return;
+    }
     showStartScreen();
     sfx('popup-close');
   }
@@ -10919,6 +11601,48 @@ window.XQ = {
     if (m) m.classList.remove('show');
   }
 
+  // ============================================================
+  // 人机段位选择
+  // ============================================================
+  var pickedRank = state.difficulty || 'r3';
+  var pickedSide = state.playerColor || 'red';
+  var pickedHandicap = state.handicap || 'none';
+  var demoReturnToLevel = false;
+
+  function refreshLevelUI() {
+    var opts = document.querySelectorAll('#level-list .level-option');
+    for (var i = 0; i < opts.length; i++) {
+      opts[i].classList.toggle('active', opts[i].getAttribute('data-rank') === pickedRank);
+    }
+    var sideBtns = document.querySelectorAll('#seg-side .seg-btn');
+    for (var si = 0; si < sideBtns.length; si++) {
+      sideBtns[si].classList.toggle('active', sideBtns[si].getAttribute('data-side') === pickedSide);
+    }
+    var hcBtns = document.querySelectorAll('#seg-handicap .seg-btn');
+    for (var hi = 0; hi < hcBtns.length; hi++) {
+      hcBtns[hi].classList.toggle('active', hcBtns[hi].getAttribute('data-hc') === pickedHandicap);
+    }
+  }
+
+  function showLevelModal() {
+    pickedRank = state.difficulty || 'r3';
+    pickedSide = state.playerColor || 'red';
+    pickedHandicap = state.handicap || 'none';
+    var m = document.getElementById('modal-level');
+    if (!m) return;
+    refreshLevelUI();
+    var tabs = m.querySelectorAll('#level-tabs .level-tab');
+    for (var ti = 0; ti < tabs.length; ti++) {
+      tabs[ti].classList.toggle('active', tabs[ti].getAttribute('data-tab') === 'battle');
+    }
+    m.classList.add('show');
+  }
+
+  function hideLevelModal() {
+    var m = document.getElementById('modal-level');
+    if (m) m.classList.remove('show');
+  }
+
   function bindEvents() {
     // 棋盘点击（事件委托）
     els.boardPoints.addEventListener('click', function(e) {
@@ -10971,6 +11695,83 @@ window.XQ = {
         if (lv > 0) sfx('click');
       });
     }
+    // 段位选择弹窗
+    var levelList = document.getElementById('level-list');
+    var btnLevelClose = document.getElementById('btn-level-close');
+    var btnLevelStart = document.getElementById('btn-level-start');
+    if (levelList) {
+      levelList.addEventListener('click', function(e) {
+        var b = e.target.closest('.level-option');
+        if (!b) return;
+        pickedRank = b.getAttribute('data-rank');
+        refreshLevelUI();
+        sfx('click');
+      });
+    }
+    var segSide = document.getElementById('seg-side');
+    if (segSide) {
+      segSide.addEventListener('click', function(e) {
+        var b = e.target.closest('.seg-btn');
+        if (!b) return;
+        pickedSide = b.getAttribute('data-side');
+        refreshLevelUI();
+        sfx('click');
+      });
+    }
+    var segHandicap = document.getElementById('seg-handicap');
+    if (segHandicap) {
+      segHandicap.addEventListener('click', function(e) {
+        var b = e.target.closest('.seg-btn');
+        if (!b) return;
+        pickedHandicap = b.getAttribute('data-hc');
+        refreshLevelUI();
+        sfx('click');
+      });
+    }
+    if (btnLevelClose) {
+      btnLevelClose.addEventListener('click', function() { sfx('popup-close'); hideLevelModal(); });
+    }
+    var levelTabs = document.getElementById('level-tabs');
+    if (levelTabs) {
+      levelTabs.addEventListener('click', function(e) {
+        var b = e.target.closest('.level-tab');
+        if (!b) return;
+        var tab = b.getAttribute('data-tab');
+        var tabs = levelTabs.querySelectorAll('.level-tab');
+        for (var ti = 0; ti < tabs.length; ti++) tabs[ti].classList.toggle('active', tabs[ti] === b);
+        if (tab === 'book') {
+          sfx('click');
+          demoReturnToLevel = true;
+          hideLevelModal();
+          showDemoModal();
+        } else {
+          sfx('click');
+        }
+      });
+    }
+    var btnDemoRef = document.getElementById('btn-demo-ref');
+    if (btnDemoRef) {
+      btnDemoRef.addEventListener('click', function() {
+        sfx('click');
+        demoReturnToLevel = false;
+        showDemoModal();
+      });
+    }
+    if (btnLevelStart) {
+      btnLevelStart.addEventListener('click', function() {
+        state.difficulty = pickedRank;
+        state.playerColor = pickedSide;
+        state.handicap = pickedHandicap;
+        try { localStorage.setItem('zzxq_rank', pickedRank); } catch(err) {}
+        try { localStorage.setItem('zzxq_side', pickedSide); } catch(err) {}
+        try { localStorage.setItem('zzxq_hc', pickedHandicap); } catch(err) {}
+        sfx('click');
+        hideLevelModal();
+        hideStartScreen();
+        handleModeSelect('pve', pickedSide, pickedRank, pickedHandicap);
+      });
+    }
+
     var segFx = document.getElementById('seg-fx');
     if (segFx) {
       segFx.addEventListener('click', function(e) {
@@ -11226,6 +12027,22 @@ window.XQ = {
     if (els.watchTakeBlack) {
       els.watchTakeBlack.addEventListener('click', function() { watchTakeover('black'); });
     }
+    if (els.watchBtnBooks) {
+      els.watchBtnBooks.addEventListener('click', openWatchBookModal);
+    }
+    if (els.btnWatchBookClose) {
+      els.btnWatchBookClose.addEventListener('click', function() { Screen.close(); });
+    }
+    if (els.modalWatchBook) {
+      els.modalWatchBook.addEventListener('click', function(e) {
+        if (e.target === els.modalWatchBook) Screen.close();
+      });
+      els.watchBookList.addEventListener('click', function(e) {
+        var item = e.target.closest('[data-id]');
+        if (!item) return;
+        selectWatchBook(item.getAttribute('data-id'));
+      });
+    }
 
     // 点击遮罩层关闭（所有 .modal-overlay）
     // 联机弹窗已有自己的取消逻辑（cancelOnlinePanel 会回到开始界面），这里跳过
@@ -11236,6 +12053,8 @@ window.XQ = {
           if (els.modalOnline && this === els.modalOnline) return;
           var mset = document.getElementById('modal-settings');
           if (mset && this === mset) { hideSettingsModal(); sfx('popup-close'); return; }
+          var mlevel = document.getElementById('modal-level');
+          if (mlevel && this === mlevel) { hideLevelModal(); sfx('popup-close'); return; }
           Screen.close();
           sfx('popup-close');
         }
