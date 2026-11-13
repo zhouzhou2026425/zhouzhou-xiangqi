@@ -143,9 +143,12 @@ html, body {
 /* 棋盘容器 */
 .board-zone {
   width: 100%;
-  max-width: 400px;
+  max-width: min(400px, calc((100vh - 330px) * 8 / 9));
   flex-shrink: 0;
   margin: 0 auto;
+}
+@supports (height: 100dvh) {
+  .board-zone { max-width: min(400px, calc((100dvh - 330px) * 8 / 9)); }
 }
 
 .board-wrapper {
@@ -442,6 +445,8 @@ html, body {
   margin-top: 12px;
   flex-shrink: 0;
 }
+.bottom-bar.bar-hidden { display: none; }
+.bar-hidden { display: none !important; }
 
 .btn-row {
   display: grid;
@@ -539,9 +544,9 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   margin-top: 8px;
-  padding: 10px 12px;
+  padding: 8px 10px;
   background: rgba(255, 248, 235, 0.85);
   border: 1px solid #d4b88a;
   border-radius: 10px;
@@ -555,6 +560,8 @@ html, body {
 .watch-controls {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 6px;
 }
 .watch-controls .demo-btn {
@@ -594,15 +601,20 @@ html, body {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
   margin-top: 2px;
+  width: 100%;
 }
 #watch-book-list {
   max-height: 60vh;
 }
 .btn-takeover {
-  padding: 6px 12px;
+  flex: 1 1 auto;
+  min-width: 96px;
+  min-height: 38px;
+  padding: 6px 8px;
   font-size: 12px;
+  white-space: nowrap;
   background: #fff;
   border: 1px solid #c8a876;
   color: #7a5a2e;
@@ -640,7 +652,8 @@ html, body {
   align-items: center;
   justify-content: center;
   z-index: 100;
-  padding: 20px;
+  padding: 16px;
+  overflow-y: auto;
 }
 
 .modal-overlay.show {
@@ -650,13 +663,19 @@ html, body {
 .modal {
   background: #fdf6e3;
   border-radius: 10px;
-  padding: 20px;
+  padding: 18px;
   width: 100%;
   max-width: 340px;
-  max-height: 85vh;
+  max-height: 90vh;
   overflow-y: auto;
   border: 1px solid #c9b896;
   box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+@supports (height: 100dvh) {
+  .modal { max-height: 90dvh; }
+}
+@media (max-height: 620px) {
+  .modal { padding: 14px 16px; }
 }
 
 .modal h2 {
@@ -2130,24 +2149,25 @@ body { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
 .settings-modal, .level-modal { max-width: 360px; }
 .settings-row, .level-row {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
   padding: 10px 0;
   border-bottom: 1px dashed #e2cfa8;
 }
 .settings-row:last-of-type, .level-row:last-of-type { border-bottom: none; }
 .settings-label, .level-row-label {
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 600;
   color: #5a3d1a;
-  flex: 0 0 76px;
+  flex: none;
   letter-spacing: 0.5px;
 }
 .seg-group {
   display: flex;
   flex: 1;
   flex-wrap: wrap;
-  justify-content: flex-end;
+  justify-content: flex-start;
   gap: 6px;
 }
 .seg-btn {
@@ -2159,7 +2179,7 @@ body { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
   background: #fdf6e3;
   color: #6b4c22;
   font-family: inherit;
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   text-align: center;
@@ -2179,11 +2199,12 @@ body { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 6px;
+  width: 100%;
 }
 #seg-handicap .seg-btn {
   flex: none;
-  padding: 8px 4px;
-  min-height: 34px;
+  padding: 8px 2px;
+  min-height: 36px;
   font-size: 12px;
 }
 .settings-tip {
@@ -2198,21 +2219,22 @@ body { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
 /* ============================================================
    人机段位选择
    ============================================================ */
-.level-tip { font-size: 12px; color: #a58d66; margin: 2px 0 10px; letter-spacing: 0.5px; line-height: 1.5; }
+.level-tip { font-size: 12px; color: #a58d66; margin: 2px 0 8px; letter-spacing: 0.5px; line-height: 1.5; }
 .level-caption {
   font-size: 12.5px;
   font-weight: 600;
   color: #7d5c2e;
   letter-spacing: 1px;
-  margin: 12px 0 8px;
+  margin: 10px 0 6px;
 }
-.level-list { display: flex; flex-direction: column; gap: 8px; margin: 0 0 14px; }
+.level-list { display: flex; flex-direction: column; gap: 6px; margin: 0 0 10px; }
 .level-option {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 11px 14px;
+  flex-wrap: wrap;
+  padding: 9px 12px;
   border: 1px solid #d4b88a;
   border-radius: 11px;
   background: #fdf6e3;
@@ -2227,8 +2249,8 @@ body { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
   background: #fbe9e7;
   box-shadow: inset 0 0 0 1px #8b2f2f;
 }
-.lv-name { font-size: 14.5px; font-weight: 700; letter-spacing: 0.5px; }
-.lv-desc { font-size: 12px; color: #97794c; text-align: right; }
+.lv-name { font-size: 14px; font-weight: 700; letter-spacing: 0.5px; flex: 0 1 auto; }
+.lv-desc { font-size: 12px; color: #97794c; text-align: right; flex: 1 1 auto; min-width: 0; }
 .level-start-btn { width: 100%; min-height: 46px; margin-top: 2px; }
 .level-tabs { display: flex; gap: 8px; margin: 2px 0 12px; }
 .level-tab {
@@ -2284,7 +2306,7 @@ body { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
         <span class="sm-icon">人</span>
         <span class="sm-texts">
           <span class="sm-name">对局 · 棋谱</span>
-          <span class="sm-desc">对弈 AI，或先看开局名局棋谱</span>
+          <span class="sm-desc">对弈 AI，或看名局棋谱</span>
         </span>
       </button>
       <button class="start-mode start-mode-online" data-start-mode="online">
@@ -8548,6 +8570,8 @@ window.XQ = {
     els.watchBookList = document.getElementById('watch-book-list');
     els.btnWatchBookClose = document.getElementById('btn-watch-book-close');
     els.watchSpeedBtns = document.querySelectorAll('#watch-bar .speed-btn');
+    els.bottomBar = document.querySelector('.bottom-bar');
+    els.hintText = document.getElementById('hint-text');
     els.btnBrilliant = document.getElementById('btn-brilliant');
     els.btnUndo = document.getElementById('btn-undo');
     els.btnReset = document.getElementById('btn-reset');
@@ -8787,9 +8811,16 @@ window.XQ = {
     if (!els.watchBar) return;
     if (!state.watch.enabled) {
       els.watchBar.style.display = 'none';
+      if (els.bottomBar) els.bottomBar.classList.remove('bar-hidden');
+      if (els.hintText) els.hintText.classList.remove('bar-hidden');
       return;
     }
     els.watchBar.style.display = 'flex';
+    if (els.bottomBar) {
+      var pureWatch = state.watch.aiRed && state.watch.aiBlack;
+      els.bottomBar.classList.toggle('bar-hidden', pureWatch);
+      if (els.hintText) els.hintText.classList.toggle('bar-hidden', pureWatch);
+    }
 
     // 信息
     var moveCount = state.moveHistory.length;
