@@ -8694,6 +8694,7 @@ window.XQ = {
     disconnected: false,
     hints: { red: 3, black: 3 },   // 联机双方各自剩余提示次数
     undos: { red: 2, black: 2 },  // 联机双方各自剩余悔棋次数
+    pendingUndo: false,           // 是否已有待对方同意的悔棋申请
     noticePeerLeft: false,        // 是否已弹出“对手离开”提示
   };
 
@@ -9044,9 +9045,12 @@ window.XQ = {
     if (state.watch.enabled && state.watch.isPlaying) disabled = true;
     var onlineMode = state.gameMode === 'online';
     if (onlineMode) {
-      // 联机：轮到自己、尚有悔棋次数时才可回退一步；每方限 2 次
-      disabled = disabled || state.currentTurn !== online.color || online.undos[state.currentTurn] <= 0;
-      els.btnUndo.textContent = '↶ 悔棋(剩' + online.undos[state.currentTurn] + ')';
+      var undoSide = lastUndoSide();
+      // 联机：已走棋、对方尚未同意、上一步还有悔棋次数时才可申请
+      disabled = disabled || online.pendingUndo || online.undos[undoSide] <= 0;
+      els.btnUndo.textContent = online.pendingUndo
+        ? '↶ 等待对方同意'
+        : '↶ 悔棋(剩' + online.undos[undoSide] + ')';
     } else {
       els.btnUndo.textContent = '↶ 悔棋';
     }
@@ -10569,6 +10573,7 @@ window.XQ = {
     online.waiting = false;
     online.inGame = false;
     online.suppressSend = false;
+    online.pendingUndo = false;
     online.disconnected = false;
     online.noticePeerLeft = false;
     if (state.gameMode === 'online') {
@@ -10779,6 +10784,11 @@ window.XQ = {
       return;
     }
 
+    if (['undo-request', 'undo-accept', 'undo-decline', 'resign', 'draw-request', 'draw-accept'].indexOf(msg.type) >= 0) {
+      handleOnlineMessage(msg);
+      return;
+    }
+
     if (msg.type === 'leave') {
       handleOnlineMessage({ type: 'peer-left', message: '对方已离开，对局结束' });
     }
@@ -10831,8 +10841,31 @@ window.XQ = {
       return;
     }
 
-    if (msg.type === 'undo') {
-      applyRemoteUndo();
+    if (msg.type === 'undo-request') {
+      var requestSide = lastUndoSide();
+      openConfirm('悔棋请求', '对方请求回退' + (requestSide === 'red' ? '红方' : '黑方') + '的上一步，是否同意悔棋？', function() {
+        hideConfirm();
+        acceptOnlineUndo();
+      }, function() {
+        hideConfirm();
+        declineOnlineUndo();
+      });
+      return;
+    }
+
+    if (msg.type === 'undo-accept') {
+      if (!online.pendingUndo) return;
+      online.pendingUndo = false;
+      applyOnlineUndoLocal();
+      sfx('undo');
+      setOnlineStatus('对方同意了悔棋');
+      return;
+    }
+
+    if (msg.type === 'undo-decline') {
+      online.pendingUndo = false;
+      setOnlineStatus('对方拒绝了悔棋');
+      renderAll();
       return;
     }
 
@@ -10922,6 +10955,7 @@ window.XQ = {
     online.suppressSend = false;
     online.hints = { red: 3, black: 3 };
     online.undos = { red: 2, black: 2 };
+    online.pendingUndo = false;
     online.noticePeerLeft = false;
     hideOnlinePanel();
     hideStartScreen();
@@ -11002,7 +11036,12 @@ window.XQ = {
     return mover;
   }
 
-  function applyRemoteUndo() {
+  function lastUndoSide() {
+    var last = state.moveHistory[state.moveHistory.length - 1];
+    return last && (last.color === 'red' || last.color === 'black') ? last.color : state.currentTurn;
+  }
+
+  function applyOnlineUndoLocal() {
     if (state.gameMode !== 'online' || state.history.length === 0) return;
     var mover = popOnlineSnapshot();
     if (mover) online.undos[mover] = Math.max(0, online.undos[mover] - 1);
@@ -11012,14 +11051,27 @@ window.XQ = {
   }
 
   function requestOnlineUndo() {
-    if (state.history.length === 0) return;
-    var mover = popOnlineSnapshot();
-    if (mover) online.undos[mover] = Math.max(0, online.undos[mover] - 1);
-    sendRelay({ type: 'undo' });
+    if (state.history.length === 0 || online.pendingUndo) return;
+    var mover = lastUndoSide();
+    if (online.undos[mover] <= 0) return;
+    online.pendingUndo = true;
+    sendRelay({ type: 'undo-request' });
+    setOnlineStatus('悔棋申请已发送，等待对方同意');
     renderAll();
-    hideResultModal();
-    hideKillInfo();
+  }
+
+  function acceptOnlineUndo() {
+    var mover = lastUndoSide();
+    if (online.undos[mover] <= 0) return;
+    online.pendingUndo = false;
+    applyOnlineUndoLocal();
+    sendRelay({ type: 'undo-accept' });
     sfx('undo');
+  }
+
+  function declineOnlineUndo() {
+    online.pendingUndo = false;
+    sendRelay({ type: 'undo-decline' });
   }
 
   function requestOnlineRestart() {
@@ -11339,16 +11391,19 @@ window.XQ = {
 
   // ---- 通用确认弹窗 ----
   var confirmAction = null;
-  function openConfirm(title, message, onOk) {
+  var confirmCancelAction = null;
+  function openConfirm(title, message, onOk, onCancel) {
     if (!els.modalConfirm) return;
     els.confirmTitle.textContent = title;
     els.confirmMessage.textContent = message;
     confirmAction = onOk || null;
+    confirmCancelAction = onCancel || null;
     els.modalConfirm.classList.add('show');
     sfx('popup-open');
   }
   function hideConfirm() {
     confirmAction = null;
+    confirmCancelAction = null;
     if (els.modalConfirm) els.modalConfirm.classList.remove('show');
     sfx('popup-close');
   }
@@ -12247,7 +12302,11 @@ window.XQ = {
       hideConfirm();
       if (fn) fn();
     });
-    if (els.btnConfirmCancel) els.btnConfirmCancel.addEventListener('click', function() { hideConfirm(); });
+    if (els.btnConfirmCancel) els.btnConfirmCancel.addEventListener('click', function() {
+      var cancelFn = confirmCancelAction;
+      hideConfirm();
+      if (cancelFn) cancelFn();
+    });
     if (els.btnHome) {
       els.btnHome.addEventListener('click', function() { sfx('click'); returnToMenu(); });
     }
