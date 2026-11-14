@@ -2395,6 +2395,40 @@ html, body {
   box-shadow: 0 8px 18px rgba(107, 20, 20, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.25);
 }
 
+/* 对局时钟 */
+.clock-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.clock-chip {
+  min-width: 68px;
+  padding: 4px 12px;
+  border-radius: 10px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 14px;
+  background: rgba(255, 250, 238, 0.7);
+  border: 1px solid #c9b896;
+  color: #6b4a22;
+}
+.clock-chip.red { color: #b02a23; border-color: #d8a39e; }
+.clock-chip.black { color: #2c3e50; border-color: #9aa7b2; }
+.clock-chip.active {
+  box-shadow: 0 0 0 2px rgba(107, 20, 20, 0.18);
+  background: #fff6e6;
+}
+.clock-chip.low { color: #c0392b; }
+.clock-label { font-size: 12px; color: #8a7350; }
+.btn-ghost {
+  background: rgba(255, 250, 238, 0.6);
+  color: #6b4a22;
+}
+.btn-ghost:disabled { opacity: 0.45; }
+
 </style>
 </head>
 <body>
@@ -2732,6 +2766,13 @@ html, body {
     <button class="online-exit-btn" id="btn-online-exit">退出</button>
   </div>
 
+  <!-- 对局时钟 -->
+  <div class="clock-bar" id="clock-bar">
+    <span class="clock-chip red" id="clock-red">25:00</span>
+    <span class="clock-label">计时</span>
+    <span class="clock-chip black" id="clock-black">25:00</span>
+  </div>
+
   <!-- 提示文字 -->
   <div class="hint-text" id="hint-text">红方走棋</div>
 
@@ -2742,6 +2783,10 @@ html, body {
       <button class="btn" id="btn-demo-ref">📖 棋谱</button>
       <button class="btn" id="btn-undo">↶ 悔棋</button>
       <button class="btn" id="btn-reset">↻ 重开</button>
+    </div>
+    <div class="btn-row btn-row-extra" id="extra-bar">
+      <button class="btn btn-ghost" id="btn-resign">认输</button>
+      <button class="btn btn-ghost" id="btn-draw">求和</button>
     </div>
     <div class="btn-row btn-row-puzzle" id="puzzle-bar">
       <button class="btn btn-danger" id="btn-puzzle-exit">✖ 退出挑战</button>
@@ -2770,6 +2815,18 @@ html, body {
     <div class="btn-row">
       <button class="btn" id="btn-reset-cancel">取消</button>
       <button class="btn btn-primary" id="btn-reset-ok">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- 通用确认弹窗（认输 / 求和） -->
+<div class="modal-overlay" id="modal-confirm">
+  <div class="modal">
+    <h2 id="confirm-title">确认</h2>
+    <p id="confirm-message">确定继续吗？</p>
+    <div class="btn-row">
+      <button class="btn" id="btn-confirm-cancel">取消</button>
+      <button class="btn btn-primary" id="btn-confirm-ok">确定</button>
     </div>
   </div>
 </div>
@@ -8609,6 +8666,7 @@ window.XQ = {
     brilliantText: '',  // 妙招记谱
     killInfo: null,     // 杀法识别结果 { name, desc }
     puzzle: null,       // 杀法闯关 { def, levelIndex, step, wrong, hintText, hintsUsed }
+    clock: { red: 1500, black: 1500, timer: null, started: false },
   };
 
   // 危险分析（缓存，落子后更新）
@@ -8723,6 +8781,17 @@ window.XQ = {
     els.btnBrilliant = document.getElementById('btn-brilliant');
     els.btnUndo = document.getElementById('btn-undo');
     els.btnReset = document.getElementById('btn-reset');
+    els.btnResign = document.getElementById('btn-resign');
+    els.btnDraw = document.getElementById('btn-draw');
+    els.extraBar = document.getElementById('extra-bar');
+    els.clockBar = document.getElementById('clock-bar');
+    els.clockRed = document.getElementById('clock-red');
+    els.clockBlack = document.getElementById('clock-black');
+    els.modalConfirm = document.getElementById('modal-confirm');
+    els.confirmTitle = document.getElementById('confirm-title');
+    els.confirmMessage = document.getElementById('confirm-message');
+    els.btnConfirmOk = document.getElementById('btn-confirm-ok');
+    els.btnConfirmCancel = document.getElementById('btn-confirm-cancel');
     els.modalReset = document.getElementById('modal-reset');
     els.modalResult = document.getElementById('modal-result');
     els.modalDemo = document.getElementById('modal-demo');
@@ -9001,6 +9070,13 @@ window.XQ = {
       els.btnBrilliant.textContent = '💡 提示';
     }
     els.btnBrilliant.disabled = !hintable;
+
+    var inGame = !state.watch.enabled;
+    if (els.extraBar) els.extraBar.style.display = inGame ? '' : 'none';
+    if (els.clockBar) els.clockBar.style.display = clockAvailable() ? '' : 'none';
+    var actionDisabled = !!state.gameResult || state.isAiThinking;
+    if (els.btnResign) els.btnResign.disabled = actionDisabled;
+    if (els.btnDraw) els.btnDraw.disabled = actionDisabled;
   }
 
   function renderOnlineBar() {
@@ -9093,6 +9169,7 @@ window.XQ = {
     renderActionBar();
     renderOnlineBar();
     renderWatchBar();
+    renderClock();
   }
 
   // ============================================================
@@ -9366,6 +9443,7 @@ window.XQ = {
 
     // 切换回合
     state.currentTurn = state.currentTurn === 'red' ? 'black' : 'red';
+    startClock();
 
     // 联机：把本地着法同步给对手
     if (state.gameMode === 'online' && !online.suppressSend) {
@@ -9677,6 +9755,8 @@ window.XQ = {
   function updatePuzzleBar() {
     if (!els.puzzleBar) return;
     els.puzzleBar.style.display = state.puzzle ? 'grid' : 'none';
+    if (els.extraBar) els.extraBar.style.display = state.puzzle ? 'none' : '';
+    if (els.clockBar) els.clockBar.style.display = state.puzzle ? 'none' : (clockAvailable() ? '' : 'none');
     var bar = els.puzzleBar.parentNode;
     if (bar) bar.classList.toggle('puzzle-mode', !!state.puzzle);
     if (!els.btnBrilliant) return;
@@ -10129,6 +10209,7 @@ window.XQ = {
     state.killInfo = null;
     state.brilliant = null;
     state.brilliantText = '';
+    resetClock();
     // 观战模式重置状态
     if (state.watch.enabled) {
       state.watch.isPlaying = false;
@@ -10180,6 +10261,7 @@ window.XQ = {
     }
     state.watch.isPlaying = false;
     state.isAiThinking = false;
+    stopClock();
     hideResultModal();
     hideResetModal();
     showStartScreen();
@@ -10232,11 +10314,21 @@ window.XQ = {
   // ============================================================
   // 联机对战
   // ============================================================
-  // ---- MQTT over WebSocket（公共中继，静态页面也能联机）----
-  var MQTT_URLS = [
-    'wss://broker.emqx.io:8084/mqtt',
-    'wss://broker.hivemq.com:8884/mqtt'
-  ];
+  // ---- MQTT over WebSocket ----
+  // 私有专用中继配置：把 broker 地址填到 url 即生效；留空则使用下面的公共兜底。
+  // 示例：wss://你的实例.emqx.app:8084/mqtt
+  var MQTT_CONFIG = {
+    url: 'wss://eeb114a5.ala.cn-hangzhou.emqxsl.cn:8084/mqtt',
+    username: 'zzxq',
+    password: 'Zzxq2026',
+    topicPrefix: 'zzxq/room/'
+  };
+  var MQTT_URLS = MQTT_CONFIG.url
+    ? [MQTT_CONFIG.url]
+    : [
+        'wss://broker.emqx.io:8084/mqtt',
+        'wss://broker.hivemq.com:8884/mqtt'
+      ];
   var TEXT_DECODER = new TextDecoder();
 
   function mqttVarLen(n) {
@@ -10316,7 +10408,18 @@ window.XQ = {
   };
 
   MqttClient.prototype.sendConnect = function() {
-    var body = [0, 4, 77, 81, 84, 84, 4, 2, 0, 60].concat(mqttUtf(this.clientId));
+    var flags = 0x02; // clean session
+    var body = [0, 4, 77, 81, 84, 84, 4, 2, 0, 60];
+    body = body.concat(mqttUtf(this.clientId));
+    if (MQTT_CONFIG.username) {
+      flags |= 0x80;
+      body = body.concat(mqttUtf(MQTT_CONFIG.username));
+    }
+    if (MQTT_CONFIG.password) {
+      flags |= 0x40;
+      body = body.concat(mqttUtf(MQTT_CONFIG.password));
+    }
+    body[6] = flags;
     this.raw(mqttPacket(0x10, body));
   };
 
@@ -10414,7 +10517,7 @@ window.XQ = {
   }
 
   function onlineTopic(code) {
-    return 'zzxq1/' + code;
+    return MQTT_CONFIG.topicPrefix + code;
   }
 
   function onlineRandomCode() {
@@ -10478,6 +10581,7 @@ window.XQ = {
 
   function exitOnlineToMenu() {
     onlineLeave();
+    stopClock();
     hideResultModal();
     showStartScreen();
   }
@@ -10738,6 +10842,27 @@ window.XQ = {
         handleReset();
         renderAll();
       }
+      return;
+    }
+
+    if (msg.type === 'resign') {
+      var loser = (msg.color === 'red' || msg.color === 'black') ? msg.color : state.currentTurn;
+      finishResult({ winner: loser === 'red' ? 'black' : 'red', reason: 'resign' });
+      sfx('checkmate', false);
+      return;
+    }
+
+    if (msg.type === 'draw-request') {
+      openConfirm('对手求和', '对方提议和棋，是否同意按和棋结束本局？', function() {
+        hideConfirm();
+        sendRelay({ type: 'draw-accept' });
+        doAgreedDraw();
+      });
+      return;
+    }
+
+    if (msg.type === 'draw-accept') {
+      doAgreedDraw();
       return;
     }
 
@@ -11166,6 +11291,9 @@ window.XQ = {
     if (r.reason === 'checkmate') reasonText = '将死';
     else if (r.reason === 'repetition') reasonText = '三次重复局面';
     else if (r.reason === 'sixtymove') reasonText = '六十回合无吃子';
+    else if (r.reason === 'resign') reasonText = '认输';
+    else if (r.reason === 'timeout') reasonText = '超时判负';
+    else if (r.reason === 'agreed') reasonText = '双方同意和棋';
     els.resultReason.textContent = reasonText;
 
     var loser = r.winner === 'red' ? '黑方' : '红方';
@@ -11176,6 +11304,12 @@ window.XQ = {
       desc = '同一局面出现三次，按和棋处理';
     } else if (r.reason === 'sixtymove') {
       desc = '连续六十回合未吃子，按和棋处理';
+    } else if (r.reason === 'resign') {
+      desc = loser + '主动认输，对手获胜';
+    } else if (r.reason === 'timeout') {
+      desc = loser + '用时耗尽，对手获胜';
+    } else if (r.reason === 'agreed') {
+      desc = '双方商议一致，本局按和棋结束';
     } else {
       desc = loser + '无子可动且未被将军';
     }
@@ -11201,6 +11335,125 @@ window.XQ = {
   function hideResultModal() {
     Screen.close();
     sfx('popup-close');
+  }
+
+  // ---- 通用确认弹窗 ----
+  var confirmAction = null;
+  function openConfirm(title, message, onOk) {
+    if (!els.modalConfirm) return;
+    els.confirmTitle.textContent = title;
+    els.confirmMessage.textContent = message;
+    confirmAction = onOk || null;
+    els.modalConfirm.classList.add('show');
+    sfx('popup-open');
+  }
+  function hideConfirm() {
+    confirmAction = null;
+    if (els.modalConfirm) els.modalConfirm.classList.remove('show');
+    sfx('popup-close');
+  }
+
+  // ---- 认输 / 求和 ----
+  function resignColor() {
+    if (state.gameMode === 'online') return online.color;
+    if (state.gameMode === 'pve') return state.playerColor;
+    return state.currentTurn;
+  }
+
+  function finishResult(result) {
+    state.gameResult = result;
+    state.killInfo = null;
+    state.selectedPos = null;
+    state.validMoves = [];
+    stopClock();
+    updateDangerAnalysis();
+    renderAll();
+    hideResultModal();
+    showResultModal();
+  }
+
+  function doResign(color) {
+    if (state.gameResult) return;
+    var winner = color === 'red' ? 'black' : 'red';
+    finishResult({ winner: winner, reason: 'resign' });
+    sfx('checkmate', false);
+  }
+
+  function doAgreedDraw() {
+    if (state.gameResult) return;
+    finishResult({ winner: null, reason: 'agreed' });
+    sfx('checkmate', false);
+  }
+
+  function onResignClick() {
+    if (state.gameResult || state.puzzle || state.watch.enabled) return;
+    var color = resignColor();
+    var label = state.gameMode === 'online' ? '你' : (color === 'red' ? '红方' : '黑方');
+    openConfirm('认输', label + '确定要认输吗？本局将判负。', function() {
+      hideConfirm();
+      doResign(color);
+      if (state.gameMode === 'online') sendRelay({ type: 'resign', color: color });
+    });
+  }
+
+  function onDrawClick() {
+    if (state.gameResult || state.puzzle || state.watch.enabled) return;
+    if (state.gameMode === 'online') {
+      sendRelay({ type: 'draw-request' });
+      setOnlineStatus('求和申请已发送，等待对手回应');
+      return;
+    }
+    openConfirm('求和', '双方同意按和棋结束本局吗？', function() {
+      hideConfirm();
+      doAgreedDraw();
+    });
+  }
+
+  // ---- 本地对局时钟（联机不同步计时） ----
+  function clockAvailable() {
+    return state.gameMode === 'pvp' || state.gameMode === 'pve';
+  }
+  function fmtClock(sec) {
+    sec = Math.max(0, Math.floor(sec));
+    var m = Math.floor(sec / 60);
+    var s = sec % 60;
+    return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+  }
+  function renderClock() {
+    if (!els.clockRed || !els.clockBlack) return;
+    els.clockRed.textContent = fmtClock(state.clock.red);
+    els.clockBlack.textContent = fmtClock(state.clock.black);
+    els.clockRed.classList.toggle('active', state.currentTurn === 'red' && !state.gameResult);
+    els.clockBlack.classList.toggle('active', state.currentTurn === 'black' && !state.gameResult);
+    els.clockRed.classList.toggle('low', state.clock.red <= 300);
+    els.clockBlack.classList.toggle('low', state.clock.black <= 300);
+  }
+  function resetClock() {
+    stopClock();
+    state.clock.red = 1500;
+    state.clock.black = 1500;
+    renderClock();
+  }
+  function startClock() {
+    if (!clockAvailable() || state.clock.started || state.gameResult) return;
+    state.clock.started = true;
+    state.clock.timer = setInterval(function() {
+      if (state.gameResult || !clockAvailable() || menuOpen) return;
+      var side = state.currentTurn;
+      state.clock[side] -= 1;
+      if (state.clock[side] <= 0) {
+        state.clock[side] = 0;
+        renderClock();
+        finishResult({ winner: side === 'red' ? 'black' : 'red', reason: 'timeout' });
+        return;
+      }
+      renderClock();
+    }, 1000);
+  }
+  function stopClock() {
+    if (state.clock.timer) clearInterval(state.clock.timer);
+    state.clock.timer = null;
+    state.clock.started = false;
   }
 
   function showResetModal() {
@@ -11987,6 +12240,14 @@ window.XQ = {
       els.btnBrilliant.addEventListener('click', showBrilliant);
     }
     els.btnReset.addEventListener('click', function() { sfx('click'); showResetModal(); });
+    if (els.btnResign) els.btnResign.addEventListener('click', function() { sfx('click'); onResignClick(); });
+    if (els.btnDraw) els.btnDraw.addEventListener('click', function() { sfx('click'); onDrawClick(); });
+    if (els.btnConfirmOk) els.btnConfirmOk.addEventListener('click', function() {
+      var fn = confirmAction;
+      hideConfirm();
+      if (fn) fn();
+    });
+    if (els.btnConfirmCancel) els.btnConfirmCancel.addEventListener('click', function() { hideConfirm(); });
     if (els.btnHome) {
       els.btnHome.addEventListener('click', function() { sfx('click'); returnToMenu(); });
     }
