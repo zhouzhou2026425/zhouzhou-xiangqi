@@ -1926,6 +1926,9 @@ body { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
   cursor: pointer;
   box-shadow: 0 3px 8px rgba(90, 61, 26, 0.10);
   transition: transform 0.1s ease, box-shadow 0.1s ease;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
 }
 .start-mode:active {
   transform: translateY(1px) scale(0.985);
@@ -2018,6 +2021,9 @@ body { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
   font-family: inherit;
   cursor: pointer;
   transition: background 0.15s, transform 0.1s;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
 }
 .start-tool:active {
   background: #efe2c4;
@@ -8700,6 +8706,7 @@ window.XQ = {
 
   // 是否停留在开始界面（用于拦截后台 AI 延迟走子）
   var menuOpen = true;
+  var menuClickLockUntil = 0;
   // 棋局代号：重置后让尚未执行的 AI 回调失效
   var gameGen = 0;
 
@@ -9045,12 +9052,12 @@ window.XQ = {
     if (state.watch.enabled && state.watch.isPlaying) disabled = true;
     var onlineMode = state.gameMode === 'online';
     if (onlineMode) {
-      var undoSide = lastUndoSide();
-      // 联机：已走棋、对方尚未同意、上一步还有悔棋次数时才可申请
-      disabled = disabled || online.pendingUndo || online.undos[undoSide] <= 0;
+      var isOwnLastMove = state.moveHistory.length > 0 && lastUndoSide() === online.color;
+      // 联机：只能悔自己的上一步；每方两次；等待同意时锁定
+      disabled = disabled || online.pendingUndo || !isOwnLastMove || online.undos[online.color] <= 0;
       els.btnUndo.textContent = online.pendingUndo
         ? '↶ 等待对方同意'
-        : '↶ 悔棋(剩' + online.undos[undoSide] + ')';
+        : '↶ 悔棋(剩' + online.undos[online.color] + ')';
     } else {
       els.btnUndo.textContent = '↶ 悔棋';
     }
@@ -10273,6 +10280,9 @@ window.XQ = {
   }
 
   function startFromMenu(mode) {
+    var now = Date.now();
+    if (now < menuClickLockUntil) return;
+    menuClickLockUntil = now + 350;
     sfx('click');
     if (mode === 'settings') {
       showSettingsModal();
@@ -10842,10 +10852,11 @@ window.XQ = {
     }
 
     if (msg.type === 'undo-request') {
-      var requestSide = lastUndoSide();
-      openConfirm('悔棋请求', '对方请求回退' + (requestSide === 'red' ? '红方' : '黑方') + '的上一步，是否同意悔棋？', function() {
+      var requestSide = (msg.color === 'red' || msg.color === 'black') ? msg.color : lastUndoSide();
+      var sideLabel = requestSide === 'red' ? '红方' : '黑方';
+      openConfirm('悔棋请求', '对方持棋阵营（' + sideLabel + '）想悔棋，同意或拒绝？', function() {
         hideConfirm();
-        acceptOnlineUndo();
+        acceptOnlineUndo(requestSide);
       }, function() {
         hideConfirm();
         declineOnlineUndo();
@@ -10856,7 +10867,7 @@ window.XQ = {
     if (msg.type === 'undo-accept') {
       if (!online.pendingUndo) return;
       online.pendingUndo = false;
-      applyOnlineUndoLocal();
+      applyOnlineUndoLocal(online.color);
       sfx('undo');
       setOnlineStatus('对方同意了悔棋');
       return;
@@ -11041,10 +11052,11 @@ window.XQ = {
     return last && (last.color === 'red' || last.color === 'black') ? last.color : state.currentTurn;
   }
 
-  function applyOnlineUndoLocal() {
+  function applyOnlineUndoLocal(decrementColor) {
     if (state.gameMode !== 'online' || state.history.length === 0) return;
     var mover = popOnlineSnapshot();
-    if (mover) online.undos[mover] = Math.max(0, online.undos[mover] - 1);
+    var side = decrementColor || mover;
+    if (side && online.undos[side] !== undefined) online.undos[side] = Math.max(0, online.undos[side] - 1);
     renderAll();
     hideResultModal();
     hideKillInfo();
@@ -11052,19 +11064,20 @@ window.XQ = {
 
   function requestOnlineUndo() {
     if (state.history.length === 0 || online.pendingUndo) return;
-    var mover = lastUndoSide();
-    if (online.undos[mover] <= 0) return;
+    // 联机只能申请回退己方上一步，不能把对方刚走的棋悔掉
+    if (lastUndoSide() !== online.color) return;
+    if (online.undos[online.color] <= 0) return;
     online.pendingUndo = true;
-    sendRelay({ type: 'undo-request' });
+    sendRelay({ type: 'undo-request', color: online.color });
     setOnlineStatus('悔棋申请已发送，等待对方同意');
     renderAll();
   }
 
-  function acceptOnlineUndo() {
-    var mover = lastUndoSide();
-    if (online.undos[mover] <= 0) return;
+  function acceptOnlineUndo(requestColor) {
+    var side = (requestColor === 'red' || requestColor === 'black') ? requestColor : lastUndoSide();
+    if (online.undos[side] <= 0) return;
     online.pendingUndo = false;
-    applyOnlineUndoLocal();
+    applyOnlineUndoLocal(side);
     sendRelay({ type: 'undo-accept' });
     sfx('undo');
   }
