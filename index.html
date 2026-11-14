@@ -2435,6 +2435,62 @@ html, body {
 }
 .btn-ghost:disabled { opacity: 0.45; }
 
+/* 联机聊天 */
+.chat-panel {
+  width: 100%;
+  max-width: 430px;
+  margin: 4px auto 0;
+  border: 1px solid #d3bd93;
+  border-radius: 12px;
+  background: rgba(255, 250, 238, 0.72);
+  overflow: hidden;
+}
+.chat-log {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 108px;
+  min-height: 34px;
+  padding: 8px 10px;
+  overflow-y: auto;
+}
+.chat-bubble {
+  max-width: 78%;
+  padding: 6px 10px;
+  border-radius: 10px;
+  font-size: 13px;
+  line-height: 1.35;
+  word-break: break-word;
+}
+.chat-bubble.self {
+  align-self: flex-end;
+  background: #f1e2c4;
+  color: #5a3d1a;
+}
+.chat-bubble.peer {
+  align-self: flex-start;
+  background: #fff;
+  color: #3f3f3f;
+}
+.chat-row {
+  display: flex;
+  gap: 8px;
+  padding: 0 10px 10px;
+}
+.chat-input {
+  flex: 1;
+  min-width: 0;
+  height: 38px;
+  padding: 0 10px;
+  border: 1px solid #c9b896;
+  border-radius: 10px;
+  background: #fff;
+  color: #3f3f3f;
+  font-family: inherit;
+  font-size: 13px;
+}
+.chat-send { min-height: 38px; padding: 0 14px; }
+
 </style>
 </head>
 <body>
@@ -2774,9 +2830,18 @@ html, body {
 
   <!-- 对局时钟 -->
   <div class="clock-bar" id="clock-bar">
-    <span class="clock-chip red" id="clock-red">25:00</span>
-    <span class="clock-label">计时</span>
-    <span class="clock-chip black" id="clock-black">25:00</span>
+    <span class="clock-chip red" id="clock-red">10:00</span>
+    <span class="clock-label" id="clock-label">计时</span>
+    <span class="clock-chip black" id="clock-black">10:00</span>
+  </div>
+
+  <!-- 联机聊天 -->
+  <div class="chat-panel" id="chat-panel" style="display:none;">
+    <div class="chat-log" id="chat-log"></div>
+    <div class="chat-row">
+      <input class="chat-input" id="chat-input" maxlength="80" placeholder="发消息给对方" autocomplete="off" spellcheck="false">
+      <button class="btn btn-ghost chat-send" id="btn-chat-send">发送</button>
+    </div>
   </div>
 
   <!-- 提示文字 -->
@@ -8672,7 +8737,8 @@ window.XQ = {
     brilliantText: '',  // 妙招记谱
     killInfo: null,     // 杀法识别结果 { name, desc }
     puzzle: null,       // 杀法闯关 { def, levelIndex, step, wrong, hintText, hintsUsed }
-    clock: { red: 1500, black: 1500, timer: null, started: false },
+    clock: { red: 1500, black: 1500, redMoves: 0, blackMoves: 0, moveElapsed: 0, timer: null, started: false },
+    chat: [],
   };
 
   // 危险分析（缓存，落子后更新）
@@ -8795,6 +8861,11 @@ window.XQ = {
     els.clockBar = document.getElementById('clock-bar');
     els.clockRed = document.getElementById('clock-red');
     els.clockBlack = document.getElementById('clock-black');
+    els.clockLabel = document.getElementById('clock-label');
+    els.chatPanel = document.getElementById('chat-panel');
+    els.chatLog = document.getElementById('chat-log');
+    els.chatInput = document.getElementById('chat-input');
+    els.btnChatSend = document.getElementById('btn-chat-send');
     els.modalConfirm = document.getElementById('modal-confirm');
     els.confirmTitle = document.getElementById('confirm-title');
     els.confirmMessage = document.getElementById('confirm-message');
@@ -9085,6 +9156,7 @@ window.XQ = {
     var inGame = !state.watch.enabled;
     if (els.extraBar) els.extraBar.style.display = inGame ? '' : 'none';
     if (els.clockBar) els.clockBar.style.display = clockAvailable() ? '' : 'none';
+    if (els.chatPanel) els.chatPanel.style.display = state.gameMode === 'online' && inGame ? '' : 'none';
     var actionDisabled = !!state.gameResult || state.isAiThinking;
     if (els.btnResign) els.btnResign.disabled = actionDisabled;
     if (els.btnDraw) els.btnDraw.disabled = actionDisabled;
@@ -9181,6 +9253,7 @@ window.XQ = {
     renderOnlineBar();
     renderWatchBar();
     renderClock();
+    renderChat();
   }
 
   // ============================================================
@@ -9387,6 +9460,17 @@ window.XQ = {
     return parts.join('') + '|' + state.currentTurn;
   }
 
+  function sideHasAttacker(color) {
+    var attackers = { R: true, N: true, C: true, P: true };
+    for (var r = 0; r < 10; r++) {
+      for (var c = 0; c < 9; c++) {
+        var p = state.board[r][c];
+        if (p && p.color === color && attackers[p.type]) return true;
+      }
+    }
+    return false;
+  }
+
   function checkDrawRules(captured) {
     if (state.puzzle || state.gameMode === 'watch') return null;
     if (captured) {
@@ -9401,6 +9485,9 @@ window.XQ = {
     }
     if (state.noCaptureHalfMoves >= 120) {
       return { winner: null, reason: 'sixtymove' };
+    }
+    if (!sideHasAttacker('red') && !sideHasAttacker('black')) {
+      return { winner: null, reason: 'barepieces' };
     }
     return null;
   }
@@ -9418,6 +9505,13 @@ window.XQ = {
       pzOffBook: state.puzzle ? !!state.puzzle.offBook : false,
       pzFailed: state.puzzle ? !!state.puzzle.failed : false,
       bookMove: !!move.bookMove,
+      clock: {
+        red: state.clock.red,
+        black: state.clock.black,
+        redMoves: state.clock.redMoves,
+        blackMoves: state.clock.blackMoves,
+        moveElapsed: state.clock.moveElapsed,
+      },
     });
 
     var piece = state.board[move.fromRow][move.fromCol];
@@ -9454,6 +9548,9 @@ window.XQ = {
 
     // 切换回合
     state.currentTurn = state.currentTurn === 'red' ? 'black' : 'red';
+    if (movingColor === 'red') state.clock.redMoves += 1;
+    else state.clock.blackMoves += 1;
+    state.clock.moveElapsed = 0;
     startClock();
 
     // 联机：把本地着法同步给对手
@@ -9642,6 +9739,13 @@ window.XQ = {
       state.capturedBlack = prev.capturedBlack;
       state.moveHistory = prev.moveHistory;
       state.killInfo = prev.killInfo || null;
+      if (prev.clock) {
+        state.clock.red = prev.clock.red;
+        state.clock.black = prev.clock.black;
+        state.clock.redMoves = prev.clock.redMoves;
+        state.clock.blackMoves = prev.clock.blackMoves;
+        state.clock.moveElapsed = prev.clock.moveElapsed;
+      }
       if (state.puzzle && prev.pzStep !== null && prev.pzStep !== undefined) {
         state.puzzle.step = prev.pzStep;
         state.puzzle.offBook = prev.pzOffBook;
@@ -9740,6 +9844,7 @@ window.XQ = {
     state.noCaptureHalfMoves = 0;
     state.posCounts = {};
     state.gameResult = null;
+    state.chat = [];
     state.lastMove = null;
     state.isAiThinking = false;
     state.killInfo = null;
@@ -9768,6 +9873,7 @@ window.XQ = {
     els.puzzleBar.style.display = state.puzzle ? 'grid' : 'none';
     if (els.extraBar) els.extraBar.style.display = state.puzzle ? 'none' : '';
     if (els.clockBar) els.clockBar.style.display = state.puzzle ? 'none' : (clockAvailable() ? '' : 'none');
+    if (els.chatPanel) els.chatPanel.style.display = state.puzzle ? 'none' : (state.gameMode === 'online' ? '' : 'none');
     var bar = els.puzzleBar.parentNode;
     if (bar) bar.classList.toggle('puzzle-mode', !!state.puzzle);
     if (!els.btnBrilliant) return;
@@ -10215,6 +10321,7 @@ window.XQ = {
     state.noCaptureHalfMoves = 0;
     state.posCounts = {};
     state.gameResult = null;
+    state.chat = [];
     state.lastMove = null;
     state.isAiThinking = false;
     state.killInfo = null;
@@ -10794,7 +10901,7 @@ window.XQ = {
       return;
     }
 
-    if (['undo-request', 'undo-accept', 'undo-decline', 'resign', 'draw-request', 'draw-accept'].indexOf(msg.type) >= 0) {
+    if (['undo-request', 'undo-accept', 'undo-decline', 'resign', 'draw-request', 'draw-accept', 'chat', 'timeout'].indexOf(msg.type) >= 0) {
       handleOnlineMessage(msg);
       return;
     }
@@ -10910,6 +11017,18 @@ window.XQ = {
       return;
     }
 
+    if (msg.type === 'chat') {
+      receiveChat(msg);
+      return;
+    }
+
+    if (msg.type === 'timeout') {
+      var loser = (msg.color === 'red' || msg.color === 'black') ? msg.color : state.currentTurn;
+      finishResult({ winner: loser === 'red' ? 'black' : 'red', reason: 'timeout' });
+      sfx('checkmate', false);
+      return;
+    }
+
     if (msg.type === 'peer-left') {
       handlePeerLeft(msg.message);
       return;
@@ -10979,6 +11098,7 @@ window.XQ = {
     state.playerColor = online.color;
     handleReset();
     renderAll();
+    startClock();
   }
 
   function sendOnlineMove(move) {
@@ -11034,6 +11154,13 @@ window.XQ = {
     state.capturedBlack = prev.capturedBlack;
     state.moveHistory = prev.moveHistory;
     state.killInfo = prev.killInfo || null;
+    if (prev.clock) {
+      state.clock.red = prev.clock.red;
+      state.clock.black = prev.clock.black;
+      state.clock.redMoves = prev.clock.redMoves;
+      state.clock.blackMoves = prev.clock.blackMoves;
+      state.clock.moveElapsed = prev.clock.moveElapsed;
+    }
     state.gameResult = null;
     state.selectedPos = null;
     state.validMoves = [];
@@ -11085,6 +11212,37 @@ window.XQ = {
   function declineOnlineUndo() {
     online.pendingUndo = false;
     sendRelay({ type: 'undo-decline' });
+  }
+
+  function renderChat() {
+    if (!els.chatLog) return;
+    els.chatLog.textContent = '';
+    for (var i = 0; i < state.chat.length; i++) {
+      var msg = state.chat[i];
+      var bubble = document.createElement('div');
+      bubble.className = 'chat-bubble ' + (msg.color === online.color ? 'self' : 'peer');
+      bubble.textContent = msg.text;
+      els.chatLog.appendChild(bubble);
+    }
+    els.chatLog.scrollTop = els.chatLog.scrollHeight;
+  }
+
+  function sendChat() {
+    if (state.gameMode !== 'online' || !online.linked || state.gameResult) return;
+    var text = String(els.chatInput.value || '').trim().slice(0, 80);
+    if (!text) return;
+    state.chat.push({ color: online.color, text: text });
+    els.chatInput.value = '';
+    sendRelay({ type: 'chat', color: online.color, text: text });
+    renderChat();
+  }
+
+  function receiveChat(msg) {
+    if (state.gameMode !== 'online') return;
+    var text = String(msg.text || '').trim().slice(0, 80);
+    if (!text) return;
+    state.chat.push({ color: msg.color === online.color ? (online.color === 'red' ? 'black' : 'red') : msg.color, text: text });
+    renderChat();
   }
 
   function requestOnlineRestart() {
@@ -11236,6 +11394,13 @@ window.XQ = {
     state.capturedBlack = prev.capturedBlack;
     state.moveHistory = prev.moveHistory;
     state.killInfo = prev.killInfo || null;
+    if (prev.clock) {
+      state.clock.red = prev.clock.red;
+      state.clock.black = prev.clock.black;
+      state.clock.redMoves = prev.clock.redMoves;
+      state.clock.blackMoves = prev.clock.blackMoves;
+      state.clock.moveElapsed = prev.clock.moveElapsed;
+    }
     state.gameResult = null;
     state.selectedPos = null;
     state.validMoves = [];
@@ -11356,6 +11521,7 @@ window.XQ = {
     if (r.reason === 'checkmate') reasonText = '将死';
     else if (r.reason === 'repetition') reasonText = '三次重复局面';
     else if (r.reason === 'sixtymove') reasonText = '六十回合无吃子';
+    else if (r.reason === 'barepieces') reasonText = '双方均无进攻子力';
     else if (r.reason === 'resign') reasonText = '认输';
     else if (r.reason === 'timeout') reasonText = '超时判负';
     else if (r.reason === 'agreed') reasonText = '双方同意和棋';
@@ -11369,6 +11535,8 @@ window.XQ = {
       desc = '同一局面出现三次，按和棋处理';
     } else if (r.reason === 'sixtymove') {
       desc = '连续六十回合未吃子，按和棋处理';
+    } else if (r.reason === 'barepieces') {
+      desc = '双方均无车、马、炮、兵等进攻子力，按和棋处理';
     } else if (r.reason === 'resign') {
       desc = loser + '主动认输，对手获胜';
     } else if (r.reason === 'timeout') {
@@ -11477,9 +11645,16 @@ window.XQ = {
     });
   }
 
-  // ---- 本地对局时钟（联机不同步计时） ----
+  // ---- 对局时钟：本地双人/人机 25 分钟；联机每方 10 分钟，前 3 步 30 秒，之后每步 75 秒 ----
   function clockAvailable() {
-    return state.gameMode === 'pvp' || state.gameMode === 'pve';
+    return state.gameMode === 'pvp' || state.gameMode === 'pve' || state.gameMode === 'online';
+  }
+  function clockTotal() {
+    return state.gameMode === 'online' ? 600 : 1500;
+  }
+  function moveLimit(side) {
+    var moves = side === 'red' ? state.clock.redMoves : state.clock.blackMoves;
+    return moves < 3 ? 30 : 75;
   }
   function fmtClock(sec) {
     sec = Math.max(0, Math.floor(sec));
@@ -11495,11 +11670,24 @@ window.XQ = {
     els.clockBlack.classList.toggle('active', state.currentTurn === 'black' && !state.gameResult);
     els.clockRed.classList.toggle('low', state.clock.red <= 300);
     els.clockBlack.classList.toggle('low', state.clock.black <= 300);
+    if (els.clockLabel) {
+      if (state.gameMode === 'online') {
+        var side = state.currentTurn;
+        var left = moveLimit(side) - state.clock.moveElapsed;
+        els.clockLabel.textContent = '本步 ' + Math.max(0, left) + 's';
+      } else {
+        els.clockLabel.textContent = '计时';
+      }
+    }
   }
   function resetClock() {
     stopClock();
-    state.clock.red = 1500;
-    state.clock.black = 1500;
+    var total = clockTotal();
+    state.clock.red = total;
+    state.clock.black = total;
+    state.clock.redMoves = 0;
+    state.clock.blackMoves = 0;
+    state.clock.moveElapsed = 0;
     renderClock();
   }
   function startClock() {
@@ -11509,10 +11697,14 @@ window.XQ = {
       if (state.gameResult || !clockAvailable() || menuOpen) return;
       var side = state.currentTurn;
       state.clock[side] -= 1;
-      if (state.clock[side] <= 0) {
-        state.clock[side] = 0;
+      state.clock.moveElapsed += 1;
+      var limit = state.gameMode === 'online' ? moveLimit(side) : Infinity;
+      if (state.clock[side] <= 0 || state.clock.moveElapsed > limit) {
+        state.clock[side] = Math.max(0, state.clock[side]);
         renderClock();
-        finishResult({ winner: side === 'red' ? 'black' : 'red', reason: 'timeout' });
+        var winner = side === 'red' ? 'black' : 'red';
+        finishResult({ winner: winner, reason: 'timeout' });
+        if (state.gameMode === 'online') sendRelay({ type: 'timeout', color: side });
         return;
       }
       renderClock();
@@ -12310,6 +12502,10 @@ window.XQ = {
     els.btnReset.addEventListener('click', function() { sfx('click'); showResetModal(); });
     if (els.btnResign) els.btnResign.addEventListener('click', function() { sfx('click'); onResignClick(); });
     if (els.btnDraw) els.btnDraw.addEventListener('click', function() { sfx('click'); onDrawClick(); });
+    if (els.btnChatSend) els.btnChatSend.addEventListener('click', function() { sfx('click'); sendChat(); });
+    if (els.chatInput) els.chatInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') { e.preventDefault(); sendChat(); }
+    });
     if (els.btnConfirmOk) els.btnConfirmOk.addEventListener('click', function() {
       var fn = confirmAction;
       hideConfirm();
