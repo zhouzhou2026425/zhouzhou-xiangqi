@@ -10419,7 +10419,7 @@ window.XQ = {
       flags |= 0x40;
       body = body.concat(mqttUtf(MQTT_CONFIG.password));
     }
-    body[6] = flags;
+    body[7] = flags;
     this.raw(mqttPacket(0x10, body));
   };
 
