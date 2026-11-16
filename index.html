@@ -7,12 +7,12 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#f5efe0">
 <title>周周象棋</title>
-<meta name="description" content="周周象棋：打开链接即可与微信好友联机对弈，也可同机双人或人机对战，还有28局古籍杀法闯关，适配手机屏幕，无需登录轻松开局。">
+<meta name="description" content="周周象棋：打开链接即可与好友联机对弈，也可同机双人或人机对战，包含杀法闯关与图鉴练习，适配手机屏幕，无需登录轻松开局。">
 <meta name="creative-medium" content="interactive-prototype">
 <meta itemprop="name" content="周周象棋">
 <meta itemprop="description" content="周周象棋 · 经典中国象棋对弈应用">
 <meta property="og:title" content="周周象棋">
-<meta property="og:description" content="周周象棋：打开链接即可与微信好友联机对弈，也可同机双人或人机对战，还有28局古籍杀法闯关，适配手机屏幕，无需登录轻松开局。">
+<meta property="og:description" content="周周象棋：打开链接即可与好友联机对弈，也可同机双人或人机对战，包含杀法闯关与图鉴练习，适配手机屏幕，无需登录轻松开局。">
 
 <style>
 /* ============================================================
@@ -1574,6 +1574,29 @@ html, body {
   line-height: 1.5;
 }
 
+.result-board-thumb {
+  width: 100%;
+  max-width: 260px;
+  margin: 0 auto 16px;
+  border: 1px solid #c9b896;
+  border-radius: 12px;
+  padding: 8px;
+  background: #ead7ae;
+  box-shadow: inset 0 1px 3px rgba(90, 61, 26, 0.18);
+}
+.result-board-thumb canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 6px;
+}
+.result-action-row {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+.result-action-row .btn { flex: 1; min-width: 0; }
+
 /* 选中/可走点脉动（轻微） */
 .move-hint {
   animation: hintPulse 1.8s ease-in-out infinite;
@@ -1650,6 +1673,21 @@ html, body {
   padding: 0;
   overflow: hidden;
 }
+#modal-challenge .atlas-modal {
+  max-width: 430px;
+  max-height: 94vh;
+}
+#challenge-view-home {
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+#challenge-view-home .challenge-grid {
+  flex: none;
+  min-height: auto;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 7px;
+  padding: 2px 14px 12px;
+}
 
 .atlas-modal .modal-header {
   padding: 14px 18px 10px;
@@ -1704,6 +1742,115 @@ html, body {
   flex-shrink: 0;
 }
 
+.atlas-card {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.atlas-card-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+}
+.atlas-practice-btn,
+.practice-card {
+  border: 1px solid #b89a6a;
+  border-radius: 11px;
+  background: linear-gradient(180deg, #fffdf6, #f7ecd4);
+  color: #7a2020;
+  font-family: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+}
+.atlas-practice-btn {
+  min-height: 34px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.atlas-practice-btn:disabled {
+  border-color: #d4c09a;
+  background: #f5ecd8;
+  color: #a58d66;
+  cursor: default;
+}
+.practice-section {
+  margin: 10px 0 4px;
+  padding-top: 10px;
+  border-top: 1px dashed #d4b88a;
+}
+.practice-title {
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #7d5c2e;
+  letter-spacing: 1px;
+}
+.practice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+.practice-card {
+  min-height: 78px;
+  padding: 11px 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 5px;
+  text-align: left;
+  box-shadow: 0 2px 5px rgba(90, 61, 26, 0.10);
+}
+.practice-card.done {
+  border-color: #9c7a3c;
+  background: linear-gradient(180deg, #fffaf0, #f3e7c9);
+}
+.practice-card:active { transform: scale(0.97); }
+.practice-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+.practice-no {
+  flex: none;
+  min-width: 56px;
+  padding: 3px 8px;
+  border-radius: 8px;
+  background: #8b1a1a;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+}
+.practice-status {
+  flex: none;
+  font-size: 10.5px;
+  color: #8b7355;
+}
+.practice-name { font-size: 13px; font-weight: 700; color: #5a3d1a; }
+.practice-hint { font-size: 11px; color: #8b7355; line-height: 1.35; }
+.practice-meta { font-size: 10.5px; color: #a58d66; letter-spacing: 0.5px; }
+
+.atlas-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.atlas-no {
+  flex: none;
+  min-width: 54px;
+  padding: 3px 8px;
+  border-radius: 8px;
+  background: #f1e2c4;
+  color: #7d5c2e;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+}
+
 /* ============================================================
    底部按钮栏调整（6 个按钮）
 /* ============================================================
@@ -1722,6 +1869,10 @@ html, body {
   .btn { min-height: 42px; padding: 10px 6px; font-size: 12px; }
   .btn-row { gap: 6px; }
   .online-join-row .btn { width: 88px; }
+  .practice-grid { gap: 6px; }
+  .practice-card { min-height: 72px; padding: 9px 8px; }
+  .practice-name { font-size: 12px; }
+  .practice-hint { font-size: 10px; }
 }
 
 /* ============================================================
@@ -1795,34 +1946,32 @@ body { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
 }
 .lv-cell {
   border: 1px solid #d4c09a;
-  border-radius: 8px;
+  border-radius: 10px;
   background: #fffbee;
-  padding: 7px 2px 6px;
+  min-height: 46px;
+  padding: 4px 2px;
   text-align: center;
   cursor: pointer;
   transition: transform .12s ease, box-shadow .12s ease;
   box-shadow: 0 1px 2px rgba(90, 61, 26, 0.08);
   user-select: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
 }
 .lv-cell:active { transform: scale(0.94); }
-.lv-num { font-size: 10.5px; color: #8b7355; font-weight: 600; }
-.lv-name {
-  font-size: 12px;
-  font-weight: 700;
+.lv-no {
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1;
   color: #8b1a1a;
-  margin: 2px 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  letter-spacing: 0.5px;
 }
-.lv-book {
-  font-size: 12px;
-  color: #8b7355;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.lv-status { font-size: 13px; line-height: 1.2; }
+.lv-name,
+.lv-book { display: none; }
+.lv-status { font-size: 10px; line-height: 1; }
 .lv-done { border-color: #c8a24a; background: #fff6d8; }
 .lv-done .lv-status { color: #b8860b; }
 .lv-open { border-color: #8b1a1a; box-shadow: 0 0 0 1px rgba(139,26,26,0.35); }
@@ -1961,7 +2110,13 @@ body { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
   width: 100%;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 12px;
+}
+.start-main { gap: 12px; }
+.main-mode {
+  min-height: 116px;
+  padding: 18px 12px;
+  border-color: #c8a876;
 }
 
 .start-mode {
@@ -2015,22 +2170,15 @@ body { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
 .sm-desc { font-size: 11px; color: #97794c; line-height: 1.35; }
 
 .start-mode-online {
-  grid-column: 1 / -1;
-  flex-direction: row;
-  justify-content: flex-start;
-  gap: 12px;
-  padding: 13px 16px;
   border-color: #a82828;
   background: linear-gradient(180deg, #fff8ee, #f7e4c8);
   box-shadow: 0 4px 12px rgba(139, 26, 26, 0.16);
 }
 .start-mode-online .sm-icon {
-  margin-bottom: 0;
   color: #fff8ee;
   background: linear-gradient(160deg, #a82828, #7d1414);
   border-color: #6b1414;
 }
-.start-mode-online .sm-texts { align-items: flex-start; }
 
 .start-mode-wide {
   grid-column: 1 / -1;
@@ -2616,39 +2764,33 @@ html, body {
       <div class="start-sub">楚河汉界 · 一局定乾坤</div>
     </div>
 
-    <div class="start-modes">
-      <button class="start-mode" data-start-mode="pvp">
-        <span class="sm-icon">双</span>
+    <div class="start-modes start-main">
+      <button class="start-mode main-mode" data-start-mode="pve">
+        <span class="sm-icon">AI</span>
         <span class="sm-texts">
-          <span class="sm-name">本机双人</span>
-          <span class="sm-desc">一台手机，轮流走棋</span>
+          <span class="sm-name">AI 对战</span>
+          <span class="sm-desc">选择难度，和电脑练习对局</span>
         </span>
       </button>
-      <button class="start-mode" data-start-mode="pve">
-        <span class="sm-icon">人</span>
-        <span class="sm-texts">
-          <span class="sm-name">对局 · 棋谱</span>
-          <span class="sm-desc">对弈 AI，或看名局棋谱</span>
-        </span>
-      </button>
-      <button class="start-mode start-mode-online" data-start-mode="online">
-        <span class="sm-badge">微信邀请</span>
+      <button class="start-mode main-mode start-mode-online" data-start-mode="online">
+        <span class="sm-badge">邀请开战</span>
         <span class="sm-icon">联</span>
         <span class="sm-texts">
           <span class="sm-name">联机对战</span>
-          <span class="sm-desc">两台手机，发个链接就开战</span>
-        </span>
-      </button>
-      <button class="start-mode start-mode-wide" data-start-mode="watch">
-        <span class="sm-icon">观</span>
-        <span class="sm-texts">
-          <span class="sm-name">名局观战</span>
-          <span class="sm-desc">按名师对局棋谱复盘，谱毕 AI 续战</span>
+          <span class="sm-desc">两台手机，发链接即可同局</span>
         </span>
       </button>
     </div>
 
     <div class="start-tools">
+      <button class="start-tool" data-start-mode="pvp">
+        <span class="st-icon">双</span>
+        <span class="st-name">本机双人</span>
+      </button>
+      <button class="start-tool" data-start-mode="watch">
+        <span class="st-icon">观</span>
+        <span class="st-name">名局观战</span>
+      </button>
       <button class="start-tool" data-start-mode="atlas">
         <span class="st-icon">📚</span>
         <span class="st-name">杀法图鉴</span>
@@ -2672,7 +2814,7 @@ html, body {
 <div class="modal-overlay" id="modal-level">
   <div class="modal level-modal">
     <div class="online-head">
-      <h2>对局 · 棋谱</h2>
+      <h2>AI 对战 · 棋谱</h2>
       <button class="btn-close" id="btn-level-close" aria-label="关闭">×</button>
     </div>
     <p class="level-tip">与 AI 对弈，或先浏览开局、名局与杀法棋谱。</p>
@@ -3024,7 +3166,13 @@ html, body {
       <div class="result-kill-name" id="result-kill-name">马后炮</div>
       <div class="result-kill-desc" id="result-kill-desc">马控将帅位置，炮隔马将军，无法躲避</div>
     </div>
-    <button class="btn btn-primary" style="width:100%;" id="btn-result-restart">重新开始</button>
+    <div class="result-board-thumb" id="result-board-thumb" style="display:none;">
+      <canvas id="result-board-canvas"></canvas>
+    </div>
+    <div class="result-action-row">
+      <button class="btn btn-primary" id="btn-result-rematch" style="display:none;">继续对战</button>
+      <button class="btn btn-ghost" id="btn-result-restart">退出对局</button>
+    </div>
   </div>
 </div>
 
@@ -3133,7 +3281,7 @@ html, body {
 <div class="modal-overlay" id="modal-atlas">
   <div class="modal atlas-modal">
     <div class="modal-header">
-      <h2>象棋杀法图鉴</h2>
+      <h2>杀法图鉴 · 练习</h2>
       <button class="modal-close" id="btn-atlas-close">×</button>
     </div>
     <div class="atlas-list" id="atlas-list">
@@ -3161,6 +3309,12 @@ html, body {
       <div class="challenge-progress" id="challenge-progress">已通过 0/28 关</div>
       <div class="challenge-grid" id="challenge-grid">
         <!-- 动态生成 -->
+      </div>
+      <div class="practice-section" id="practice-section">
+        <div class="practice-title">图鉴练习 · 一步杀残局</div>
+        <div class="practice-grid" id="practice-grid">
+          <!-- 动态生成 -->
+        </div>
       </div>
       <div class="atlas-footer">红方先行 · 顺序解锁 · 走错不会落子</div>
     </div>
@@ -3283,6 +3437,16 @@ function inPalace(r, c, color) {
   return r >= 0 && r <= 2;
 }
 
+function isAdvisorPoint(r, c, color) {
+  var points = color === 'red'
+    ? [[7,3],[7,5],[8,4],[9,3],[9,5]]
+    : [[0,3],[0,5],[1,4],[2,3],[2,5]];
+  for (var i = 0; i < points.length; i++) {
+    if (points[i][0] === r && points[i][1] === c) return true;
+  }
+  return false;
+}
+
 function hasCrossedRiver(r, color) {
   if (color === 'red') return r <= 4;
   return r >= 5;
@@ -3389,7 +3553,7 @@ function getValidMoves(board, row, col) {
       var aDirs = [[-1,-1],[-1,1],[1,-1],[1,1]];
       for (var ai = 0; ai < 4; ai++) {
         var ar = row + aDirs[ai][0], ac = col + aDirs[ai][1];
-        if (!inPalace(ar, ac, color)) continue;
+        if (!isAdvisorPoint(ar, ac, color)) continue;
         var aTarget = board[ar][ac];
         if (!aTarget) {
           moves.push({fromRow:row,fromCol:col,toRow:ar,toCol:ac,capture:null});
@@ -8204,9 +8368,9 @@ window.XQ = {
       id: 'pz-smothered-palace',
       killId: 'smothered-palace',
       name: '闷宫',
-      hint: '老将被己方士象马堵死在角落，炮平三路借士为架',
-      setup: [['K','red',9,4],['C','red',7,7],['K','black',0,3],['A','black',0,4],['A','black',1,3],['B','black',2,4],['N','black',2,2],['P','black',3,2]],
-      solution: [[7,7,7,3]],
+      hint: '炮抬到黑方左翼，借黑士作横炮架将军，黑将被士、车堵在九宫无路可走',
+      setup: [['K','red',9,4],['C','red',2,2],['K','black',0,4],['A','black',0,3],['A','black',1,4],['R','black',0,5],['N','black',2,0],['P','black',3,2]],
+      solution: [[2,2,0,2]],
     },
     {
       id: 'pz-white-face',
@@ -8231,6 +8395,38 @@ window.XQ = {
       hint: '小兵有马撑腰，直插心脏',
       setup: [['K','red',8,4],['R','red',9,3],['R','red',9,5],['P','red',2,4],['N','red',2,2],['K','black',0,4]],
       solution: [[2,4,1,4]],
+    },
+    {
+      id: 'pz-chariot-horse',
+      killId: 'chariot-horse',
+      name: '车马冷着',
+      hint: '车沉底线将军，马控制将路，黑将无法躲避',
+      setup: [['K','red',9,4],['R','red',5,0],['N','red',2,2],['K','black',0,4],['A','black',0,5],['A','black',1,4]],
+      solution: [[5,0,0,0]],
+    },
+    {
+      id: 'pz-hanging-horn',
+      killId: 'hanging-horn',
+      name: '挂角马',
+      hint: '马跳士角将军，黑将被士车堵在九宫',
+      setup: [['K','red',9,4],['N','red',4,2],['K','black',0,4],['A','black',0,3],['R','black',0,5],['A','black',1,4]],
+      solution: [[4,2,2,3]],
+    },
+    {
+      id: 'pz-iron-bolt',
+      killId: 'iron-bolt',
+      name: '铁门栓',
+      hint: '中炮镇住将门，车破士切入肋道成杀',
+      setup: [['K','red',9,4],['C','red',5,4],['R','red',3,3],['N','red',2,2],['K','black',0,4],['A','black',0,3],['R','black',0,5],['R','black',1,4],['P','black',3,4]],
+      solution: [[3,3,0,3]],
+    },
+    {
+      id: 'pz-two-ghosts',
+      killId: 'two-ghosts-door',
+      name: '二鬼拍门',
+      hint: '双兵锁住两肋，沉车底线将军无解',
+      setup: [['K','red',9,4],['R','red',5,0],['P','red',1,3],['P','red',1,5],['K','black',0,4],['A','black',1,4]],
+      solution: [[5,0,0,0]],
     },
   ];
 
@@ -8993,6 +9189,9 @@ window.XQ = {
     els.resultReason = document.getElementById('result-reason');
     els.resultDesc = document.getElementById('result-desc');
     els.btnResultRestart = document.getElementById('btn-result-restart');
+    els.btnResultRematch = document.getElementById('btn-result-rematch');
+    els.resultBoardThumb = document.getElementById('result-board-thumb');
+    els.resultBoardCanvas = document.getElementById('result-board-canvas');
     els.btnResetOk = document.getElementById('btn-reset-ok');
     els.btnResetCancel = document.getElementById('btn-reset-cancel');
     els.btnDemoClose = document.getElementById('btn-demo-close');
@@ -9008,6 +9207,7 @@ window.XQ = {
     els.modalChallenge = document.getElementById('modal-challenge');
     els.btnChallengeClose = document.getElementById('btn-challenge-close');
     els.challengeGrid = document.getElementById('challenge-grid');
+    els.practiceGrid = document.getElementById('practice-grid');
     els.challengeProgress = document.getElementById('challenge-progress');
     els.challengeViewHome = document.getElementById('challenge-view-home');
     els.challengeViewSettings = document.getElementById('challenge-view-settings');
@@ -9182,7 +9382,12 @@ window.XQ = {
     var text = '';
     if (state.puzzle) {
       var pzDef = state.puzzle.def;
-      var pzTitle = pzDef.book + ' · ' + pzDef.name + ' · 红先 ' + pzDef.redMoves + ' 步杀';
+      var titleParts = [];
+      if (state.puzzle.levelIndex >= 0) titleParts.push('第 ' + (state.puzzle.levelIndex + 1) + ' 关');
+      if (pzDef.book) titleParts.push(pzDef.book);
+      titleParts.push(pzDef.name);
+      if (pzDef.redMoves) titleParts.push('红先 ' + pzDef.redMoves + ' 步杀');
+      var pzTitle = titleParts.join(' · ');
       if (state.gameResult) {
         text = state.gameResult.winner === 'red'
           ? '✓ 挑战成功 · ' + pzTitle
@@ -9192,7 +9397,7 @@ window.XQ = {
       } else if (state.isAiThinking) {
         text = '黑方应着…';
       } else {
-        text = '🎯 第 ' + (state.puzzle.levelIndex + 1) + ' 关 · ' + pzTitle;
+        text = '🎯 ' + pzTitle;
       }
     } else if (state.gameResult) {
       text = state.gameResult.winner === 'red' ? '红方胜' : '黑方胜';
@@ -9512,6 +9717,8 @@ window.XQ = {
   // 落子逻辑
   // ============================================================
   function handleCellClick(r, c) {
+    if (typeof r !== 'number' || typeof c !== 'number' || !isFinite(r) || !isFinite(c)) return;
+    if (r < 0 || r > 9 || c < 0 || c > 8) return;
     if (state.gameResult) return;
     if (state.isAiThinking) return;
     // 联机：只能在自己回合、且对手在线时走棋
@@ -9933,11 +10140,7 @@ window.XQ = {
     try { localStorage.setItem(LS_PUZZLE_SETTINGS, JSON.stringify(s)); } catch (e) {}
   }
 
-  // 进入第 idx 关
-  function startLevel(idx) {
-    if (!window.XQKill || !window.XQKill.getLevelList) return;
-    var levels = window.XQKill.getLevelList();
-    var def = levels[idx];
+  function beginPuzzleDef(def, levelIndex, source) {
     if (!def) return;
     if (state.watch.playTimer) {
       clearTimeout(state.watch.playTimer);
@@ -9948,7 +10151,7 @@ window.XQ = {
     state.brilliant = null;
     state.brilliantText = '';
     state.puzzle = {
-      def: def, levelIndex: idx, step: 0, hintText: '', hintsUsed: 0,
+      def: def, levelIndex: levelIndex, source: source || 'challenge', step: 0, hintText: '', hintsUsed: 0,
       offBook: false, failed: false,
     };
     state.board = window.XQKill.buildPuzzleBoard(def);
@@ -9973,19 +10176,34 @@ window.XQ = {
     renderAll();
     Screen.close();
     hideResultModal();
-    // 进入对局：显示游戏界面，隐藏开始界面
     hideStartScreen();
     if (els.app) els.app.style.display = 'flex';
     updatePuzzleBar();
     sfx('popup-close');
   }
 
+  // 进入第 idx 关
+  function startLevel(idx) {
+    if (!window.XQKill || !window.XQKill.getLevelList) return;
+    var levels = window.XQKill.getLevelList();
+    beginPuzzleDef(levels[idx], idx, 'challenge');
+  }
+
+  // 从图鉴练习进入残局
+  function startPuzzleById(id, source) {
+    if (!window.XQKill || !window.XQKill.getPuzzle) return;
+    var def = window.XQKill.getPuzzle(id);
+    beginPuzzleDef(def, -1, source || 'challenge');
+  }
+
   // 退出闯关：回到闯关首页
   function exitPuzzle() {
+    var source = state.puzzle ? state.puzzle.source : 'challenge';
     state.puzzle = null;
     updatePuzzleBar();
     handleReset();
-    showChallengeModal();
+    if (source === 'atlas') showAtlasModal();
+    else showChallengeModal();
   }
 
   // 底部挑战栏：提示按钮受设置次数限制（作用于主「提示」按钮）
@@ -10154,12 +10372,17 @@ window.XQ = {
     }
     passLevelIndex = idx;
     var total = window.XQKill.getLevelList().length;
-    var isLast = idx >= total - 1;
+    var isPractice = idx < 0;
+    var isLast = isPractice || idx >= total - 1;
     if (els.passTitle) {
-      els.passTitle.textContent = '第 ' + (idx + 1) + ' 关 · ' + pz.def.name + ' 挑战成功';
+      els.passTitle.textContent = isPractice
+        ? pz.def.name + ' · 练习成功'
+        : '第 ' + (idx + 1) + ' 关 · ' + pz.def.name + ' 挑战成功';
     }
     if (els.passSource) {
-      els.passSource.textContent = '出处：' + pz.def.book + '　' + pz.def.sourceUrl;
+      els.passSource.textContent = pz.def.book
+        ? '出处：' + pz.def.book + '　' + pz.def.sourceUrl
+        : '图鉴一步杀练习';
     }
     if (els.btnPassNext) els.btnPassNext.style.display = isLast ? 'none' : '';
     showChallengeView('pass');
@@ -10186,6 +10409,32 @@ window.XQ = {
     showStartScreen();
   }
 
+  function padPracticeNo(n) {
+    return (n < 10 ? '0' : '') + String(n);
+  }
+
+  function renderPracticeGrid() {
+    if (!els.practiceGrid || !window.XQKill || !window.XQKill.getPuzzleList) return;
+    var list = window.XQKill.getPuzzleList();
+    var done = loadPuzzleDone();
+    var html = '';
+    for (var i = 0; i < list.length; i++) {
+      var pz = list[i];
+      var isDone = done.indexOf(pz.id) >= 0;
+      var no = padPracticeNo(i + 1);
+      html += '<button class="practice-card' + (isDone ? ' done' : '') + '" data-puzzle-id="' + pz.id + '">';
+      html +=   '<div class="practice-top">';
+      html +=     '<span class="practice-no">练习 ' + no + '</span>';
+      html +=     '<span class="practice-status">' + (isDone ? '已完成' : '待练习') + '</span>';
+      html +=   '</div>';
+      html +=   '<div class="practice-name">' + pz.name + '</div>';
+      html +=   '<div class="practice-hint">' + pz.hint + '</div>';
+      html +=   '<div class="practice-meta">一步杀残局</div>';
+      html += '</button>';
+    }
+    els.practiceGrid.innerHTML = html;
+  }
+
   // 闯关首页：进度 + 关卡网格（顺序解锁或全部开放）
   function renderChallengeHome() {
     if (!els.challengeGrid || !window.XQKill || !window.XQKill.getLevelList) return;
@@ -10204,14 +10453,14 @@ window.XQ = {
       else { st = 'locked'; }
       if (!isDone) allPrevDone = false;
       var icon = st === 'done' ? '✓' : st === 'open' ? '▶' : '🔒';
-      html += '<div class="lv-cell lv-' + st + '" data-idx="' + i + '" data-st="' + st + '">';
-      html +=   '<div class="lv-num">第' + (i + 1) + '关</div>';
-      html +=   '<div class="lv-name">' + lv.name + '</div>';
-      html +=   '<div class="lv-book">' + (lv.book || '') + '</div>';
-      html +=   '<div class="lv-status">' + icon + '</div>';
+      var levelNo = String(i + 1).padStart(2, '0');
+      html += '<div class="lv-cell lv-' + st + '" data-idx="' + i + '" data-st="' + st + '" title="第' + (i + 1) + '关 · ' + lv.name + '">';
+      html +=   '<span class="lv-no">' + levelNo + '</span>';
+      html +=   '<span class="lv-status">' + icon + '</span>';
       html += '</div>';
     }
     els.challengeGrid.innerHTML = html;
+    renderPracticeGrid();
     if (els.challengeProgress) {
       els.challengeProgress.textContent = '已通过 ' + doneCount + '/' + levels.length + ' 关';
     }
@@ -10534,9 +10783,7 @@ window.XQ = {
       return;
     }
     if (mode === 'atlas') {
-      hideStartScreen();
-      handleModeSelect('pvp');
-      setTimeout(function() { showAtlasModal(); }, 200);
+      showAtlasModal();
       return;
     }
     // 从等待房间直接开始其他模式时，先退出联机
@@ -11113,8 +11360,7 @@ window.XQ = {
     if (msg.type === 'restart') {
       if (state.gameMode === 'online') {
         hideResultModal();
-        handleReset();
-        renderAll();
+        resetOnlineMatch();
       }
       return;
     }
@@ -11178,6 +11424,8 @@ window.XQ = {
     if (els.resultDesc) els.resultDesc.textContent = message || '对方已退出联机，本局结束';
     var killBox = document.getElementById('result-kill-box');
     if (killBox) killBox.style.display = 'none';
+    if (els.resultBoardThumb) els.resultBoardThumb.style.display = 'none';
+    if (els.btnResultRematch) els.btnResultRematch.style.display = 'none';
     if (els.btnResultRestart) els.btnResultRestart.textContent = '返回桌面';
     renderAll();
     Screen.openModal('result');
@@ -11200,6 +11448,26 @@ window.XQ = {
     online.code = '';
     closeOnlineSocket();
     updateOnlinePanelView();
+  }
+
+  function resetOnlineMatch() {
+    online.hints = { red: 3, black: 3 };
+    online.undos = { red: 2, black: 2 };
+    online.pendingUndo = false;
+    online.noticePeerLeft = false;
+    handleReset();
+    renderAll();
+    startClock();
+  }
+
+  function rematchOnline() {
+    if (state.gameMode !== 'online' || !online.linked) {
+      exitOnlineToMenu();
+      return;
+    }
+    sendRelay({ type: 'restart' });
+    hideResultModal();
+    resetOnlineMatch();
   }
 
   function beginOnlineGame() {
@@ -11656,6 +11924,73 @@ window.XQ = {
   // ============================================================
   // 弹窗控制
   // ============================================================
+  function drawResultBoardThumb() {
+    if (!els.resultBoardCanvas || !state.board) return;
+    var canvas = els.resultBoardCanvas;
+    var W = 320, H = 360, pad = 24;
+    canvas.width = W;
+    canvas.height = H;
+    var ctx = canvas.getContext('2d');
+    var innerW = W - pad * 2;
+    var innerH = H - pad * 2;
+    var xAt = function(c) { return pad + c * innerW / 8; };
+    var yAt = function(r) { return pad + r * innerH / 9; };
+
+    ctx.fillStyle = '#ead7ae';
+    ctx.fillRect(0, 0, W, H);
+    ctx.strokeStyle = '#6b4a22';
+    ctx.lineWidth = 1.4;
+
+    for (var r = 0; r <= 9; r++) {
+      ctx.beginPath();
+      ctx.moveTo(xAt(0), yAt(r));
+      ctx.lineTo(xAt(8), yAt(r));
+      ctx.stroke();
+    }
+    for (var c = 0; c <= 8; c++) {
+      ctx.beginPath();
+      ctx.moveTo(xAt(c), yAt(0));
+      ctx.lineTo(xAt(c), yAt(4));
+      ctx.moveTo(xAt(c), yAt(5));
+      ctx.lineTo(xAt(c), yAt(9));
+      ctx.stroke();
+    }
+    ctx.beginPath();
+    ctx.moveTo(xAt(3), yAt(0)); ctx.lineTo(xAt(5), yAt(2));
+    ctx.moveTo(xAt(5), yAt(0)); ctx.lineTo(xAt(3), yAt(2));
+    ctx.moveTo(xAt(3), yAt(7)); ctx.lineTo(xAt(5), yAt(9));
+    ctx.moveTo(xAt(5), yAt(7)); ctx.lineTo(xAt(3), yAt(9));
+    ctx.stroke();
+
+    ctx.fillStyle = '#8b7355';
+    ctx.font = '18px serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('楚 河', xAt(1.5), yAt(4.5));
+    ctx.fillText('汉 界', xAt(6.5), yAt(4.5));
+
+    var radius = Math.min(innerW / 8, innerH / 9) * 0.42;
+    for (var rr = 0; rr < 10; rr++) {
+      for (var cc = 0; cc < 9; cc++) {
+        var row = state.board[rr];
+        if (!row) continue;
+        var piece = row[cc];
+        if (!piece) continue;
+        var red = piece.color === 'red';
+        ctx.beginPath();
+        ctx.arc(xAt(cc), yAt(rr), radius, 0, Math.PI * 2);
+        ctx.fillStyle = red ? '#fff' : '#242424';
+        ctx.fill();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = red ? '#8b1a1a' : '#111';
+        ctx.stroke();
+        ctx.fillStyle = red ? '#8b1a1a' : '#fff';
+        ctx.font = 'bold ' + Math.round(radius * 0.9) + 'px serif';
+        ctx.fillText(piece.char, xAt(cc), yAt(rr));
+      }
+    }
+  }
+
   function showResultModal() {
     var r = state.gameResult;
     var winnerText;
@@ -11714,7 +12049,11 @@ window.XQ = {
       killBox.style.display = 'none';
     }
 
-    els.btnResultRestart.textContent = state.gameMode === 'online' ? '退出到桌面' : '重新开始';
+    var onlineActive = state.gameMode === 'online' && online.linked;
+    if (els.resultBoardThumb) els.resultBoardThumb.style.display = onlineActive ? 'block' : 'none';
+    if (onlineActive) drawResultBoardThumb();
+    if (els.btnResultRematch) els.btnResultRematch.style.display = onlineActive ? '' : 'none';
+    els.btnResultRestart.textContent = state.gameMode === 'online' ? '退出对局' : '重新开始';
     Screen.openModal('result');
     sfx('popup-open');
   }
@@ -12528,17 +12867,44 @@ window.XQ = {
     showStartScreen();
   }
 
+  function findPuzzleByKill(killId) {
+    if (!window.XQKill || !window.XQKill.getPuzzleList) return null;
+    var list = window.XQKill.getPuzzleList();
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].killId === killId) return list[i];
+    }
+    return null;
+  }
+
   function renderAtlasList() {
     if (!els.atlasList) return;
     if (!window.XQKill) return;
     var list = window.XQKill.getAtlasList();
+    var puzzleList = window.XQKill.getPuzzleList ? window.XQKill.getPuzzleList() : [];
     var html = '';
     for (var i = 0; i < list.length; i++) {
       var item = list[i];
+      var pz = findPuzzleByKill(item.key);
+      var puzzleNo = -1;
+      if (pz) {
+        for (var j = 0; j < puzzleList.length; j++) {
+          if (puzzleList[j].id === pz.id) { puzzleNo = j + 1; break; }
+        }
+      }
       html += '<div class="atlas-card">';
-      html +=   '<div class="atlas-name">' + item.name + '</div>';
+      html +=   '<div class="atlas-head">';
+      html +=     '<span class="atlas-no">图鉴 ' + padPracticeNo(i + 1) + '</span>';
+      html +=     '<span class="atlas-name">' + item.name + '</span>';
+      html +=   '</div>';
       html +=   '<div class="atlas-desc">' + item.desc + '</div>';
       html +=   '<div class="atlas-pieces">兵种：' + item.pieces.join(' · ') + '</div>';
+      html +=   '<div class="atlas-card-actions">';
+      if (pz) {
+        html += '<button class="atlas-practice-btn" data-puzzle-id="' + pz.id + '">练习 ' + padPracticeNo(puzzleNo) + ' · 进入</button>';
+      } else {
+        html += '<button class="atlas-practice-btn" disabled>待收录练习</button>';
+      }
+      html +=   '</div>';
       html += '</div>';
     }
     els.atlasList.innerHTML = html;
@@ -12639,6 +13005,7 @@ window.XQ = {
       if (!rect.width || !rect.height) return;
       var fx = (e.clientX - rect.left) / rect.width * 8;
       var fy = (e.clientY - rect.top) / rect.height * 9;
+      if (!isFinite(fx) || !isFinite(fy)) return;
       var r = Math.round(fy);
       var c = Math.round(fx);
       // 执黑视角为镜像布局，需把屏幕坐标反算回原始棋盘坐标
@@ -12843,6 +13210,14 @@ window.XQ = {
     if (els.btnAtlasClose) {
       els.btnAtlasClose.addEventListener('click', function() { sfx('popup-close'); hideAtlasModal(); });
     }
+    if (els.atlasList) {
+      els.atlasList.addEventListener('click', function(e) {
+        var btn = e.target.closest('[data-puzzle-id]');
+        if (!btn || btn.disabled) return;
+        sfx('click');
+        startPuzzleById(btn.getAttribute('data-puzzle-id'), 'atlas');
+      });
+    }
     // 杀法闯关关闭
     if (els.btnChallengeClose) {
       els.btnChallengeClose.addEventListener('click', function() { sfx('popup-close'); hideChallengeModal(); });
@@ -12855,6 +13230,14 @@ window.XQ = {
         if (cell.getAttribute('data-st') === 'locked') { sfx('invalid'); return; }
         sfx('click');
         startLevel(parseInt(cell.getAttribute('data-idx'), 10));
+      });
+    }
+    if (els.practiceGrid) {
+      els.practiceGrid.addEventListener('click', function(e) {
+        var card = e.target.closest('[data-puzzle-id]');
+        if (!card) return;
+        sfx('click');
+        startPuzzleById(card.getAttribute('data-puzzle-id'), 'challenge');
       });
     }
     // 设置页
@@ -12916,6 +13299,9 @@ window.XQ = {
     });
 
     // 结果弹窗
+    if (els.btnResultRematch) {
+      els.btnResultRematch.addEventListener('click', function() { sfx('click'); rematchOnline(); });
+    }
     els.btnResultRestart.addEventListener('click', function() {
       if (state.gameMode === 'online') {
         hideResultModal();
@@ -13121,6 +13507,12 @@ window.XQ = {
 
   // 调试接口：暴露 state 供测试/控制台使用
   window.__state = state;
+  window.__debug = {
+    finishResult: finishResult,
+    showResultModal: showResultModal,
+    rematchOnline: rematchOnline,
+    drawResultBoardThumb: drawResultBoardThumb,
+  };
 
 })();
 
