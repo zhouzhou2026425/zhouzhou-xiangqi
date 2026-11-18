@@ -709,6 +709,142 @@ html, body {
   margin-top: 8px;
   flex-shrink: 0;
 }
+.hint-text.warn {
+  color: #b4312f;
+  font-weight: 700;
+}
+.record-panel {
+  width: 100%;
+  max-width: 400px;
+  background: #fffbee;
+  border: 1px solid #d4c09a;
+  border-radius: 12px;
+  padding: 8px 10px;
+  margin-top: 8px;
+  flex-shrink: 0;
+}
+.record-title {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 700;
+  color: #7a5a2a;
+  margin-bottom: 6px;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+}
+.record-caret { display: inline-block; transition: transform 0.15s; }
+.record-panel.collapsed .record-caret { transform: rotate(-90deg); }
+.record-panel.collapsed .record-list { display: none; }
+.record-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3px 10px;
+  max-height: 72px;
+  overflow-y: auto;
+  font-size: 11px;
+}
+.record-move { display: flex; gap: 5px; min-width: 0; }
+.record-move .num { color: #8b7355; width: 26px; flex-shrink: 0; }
+.record-move .txt { color: #5a3d1a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.modal-review { max-height: 82vh; display: flex; flex-direction: column; }
+.review-header { display: flex; justify-content: space-between; align-items: center; }
+.review-meta { font-size: 12px; color: #8b7355; margin: 6px 0; }
+.review-copy-row { display: flex; align-items: center; gap: 8px; margin: 2px 0 6px; }
+.review-copy { min-height: 28px; padding: 4px 10px; font-size: 11px; }
+.review-copy-tip { font-size: 11px; color: #5a7a2a; }
+.review-board {
+  position: relative;
+  width: 100%;
+  max-width: 236px;
+  aspect-ratio: 8 / 9;
+  margin: 8px auto 4px;
+  padding: 5% 6%;
+  box-sizing: border-box;
+  background: linear-gradient(180deg, #f9e8c4, #f3dfae);
+  border: 1px solid #c9b896;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.review-board-svg {
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  top: 5%;
+  bottom: 5%;
+  width: 88%;
+  height: 90%;
+  pointer-events: none;
+}
+.review-board-svg line {
+  stroke: #5a3d1a;
+  stroke-width: 0.5;
+  vector-effect: non-scaling-stroke;
+}
+.review-board-svg line.border { stroke-width: 1.2; }
+.review-points { position: absolute; left: 6%; right: 6%; top: 5%; bottom: 5%; }
+.review-points .point { cursor: default; }
+.review-points .piece { font-size: clamp(11px, 3.2vw, 15px); }
+.review-path {
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  top: 5%;
+  bottom: 5%;
+  width: 88%;
+  height: 90%;
+  z-index: 1;
+  pointer-events: none;
+}
+.review-path line {
+  stroke: rgba(168, 40, 40, 0.65);
+  stroke-width: 1.6;
+  stroke-dasharray: 5 4;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+.review-river {
+  position: absolute;
+  left: 6%;
+  right: 6%;
+  top: 44.5%;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 12%;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: #8b6a3a;
+  pointer-events: none;
+}
+.review-list {
+  max-height: 180px;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 10px;
+  font-size: 12px;
+  padding: 6px 2px;
+}
+.review-move { display: flex; gap: 5px; min-width: 0; }
+.review-move.active { font-weight: 700; color: #7a2020; }
+.review-move .num { color: #8b7355; width: 26px; flex-shrink: 0; }
+.review-move .txt { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.review-controls { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 8px 0; }
+.review-controls .btn { min-height: 34px; padding: 6px 4px; }
+.review-history-title { font-size: 11px; color: #8b7355; margin-top: 6px; }
+.review-history { max-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+.history-item {
+  border: 1px solid #d4c09a;
+  background: #fffbee;
+  border-radius: 10px;
+  padding: 7px 9px;
+  text-align: left;
+  font-size: 11px;
+  color: #5a3d1a;
+}
+.history-item small { color: #8b7355; }
 
 /* ============================================================
    弹窗
@@ -727,6 +863,10 @@ html, body {
 
 .modal-overlay.show {
   display: flex;
+  animation: overlayFade 0.18s ease-out;
+}
+.modal-overlay.show .modal {
+  animation: modalIn 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .modal {
@@ -739,6 +879,22 @@ html, body {
   overflow-y: auto;
   border: 1px solid #c9b896;
   box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+
+@keyframes overlayFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(10px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .modal-overlay.show,
+  .modal-overlay.show .modal,
+  .start-mode,
+  .start-tool,
+  .btn { animation: none !important; transition: none !important; }
 }
 @supports (height: 100dvh) {
   .modal { max-height: 90dvh; }
@@ -1666,15 +1822,59 @@ html, body {
    杀法图鉴弹窗
    ============================================================ */
 .atlas-modal {
-  max-width: 400px;
+  max-width: 360px;
   max-height: 82vh;
   display: flex;
   flex-direction: column;
   padding: 0;
   overflow: hidden;
 }
+.atlas-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding: 0 10px 8px;
+  flex-shrink: 0;
+}
+.atlas-tab {
+  min-height: 32px;
+  border: 1px solid #d4c09a;
+  border-radius: 9px;
+  background: #f2e7cf;
+  color: #7d5c2e;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.atlas-tab.active {
+  background: #8b1a1a;
+  border-color: #8b1a1a;
+  color: #fff;
+}
+.atlas-search { padding: 0 10px 6px; flex-shrink: 0; }
+.atlas-search.hidden { display: none; }
+#gambit-section.hidden { display: none; }
+.atlas-search input {
+  width: 100%;
+  min-height: 30px;
+  border: 1px solid #d4c09a;
+  border-radius: 9px;
+  background: #fffbee;
+  padding: 5px 9px;
+  font-size: 12px;
+  color: #5a3d1a;
+  outline: none;
+  box-sizing: border-box;
+}
+.atlas-search input:focus { border-color: #8b1a1a; }
+.atlas-empty {
+  padding: 14px 10px;
+  text-align: center;
+  font-size: 12px;
+  color: #8b7355;
+}
 #modal-challenge .atlas-modal {
-  max-width: 430px;
+  max-width: 390px;
   max-height: 94vh;
 }
 #challenge-view-home {
@@ -1690,54 +1890,57 @@ html, body {
 }
 
 .atlas-modal .modal-header {
-  padding: 14px 18px 10px;
+  padding: 10px 12px 6px;
   margin: 0;
   flex-shrink: 0;
 }
+.atlas-modal .modal-header h2 { font-size: 15px; }
+.atlas-modal .modal-close { width: 30px; height: 30px; font-size: 19px; border-radius: 9px; }
 
 .atlas-list {
   flex: 1;
   overflow-y: auto;
-  padding: 8px 14px 14px;
+  padding: 6px 10px 10px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .atlas-card {
   border: 1px solid #d4c09a;
   border-radius: 8px;
-  padding: 10px 12px;
+  padding: 7px 9px;
   background: #fffbee;
   box-shadow: 0 1px 2px rgba(90, 61, 26, 0.08);
 }
 
+.atlas-card.done { background: #f7efd9; }
 .atlas-name {
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 700;
   color: #8b1a1a;
-  margin-bottom: 4px;
-  letter-spacing: 1px;
+  margin-bottom: 2px;
+  letter-spacing: 0.5px;
 }
 
 .atlas-desc {
-  font-size: 12.5px;
+  font-size: 11px;
   color: #5a3d1a;
-  line-height: 1.5;
-  margin-bottom: 4px;
+  line-height: 1.35;
+  margin-bottom: 2px;
 }
 
 .atlas-pieces {
-  font-size: 11.5px;
+  font-size: 10px;
   color: #8b7355;
   font-weight: 500;
 }
 
 .atlas-footer {
   text-align: center;
-  font-size: 12px;
+  font-size: 10.5px;
   color: #8b7355;
-  padding: 8px 14px 12px;
+  padding: 6px 10px 8px;
   border-top: 1px solid #e8d9b8;
   flex-shrink: 0;
 }
@@ -1745,13 +1948,13 @@ html, body {
 .atlas-card {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 4px;
 }
 .atlas-card-actions {
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 .atlas-practice-btn,
 .practice-card {
@@ -1765,10 +1968,44 @@ html, body {
   user-select: none;
 }
 .atlas-practice-btn {
-  min-height: 34px;
-  padding: 6px 12px;
-  font-size: 12px;
+  min-height: 24px;
+  padding: 3px 7px;
+  font-size: 10px;
   font-weight: 600;
+}
+.atlas-practice-btn.done { color: #5a7a2a; border-color: #9c7a3c; }
+.gambit-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+.gambit-card {
+  border: 1px solid #d4c09a;
+  border-radius: 9px;
+  background: #fffbee;
+  padding: 6px 7px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-align: left;
+}
+.gambit-name {
+  font-size: 11px;
+  font-weight: 700;
+  color: #7a2020;
+}
+.gambit-desc {
+  font-size: 10px;
+  color: #76613f;
+  line-height: 1.28;
+}
+.gambit-tag {
+  align-self: flex-start;
+  font-size: 9px;
+  color: #8b7355;
+  background: #f2e7cf;
+  border-radius: 6px;
+  padding: 1px 5px;
 }
 .atlas-practice-btn:disabled {
   border-color: #d4c09a;
@@ -1777,29 +2014,29 @@ html, body {
   cursor: default;
 }
 .practice-section {
-  margin: 10px 0 4px;
-  padding-top: 10px;
+  margin: 8px 0 3px;
+  padding-top: 8px;
   border-top: 1px dashed #d4b88a;
 }
 .practice-title {
-  margin-bottom: 8px;
-  font-size: 13px;
+  margin-bottom: 6px;
+  font-size: 12px;
   font-weight: 700;
   color: #7d5c2e;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
 }
 .practice-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
+  gap: 6px;
 }
 .practice-card {
-  min-height: 78px;
-  padding: 11px 10px;
+  min-height: 54px;
+  padding: 6px 7px;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  gap: 5px;
+  gap: 4px;
   text-align: left;
   box-shadow: 0 2px 5px rgba(90, 61, 26, 0.10);
 }
@@ -1816,23 +2053,23 @@ html, body {
 }
 .practice-no {
   flex: none;
-  min-width: 56px;
-  padding: 3px 8px;
-  border-radius: 8px;
+  min-width: 48px;
+  padding: 2px 6px;
+  border-radius: 7px;
   background: #8b1a1a;
   color: #fff;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   text-align: center;
 }
 .practice-status {
   flex: none;
-  font-size: 10.5px;
+  font-size: 10px;
   color: #8b7355;
 }
-.practice-name { font-size: 13px; font-weight: 700; color: #5a3d1a; }
-.practice-hint { font-size: 11px; color: #8b7355; line-height: 1.35; }
-.practice-meta { font-size: 10.5px; color: #a58d66; letter-spacing: 0.5px; }
+.practice-name { font-size: 11.5px; font-weight: 700; color: #5a3d1a; }
+.practice-hint { font-size: 10px; color: #8b7355; line-height: 1.25; }
+.practice-meta { font-size: 10px; color: #a58d66; letter-spacing: 0.5px; }
 
 .atlas-head {
   display: flex;
@@ -1841,12 +2078,12 @@ html, body {
 }
 .atlas-no {
   flex: none;
-  min-width: 54px;
-  padding: 3px 8px;
-  border-radius: 8px;
+  min-width: 48px;
+  padding: 2px 6px;
+  border-radius: 7px;
   background: #f1e2c4;
   color: #7d5c2e;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 700;
   text-align: center;
 }
@@ -1869,10 +2106,10 @@ html, body {
   .btn { min-height: 42px; padding: 10px 6px; font-size: 12px; }
   .btn-row { gap: 6px; }
   .online-join-row .btn { width: 88px; }
-  .practice-grid { gap: 6px; }
-  .practice-card { min-height: 72px; padding: 9px 8px; }
-  .practice-name { font-size: 12px; }
-  .practice-hint { font-size: 10px; }
+  .practice-grid { gap: 5px; }
+  .practice-card { min-height: 50px; padding: 6px 6px; }
+  .practice-name { font-size: 11px; }
+  .practice-hint { font-size: 9.5px; }
 }
 
 /* ============================================================
@@ -2062,8 +2299,14 @@ body { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
     repeating-linear-gradient(45deg, rgba(139, 26, 26, 0.025) 0 2px, transparent 2px 12px),
     linear-gradient(160deg, #f8f2e2 0%, #efe3c8 55%, #e8d9b8 100%);
   overflow-y: auto;
+  animation: screenFadeIn 0.24s ease-out;
 }
 #start-screen.hidden { display: none; }
+
+@keyframes screenFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
 .start-wrap {
   width: 100%;
@@ -2127,23 +2370,52 @@ body { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
   gap: 6px;
   min-height: 84px;
   padding: 14px 10px;
-  border: 1px solid #d3bd93;
-  border-radius: 16px;
+  border: 1px solid #c8a876;
+  border-radius: 20px;
   background: linear-gradient(180deg, #fffdf6, #f7ecd4);
   color: #5a3d1a;
   font-family: inherit;
   cursor: pointer;
-  box-shadow: 0 3px 8px rgba(90, 61, 26, 0.10);
-  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  box-shadow: 0 4px 12px rgba(90, 61, 26, 0.12);
+  transition: transform 0.14s ease, box-shadow 0.14s ease, background 0.14s ease, border-color 0.14s ease;
   touch-action: manipulation;
   user-select: none;
   -webkit-user-select: none;
 }
+.start-mode:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 7px 16px rgba(107, 20, 20, 0.16);
+  border-color: #a82828;
+}
 .start-mode:active {
-  transform: translateY(1px) scale(0.985);
+  transform: translateY(1px) scale(0.975);
   box-shadow: 0 1px 3px rgba(90, 61, 26, 0.12);
 }
+.start-mode::after,
+.start-tool::after,
+.btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.34), transparent 62%);
+  opacity: 0;
+  pointer-events: none;
+}
+.btn { isolation: isolate; }
+.btn > * { position: relative; z-index: 1; }
+.start-mode:active::after,
+.start-tool:active::after,
+.btn:active::after { opacity: 1; }
 
+.sm-icon,
+.sm-texts,
+.st-icon,
+.st-name {
+  position: relative;
+  z-index: 1;
+}
 .sm-icon {
   width: 40px;
   height: 40px;
@@ -2167,14 +2439,23 @@ body { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
 }
 
 .sm-name { font-size: 16px; font-weight: 700; letter-spacing: 1px; }
-.sm-desc { font-size: 11px; color: #97794c; line-height: 1.35; }
+.sm-desc {
+  font-size: 11px;
+  color: #97794c;
+  line-height: 1.35;
+  max-width: 100%;
+  padding: 0 6px;
+  text-align: center;
+}
 
 .start-mode-online {
   border-color: #a82828;
   background: linear-gradient(180deg, #fff8ee, #f7e4c8);
   box-shadow: 0 4px 12px rgba(139, 26, 26, 0.16);
+  padding-top: 26px;
 }
 .start-mode-online .sm-icon {
+  margin-top: 6px;
   color: #fff8ee;
   background: linear-gradient(160deg, #a82828, #7d1414);
   border-color: #6b1414;
@@ -2192,14 +2473,17 @@ body { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
 
 .sm-badge {
   position: absolute;
-  top: -8px;
+  top: 10px;
   right: 12px;
-  padding: 1px 8px;
+  z-index: 3;
+  padding: 2px 8px;
   border-radius: 999px;
   background: #a82828;
   color: #fff8ee;
   font-size: 10px;
   letter-spacing: 1px;
+  line-height: 1.3;
+  white-space: nowrap;
   box-shadow: 0 1px 3px rgba(107, 20, 20, 0.3);
 }
 
@@ -2211,35 +2495,59 @@ body { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
   margin-top: 4px;
 }
 .start-tool {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  min-height: 72px;
-  padding: 12px 6px;
-  border: 1px solid #d4b88a;
-  border-radius: 14px;
-  background: rgba(255, 250, 238, 0.72);
-  color: #7d5c2e;
+  min-height: 70px;
+  padding: 10px 6px;
+  border: 1px solid #cdb489;
+  border-radius: 7px;
+  background: rgba(255, 250, 238, 0.78);
+  color: #6d4f27;
   font-family: inherit;
   cursor: pointer;
-  transition: background 0.15s, transform 0.1s;
+  box-shadow: 0 2px 6px rgba(90, 61, 26, 0.10);
+  transition: background 0.14s ease, transform 0.14s ease, box-shadow 0.14s ease, border-color 0.14s ease;
   touch-action: manipulation;
   user-select: none;
   -webkit-user-select: none;
 }
+.start-tool:hover {
+  transform: translateY(-1px) scale(1.02);
+  background: #fff8ea;
+  border-color: #a82828;
+  box-shadow: 0 4px 10px rgba(90, 61, 26, 0.14);
+}
 .start-tool:active {
   background: #efe2c4;
-  transform: scale(0.97);
+  transform: scale(0.96);
 }
 .start-tool .st-icon {
-  font-size: 20px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 19px;
   line-height: 1;
+  color: #8b1a1a;
+}
+.start-tool .st-icon-svg svg {
+  width: 24px;
+  height: 24px;
+  display: block;
 }
 .start-tool .st-name {
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 600;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
+  line-height: 1.25;
+  text-align: center;
+  white-space: normal;
+  word-break: break-word;
 }
 
 .start-foot {
@@ -2317,6 +2625,8 @@ body { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
 }
 
 .online-main-btn { width: 100%; }
+.online-main-btn + .online-main-btn { margin-top: 8px; }
+.online-link-box { margin-top: 8px; }
 
 .online-or {
   display: flex;
@@ -2579,8 +2889,8 @@ html, body {
 .start-mode, .start-tool {
   box-shadow: 0 3px 10px rgba(90, 61, 26, 0.12);
 }
-.start-mode { border-radius: 15px; }
-.start-tool { border-radius: 13px; }
+.start-mode.main-mode { border-radius: 20px; }
+.start-tool { border-radius: 7px; }
 
 /* 弹窗 */
 .modal {
@@ -2601,8 +2911,11 @@ html, body {
   box-shadow: 0 1px 3px rgba(90, 61, 26, 0.16);
 }
 .btn.btn-primary {
+  border-radius: 14px;
   box-shadow: 0 3px 8px rgba(107, 20, 20, 0.3);
 }
+.btn.btn-ghost,
+.btn.btn-quiet { border-radius: 7px; }
 
 /* 提示条 */
 .hint-box {
@@ -2625,13 +2938,14 @@ html, body {
   margin-bottom: 6px;
 }
 .clock-chip {
-  min-width: 68px;
-  padding: 4px 12px;
+  min-width: 74px;
+  padding: 5px 12px;
   border-radius: 10px;
   text-align: center;
   font-variant-numeric: tabular-nums;
   font-weight: 700;
-  font-size: 14px;
+  font-size: 15px;
+  letter-spacing: 0.5px;
   background: rgba(255, 250, 238, 0.7);
   border: 1px solid #c9b896;
   color: #6b4a22;
@@ -2643,7 +2957,22 @@ html, body {
   background: #fff6e6;
 }
 .clock-chip.low { color: #c0392b; }
-.clock-label { font-size: 12px; color: #8a7350; }
+.clock-chip.critical {
+  color: #8b1a1a;
+  border-color: #a82828;
+  animation: clockBlink 0.8s ease-in-out infinite;
+}
+.clock-label {
+  min-width: 72px;
+  text-align: center;
+  font-size: 11px;
+  line-height: 1.35;
+  color: #8a7350;
+}
+@keyframes clockBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.62; }
+}
 .btn-ghost {
   background: rgba(255, 250, 238, 0.6);
   color: #6b4a22;
@@ -2792,8 +3121,15 @@ html, body {
         <span class="st-name">名局观战</span>
       </button>
       <button class="start-tool" data-start-mode="atlas">
-        <span class="st-icon">📚</span>
-        <span class="st-name">杀法图鉴</span>
+        <span class="st-icon st-icon-svg" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none">
+            <rect x="3.5" y="4" width="17" height="15.5" rx="2.5" stroke="currentColor" stroke-width="1.6"/>
+            <path d="M3.5 10.5h17M9.2 4v15.5M14.8 4v15.5" stroke="currentColor" stroke-width="1.15"/>
+            <circle cx="12" cy="7.3" r="1.5" fill="currentColor"/>
+            <path d="M7.5 19.5l1.6 1.4M16.5 19.5l-1.6 1.4" stroke="currentColor" stroke-width="1.15" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <span class="st-name">杀法&布局</span>
       </button>
       <button class="start-tool" data-start-mode="challenge">
         <span class="st-icon">🎯</span>
@@ -2894,12 +3230,36 @@ html, body {
     </div>
 
     <div class="settings-row">
-      <div class="settings-label">音效</div>
+      <div class="settings-label">音量</div>
       <div class="seg-group" id="seg-sound">
         <button class="seg-btn" data-sound="0">关</button>
         <button class="seg-btn" data-sound="1">低</button>
         <button class="seg-btn" data-sound="2">中</button>
         <button class="seg-btn" data-sound="3">高</button>
+      </div>
+    </div>
+
+    <div class="settings-row">
+      <div class="settings-label">落子音效</div>
+      <div class="seg-group" data-sound-category="move">
+        <button class="seg-btn" data-on="0">关</button>
+        <button class="seg-btn" data-on="1">开</button>
+      </div>
+    </div>
+
+    <div class="settings-row">
+      <div class="settings-label">将军音效</div>
+      <div class="seg-group" data-sound-category="check">
+        <button class="seg-btn" data-on="0">关</button>
+        <button class="seg-btn" data-on="1">开</button>
+      </div>
+    </div>
+
+    <div class="settings-row">
+      <div class="settings-label">提示/按钮</div>
+      <div class="seg-group" data-sound-category="hint">
+        <button class="seg-btn" data-on="0">关</button>
+        <button class="seg-btn" data-on="1">开</button>
       </div>
     </div>
 
@@ -2930,7 +3290,7 @@ html, body {
       <button class="btn btn-primary online-main-btn" id="btn-create-room">创建房间</button>
       <div class="online-or"><span>或</span></div>
       <div class="online-join-row">
-        <input id="online-code-input" class="online-code-input" maxlength="6" placeholder="输入 6 位房号" autocomplete="off" autocapitalize="characters" spellcheck="false">
+        <input id="online-code-input" class="online-code-input" maxlength="6" placeholder="输入 6 位房号" autocomplete="off" autocapitalize="characters" spellcheck="false" inputmode="text">
         <button class="btn" id="btn-join-room">加入</button>
       </div>
       <div class="online-status" id="online-status"></div>
@@ -2940,6 +3300,7 @@ html, body {
       <div class="online-code-label">房间号</div>
       <div class="online-code" id="online-code">------</div>
       <div class="online-wait-status" id="online-wait-status">等待对方加入…</div>
+      <button class="btn online-main-btn" id="btn-copy-code">复制房号</button>
       <div class="online-link-box" id="online-link">链接生成中…</div>
       <button class="btn btn-primary online-main-btn" id="btn-copy-link">复制邀请链接</button>
       <p class="online-tip" style="margin-top:10px;">也可以点右上角「···」把本页转发给微信好友</p>
@@ -3098,6 +3459,12 @@ html, body {
   <!-- 提示文字 -->
   <div class="hint-text" id="hint-text">红方走棋</div>
 
+  <!-- 实时记谱 -->
+  <div class="record-panel" id="record-panel" style="display:none;">
+    <button class="record-title" id="record-title" type="button">对局记谱 <span class="record-caret">▾</span></button>
+    <div class="record-list" id="record-list"></div>
+  </div>
+
   <!-- 底部按钮 -->
   <div class="bottom-bar">
     <div class="btn-row btn-row-main">
@@ -3170,9 +3537,76 @@ html, body {
       <canvas id="result-board-canvas"></canvas>
     </div>
     <div class="result-action-row">
+      <button class="btn btn-ghost" id="btn-result-review" style="display:none;">复盘</button>
       <button class="btn btn-primary" id="btn-result-rematch" style="display:none;">继续对战</button>
       <button class="btn btn-ghost" id="btn-result-restart">退出对局</button>
     </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     对局复盘弹窗
+     ============================================================ -->
+<div class="modal-overlay" id="modal-review">
+  <div class="modal modal-review">
+    <div class="review-header">
+      <h2>对局复盘</h2>
+      <button class="btn-close" id="btn-review-close" aria-label="关闭复盘">×</button>
+    </div>
+    <div class="review-meta" id="review-meta">本局棋谱</div>
+    <div class="review-board" id="review-board">
+      <svg class="review-board-svg" viewBox="0 0 8 9" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <line class="border" x1="0" y1="0" x2="8" y2="0"/>
+        <line x1="0" y1="1" x2="8" y2="1"/>
+        <line x1="0" y1="2" x2="8" y2="2"/>
+        <line x1="0" y1="3" x2="8" y2="3"/>
+        <line x1="0" y1="4" x2="8" y2="4"/>
+        <line x1="0" y1="5" x2="8" y2="5"/>
+        <line x1="0" y1="6" x2="8" y2="6"/>
+        <line x1="0" y1="7" x2="8" y2="7"/>
+        <line x1="0" y1="8" x2="8" y2="8"/>
+        <line class="border" x1="0" y1="9" x2="8" y2="9"/>
+        <line class="border" x1="0" y1="0" x2="0" y2="4"/>
+        <line x1="1" y1="0" x2="1" y2="4"/>
+        <line x1="2" y1="0" x2="2" y2="4"/>
+        <line x1="3" y1="0" x2="3" y2="4"/>
+        <line x1="4" y1="0" x2="4" y2="4"/>
+        <line x1="5" y1="0" x2="5" y2="4"/>
+        <line x1="6" y1="0" x2="6" y2="4"/>
+        <line x1="7" y1="0" x2="7" y2="4"/>
+        <line class="border" x1="8" y1="0" x2="8" y2="4"/>
+        <line class="border" x1="0" y1="5" x2="0" y2="9"/>
+        <line x1="1" y1="5" x2="1" y2="9"/>
+        <line x1="2" y1="5" x2="2" y2="9"/>
+        <line x1="3" y1="5" x2="3" y2="9"/>
+        <line x1="4" y1="5" x2="4" y2="9"/>
+        <line x1="5" y1="5" x2="5" y2="9"/>
+        <line x1="6" y1="5" x2="6" y2="9"/>
+        <line x1="7" y1="5" x2="7" y2="9"/>
+        <line class="border" x1="8" y1="5" x2="8" y2="9"/>
+        <line x1="3" y1="0" x2="5" y2="2"/>
+        <line x1="5" y1="0" x2="3" y2="2"/>
+        <line x1="3" y1="7" x2="5" y2="9"/>
+        <line x1="5" y1="7" x2="3" y2="9"/>
+      </svg>
+      <div class="review-points" id="review-points"></div>
+      <svg class="review-path" id="review-path" viewBox="0 0 8 9" preserveAspectRatio="none"></svg>
+      <div class="review-river"><span>楚 河</span><span>汉 界</span></div>
+    </div>
+    <div class="review-copy-row">
+      <button class="btn btn-ghost review-copy" id="review-copy" type="button">复制棋谱</button>
+      <span class="review-copy-tip" id="review-copy-tip"></span>
+    </div>
+    <div class="review-list" id="review-list"></div>
+    <div class="review-controls">
+      <button class="btn btn-ghost" id="review-start" title="回到开局">⏮</button>
+      <button class="btn btn-ghost" id="review-prev" title="上一步">‹</button>
+      <button class="btn btn-primary" id="review-play" title="播放/暂停">▶</button>
+      <button class="btn btn-ghost" id="review-next" title="下一步">›</button>
+      <button class="btn btn-ghost" id="review-end" title="到终局">⏭</button>
+    </div>
+    <div class="review-history-title">最近对局</div>
+    <div class="review-history" id="review-history"></div>
   </div>
 </div>
 
@@ -3281,13 +3715,26 @@ html, body {
 <div class="modal-overlay" id="modal-atlas">
   <div class="modal atlas-modal">
     <div class="modal-header">
-      <h2>杀法图鉴 · 练习</h2>
+      <h2>图鉴中心</h2>
       <button class="modal-close" id="btn-atlas-close">×</button>
+    </div>
+    <div class="atlas-tabs">
+      <button class="atlas-tab active" data-atlas-tab="kills" type="button">杀法图鉴</button>
+      <button class="atlas-tab" data-atlas-tab="gambits" type="button">邪门布局</button>
+    </div>
+    <div class="atlas-search" id="atlas-search-row">
+      <input id="atlas-search" type="search" maxlength="20" placeholder="搜索杀法 / 描述 / 兵种" autocomplete="off">
     </div>
     <div class="atlas-list" id="atlas-list">
       <!-- 动态生成 -->
     </div>
-    <div class="atlas-footer">共 31 种经典杀法 · 实战中识别出会在棋盘中显示</div>
+    <div class="practice-section" id="gambit-section">
+      <div class="practice-title">冷门邪门布局 · 参考</div>
+      <div class="gambit-grid" id="gambit-grid">
+        <!-- 动态生成 -->
+      </div>
+    </div>
+    <div class="atlas-footer" id="atlas-footer">31 种经典杀法 · 实战识别会在棋盘中显示</div>
   </div>
 </div>
 
@@ -4178,6 +4625,71 @@ var OPENING_BOOKS = [
       { fromRow: 0, fromCol: 8, toRow: 0, toCol: 7, notation: '车9平8' },
       { fromRow: 6, fromCol: 2, toRow: 5, toCol: 2, notation: '兵七进一' },
       { fromRow: 2, fromCol: 1, toRow: 2, toCol: 3, notation: '炮2平4' },
+    ],
+  },
+  {
+    id: 'gambit-dare-cannon',
+    group: '冷门邪门',
+    name: '敢死炮',
+    intent: '前炮巡河诱马，用弃子风险换取车炮抢先，适合喜欢对攻的玩家',
+    category: 'opening',
+    moves: [
+      { fromRow: 7, fromCol: 7, toRow: 7, toCol: 4, notation: '炮二平五' },
+      { fromRow: 0, fromCol: 7, toRow: 2, toCol: 6, notation: '马8进7' },
+      { fromRow: 7, fromCol: 1, toRow: 5, toCol: 1, notation: '炮八进二' },
+      { fromRow: 2, fromCol: 1, toRow: 2, toCol: 4, notation: '炮2平5' },
+    ],
+  },
+  {
+    id: 'gambit-iron-sliding',
+    group: '冷门邪门',
+    name: '铁滑车',
+    intent: '边线快速出车，车马联动抢占肋道，属于冒险抢先型冷门布局',
+    category: 'opening',
+    moves: [
+      { fromRow: 9, fromCol: 7, toRow: 7, toCol: 6, notation: '马二进三' },
+      { fromRow: 3, fromCol: 6, toRow: 4, toCol: 6, notation: '卒7进1' },
+      { fromRow: 9, fromCol: 8, toRow: 8, toCol: 8, notation: '车一进一' },
+      { fromRow: 0, fromCol: 1, toRow: 2, toCol: 2, notation: '马2进3' },
+    ],
+  },
+  {
+    id: 'gambit-blind-dog',
+    group: '冷门邪门',
+    name: '瞎眼狗',
+    intent: '边兵起步活马，迂回出子，刻意避开正面中路缠斗',
+    category: 'opening',
+    moves: [
+      { fromRow: 6, fromCol: 6, toRow: 5, toCol: 6, notation: '兵三进一' },
+      { fromRow: 3, fromCol: 6, toRow: 4, toCol: 6, notation: '卒7进1' },
+      { fromRow: 9, fromCol: 1, toRow: 7, toCol: 0, notation: '马八进九' },
+      { fromRow: 0, fromCol: 7, toRow: 2, toCol: 6, notation: '马8进7' },
+    ],
+  },
+  {
+    id: 'gambit-turtle-cannon',
+    group: '冷门邪门',
+    name: '龟背炮',
+    intent: '炮退窝心再转肋蓄力反击，阵型偏柔，但中路容易受压',
+    category: 'opening',
+    moves: [
+      { fromRow: 7, fromCol: 7, toRow: 7, toCol: 4, notation: '炮二平五' },
+      { fromRow: 0, fromCol: 7, toRow: 2, toCol: 6, notation: '马8进7' },
+      { fromRow: 7, fromCol: 1, toRow: 8, toCol: 1, notation: '炮八退一' },
+      { fromRow: 0, fromCol: 8, toRow: 0, toCol: 7, notation: '车9平8' },
+    ],
+  },
+  {
+    id: 'gambit-cross-cannon',
+    group: '冷门邪门',
+    name: '过宫炮',
+    intent: '双炮集结一翼，属于冷门稳健阵型，适合慢慢调整车位',
+    category: 'opening',
+    moves: [
+      { fromRow: 7, fromCol: 7, toRow: 7, toCol: 5, notation: '炮二平六' },
+      { fromRow: 0, fromCol: 1, toRow: 2, toCol: 2, notation: '马2进3' },
+      { fromRow: 9, fromCol: 1, toRow: 7, toCol: 2, notation: '马八进七' },
+      { fromRow: 3, fromCol: 4, toRow: 4, toCol: 4, notation: '卒5进1' },
     ],
   },
   // ============================================================
@@ -6352,9 +6864,9 @@ function aiGetMoveLight(board, aiColor, difficulty) {
       score -= PIECE_VALUE[myPiece.type] || 0;
     }
 
-    // 将军加分
+    // 将军加分：优先选择能压迫对方将位的走法
     if (isInCheck(nb, enemy)) {
-      score += 50;
+      score += 120;
     }
 
     // 小随机数打散
@@ -6376,9 +6888,9 @@ function aiGetMoveLight(board, aiColor, difficulty) {
 
   // 普通档：选最优
   scores.sort(function(a, b) { return b.score - a.score; });
-  // 从最优的前 3 个里稍微随机
+  // 只在相近走法里保留少量变化，避免刻意乱走
   var topN = Math.min(3, scores.length);
-  if (Math.random() < 0.3) {
+  if (Math.random() < 0.15) {
     return scores[Math.floor(Math.random() * topN)].move;
   }
   return scores[0].move;
@@ -6475,8 +6987,23 @@ var PST_B = [
   [  0,  0, 20,  0,  0,  0, 20,  0,  0]
 ];
 
-// 局面评估（正数 = 红优），单次遍历 90 格
+var gEvalCache = {};
+
+function boardKey(board) {
+  var parts = [];
+  for (var r = 0; r < 10; r++) {
+    var row = board[r], rowParts = [];
+    for (var c = 0; c < 9; c++) rowParts.push(row[c] ? row[c.color === 'red' ? 'R' : 'B'] + row[c].type : '.');
+    parts.push(rowParts.join(''));
+  }
+  return parts.join('/');
+}
+
+// 局面评估（正数 = 红优），单次遍历 90 格；当前搜索内缓存重复局面
 function evaluateBoard(board) {
+  var key = boardKey(board);
+  if (gEvalCache[key] !== undefined) return gEvalCache[key];
+
   var score = 0;
   for (var r = 0; r < 10; r++) {
     var row = board[r];
@@ -6501,7 +7028,55 @@ function evaluateBoard(board) {
       score += (p.color === 'red') ? v : -v;
     }
   }
-  // 先手加成
+  gEvalCache[key] = score;
+  return score;
+}
+
+function kingMoveCount(board, color) {
+  var k = findKing(board, color);
+  if (!k) return 0;
+  return getValidMoves(board, k.row, k.col).length;
+}
+
+function attackedMaterial(board, color) {
+  var enemy = color === 'red' ? 'black' : 'red';
+  var total = 0;
+  for (var r = 0; r < 10; r++) {
+    for (var c = 0; c < 9; c++) {
+      var p = board[r][c];
+      if (p && p.color === color && isSquareAttacked(board, r, c, enemy)) {
+        total += PIECE_VALUE[p.type] || 0;
+      }
+    }
+  }
+  return total;
+}
+
+// 高级攻防调整：正数偏红优；进攻项受进攻权重影响，自保项受防守权重影响
+function advancedAdjustment(board) {
+  var score = 0;
+  var checkRed = isInCheckFast(board, 'red');
+  var checkBlack = isInCheckFast(board, 'black');
+
+  if (checkBlack) score += 70 * gAttackWeight;
+  if (checkRed) score -= 90 * gDefendWeight;
+
+  score -= attackedMaterial(board, 'red') * 0.6 * gDefendWeight;
+  score += attackedMaterial(board, 'black') * 0.6 * gAttackWeight;
+
+  var redKingMoves = kingMoveCount(board, 'red');
+  var blackKingMoves = kingMoveCount(board, 'black');
+  score -= Math.max(0, 2 - redKingMoves) * 12 * gDefendWeight;
+  score += Math.max(0, 2 - blackKingMoves) * 12 * gAttackWeight;
+
+  for (var r = 0; r < 10; r++) {
+    for (var c = 0; c < 9; c++) {
+      var p = board[r][c];
+      if (!p || p.type !== 'P') continue;
+      if (p.color === 'red' && r <= 2) score += 25 * gAttackWeight;
+      if (p.color === 'black' && r >= 7) score -= 25 * gDefendWeight;
+    }
+  }
   return score;
 }
 
@@ -6610,6 +7185,10 @@ var gHistory = {};
 var gStop = false;
 var gNodes = 0;
 var gDeadline = 0;
+var gAdvanced = false;
+var gAttackWeight = 1;
+var gDefendWeight = 1;
+var gTT = {};
 
 function mvKey(m) {
   return m.fromRow + '' + m.fromCol + m.toRow + '' + m.toCol;
@@ -6637,11 +7216,12 @@ function orderMoves(board, moves, ply) {
 
 function evalFor(board, aiColor) {
   var ev = evaluateBoard(board);
+  if (gAdvanced) ev += advancedAdjustment(board);
   return aiColor === 'red' ? ev : -ev;
 }
 
 function outOfTime() {
-  if ((++gNodes & 1023) === 0 && Date.now() > gDeadline) gStop = true;
+  if ((++gNodes & 63) === 0 && Date.now() > gDeadline) gStop = true;
   return gStop;
 }
 
@@ -6697,6 +7277,14 @@ function quiesce(board, alpha, beta, colorToMove, aiColor, ply, qdepth) {
 function searchAB(board, depth, alpha, beta, colorToMove, aiColor, ply) {
   if (gStop || outOfTime()) return 0;
 
+  var ttKey = depth > 0 ? boardKey(board) + ':' + colorToMove + ':' + depth : '';
+  var tt = ttKey ? gTT[ttKey] : null;
+  if (tt) {
+    if (tt.flag === 'exact') return tt.score;
+    if (tt.flag === 'lower' && tt.score >= beta) return tt.score;
+    if (tt.flag === 'upper' && tt.score <= alpha) return tt.score;
+  }
+
   var enemy = colorToMove === 'red' ? 'black' : 'red';
   var moves = genLegalMovesInPlace(board, colorToMove);
   if (moves.length === 0) {
@@ -6733,6 +7321,12 @@ function searchAB(board, depth, alpha, beta, colorToMove, aiColor, ply) {
       break;
     }
   }
+  if (ttKey && Number.isFinite(best)) {
+    var ttFlag = 'exact';
+    if (best <= alpha) ttFlag = 'upper';
+    else if (best >= beta) ttFlag = 'lower';
+    gTT[ttKey] = { score: best, flag: ttFlag };
+  }
   return best;
 }
 
@@ -6759,8 +7353,8 @@ function searchRootAtDepth(board, aiColor, depth, guess) {
     var sc = searchAB(board, depth - 1, alpha, beta, enemy, aiColor, 1);
     undoMove(board, moves[i], cap);
     if (gStop) return null;
-    // 同分时小随机，避免每盘一模一样
-    sc += Math.random() * 0.5;
+    // 同分时保留少量变化；高级档尽量稳定选优
+    sc += Math.random() * (gAdvanced ? 0.12 : 0.5);
     if (sc > bestScore) { bestScore = sc; best = moves[i]; }
     if (bestScore > alpha) alpha = bestScore;
   }
@@ -6772,23 +7366,56 @@ function aiGetMoveSearch(board, aiColor, depth) {
   gStop = false;
   gNodes = 0;
   gDeadline = Date.now() + 8000;
+  gEvalCache = {};
+  gTT = {};
+  gAdvanced = false;
+  gAttackWeight = 1;
+  gDefendWeight = 1;
   gKillers = [[], []];
   gHistory = {};
   var r = searchRootAtDepth(board, aiColor, depth, null);
   return r ? r.move : null;
 }
 
-// 迭代加深：在时间预算内尽量加深，返回最佳走法
-function aiGetMoveTimed(board, aiColor, timeMs) {
+// 一步成杀优先扫描：找到可直接将死的走法就立即返回，不再等待深层搜索
+function findImmediateMate(board, color) {
+  var enemy = color === 'red' ? 'black' : 'red';
+  var moves = genLegalMovesInPlace(board, color);
+  orderMoves(board, moves, 0);
+  for (var i = 0; i < moves.length; i++) {
+    var cap = applyMove(board, moves[i]);
+    var replies = genLegalMovesInPlace(board, enemy);
+    var mate = replies.length === 0 && isInCheckFast(board, enemy);
+    undoMove(board, moves[i], cap);
+    if (mate) return moves[i];
+  }
+  return null;
+}
+
+// 迭代加深：在时间预算和最大深度内尽量加深，返回最佳走法
+function aiGetMoveTimed(board, aiColor, timeMs, maxDepth, advanced) {
   var t0 = Date.now();
+  var depthLimit = maxDepth || 6;
   gStop = false;
   gNodes = 0;
   gDeadline = t0 + timeMs;
+  gEvalCache = {};
+  gTT = {};
+  gAdvanced = !!advanced;
+  if (gAdvanced) {
+    var style = Math.floor(Math.random() * 3);
+    if (style === 0) { gAttackWeight = 1.15; gDefendWeight = 1.05; }
+    else if (style === 1) { gAttackWeight = 0.95; gDefendWeight = 1.1; }
+    else { gAttackWeight = 1.05; gDefendWeight = 1.05; }
+  } else {
+    gAttackWeight = 1;
+    gDefendWeight = 1;
+  }
   gKillers = [[], []];
   gHistory = {};
 
   var guess = null, best = null;
-  for (var d = 2; d <= 8; d++) {
+  for (var d = 2; d <= depthLimit; d++) {
     var r = searchRootAtDepth(board, aiColor, d, guess);
     if (gStop) break;          // 本轮超时，丢弃不完整结果
     if (!r) { if (!best) best = null; break; }
@@ -6804,6 +7431,7 @@ function aiGetMoveTimed(board, aiColor, timeMs) {
 function tryOpeningBook(board, movesHistory) {
   // movesHistory: 已走的走法数组（fromRow,fromCol,toRow,toCol）
   var len = movesHistory.length;
+  var candidates = [];
   for (var i = 0; i < OPENING_BOOKS.length; i++) {
     var book = OPENING_BOOKS[i];
     if (!book.moves || book.category !== 'opening') continue;
@@ -6819,9 +7447,10 @@ function tryOpeningBook(board, movesHistory) {
         break;
       }
     }
-    if (match) return book.moves[len];
+    if (match) candidates.push(book.moves[len]);
   }
-  return null;
+  if (!candidates.length) return null;
+  return candidates[Math.floor(Math.random() * candidates.length)];
 }
 
 // 段位映射：r1..r5 / 兼容旧 easy normal hard
@@ -6858,9 +7487,20 @@ function aiGetMove(board, aiColor, difficulty, movesHistory) {
   if (rank === 2) {
     return aiGetMoveLight(board, aiColor, 'normal');
   }
-  var budget = rank === 7 ? 3000 : rank === 6 ? 2200 : rank === 5 ? 1600 : rank === 4 ? 1000 : 350;
+
+  var profile = {
+    3: [150, 3, false],
+    4: [220, 3, false],
+    5: [320, 4, false],
+    6: [500, 5, true],
+    7: [720, 5, true]
+  };
+  var cfg = profile[rank] || [250, 3, false];
+
   try {
-    return aiGetMoveTimed(board, aiColor, budget) || aiGetMoveLight(board, aiColor, 'normal');
+    var mate = findImmediateMate(board, aiColor);
+    if (mate) return mate;
+    return aiGetMoveTimed(board, aiColor, cfg[0], cfg[1], cfg[2]) || aiGetMoveLight(board, aiColor, 'normal');
   } catch (e) {
     return aiGetMoveLight(board, aiColor, 'normal');
   }
@@ -6902,6 +7542,7 @@ window.XQ = {
   var volumeLevel = 3; // 0=关 1=低 2=中 3=高
   var initialized = false;
   var noiseBuf = null;
+  var categoryEnabled = { move: true, check: true, hint: true };
 
   // 节流：同类音效最短间隔（毫秒）
   var THROTTLE_MS = {
@@ -6948,6 +7589,16 @@ window.XQ = {
       case 3: return 0.55;
       default: return 0.3;
     }
+  }
+
+  function categoryOn(cat) {
+    return !!categoryEnabled[cat];
+  }
+
+  function setCategoryEnabled(cat, v) {
+    if (!categoryEnabled.hasOwnProperty(cat)) return;
+    categoryEnabled[cat] = !!v;
+    try { localStorage.setItem('zzxq_sound_' + cat, v ? '1' : '0'); } catch(e) {}
   }
 
   function updateMasterGain() {
@@ -7071,7 +7722,7 @@ window.XQ = {
   // 1. 落子：木子在木盘上清脆的一下
   function playMove() {
     ensureInit();
-    if (!enabled || volumeLevel === 0) return;
+    if (!enabled || volumeLevel === 0 || !categoryOn('move')) return;
     if (!canPlay('move')) return;
 
     woodHit({
@@ -7085,7 +7736,7 @@ window.XQ = {
   // 2. 吃子：木子相撞 + 落到盘上，声更重、余韵更长
   function playCapture() {
     ensureInit();
-    if (!enabled || volumeLevel === 0) return;
+    if (!enabled || volumeLevel === 0 || !categoryOn('move')) return;
     if (!canPlay('capture')) return;
 
     // 第一下：子与子相撞，更闷更重
@@ -7097,7 +7748,7 @@ window.XQ = {
   // 3. 将军：两下短促上扬的木鱼声
   function playCheck() {
     ensureInit();
-    if (!enabled || volumeLevel === 0) return;
+    if (!enabled || volumeLevel === 0 || !categoryOn('check')) return;
     if (!canPlay('check')) return;
 
     woodHit({ res: 2500, body: 215, volume: 0.5, dur: 0.05 });
@@ -7107,7 +7758,7 @@ window.XQ = {
   // 4. 将死：一串敲击，胜局上行、败局下行
   function playCheckmate(isWin) {
     ensureInit();
-    if (!enabled || volumeLevel === 0) return;
+    if (!enabled || volumeLevel === 0 || !categoryOn('check')) return;
     if (!canPlay('checkmate')) return;
 
     var seq = isWin
@@ -7140,7 +7791,7 @@ window.XQ = {
   // 5. 非法走子：闷住的一声低钝轻响
   function playInvalid() {
     ensureInit();
-    if (!enabled || volumeLevel === 0) return;
+    if (!enabled || volumeLevel === 0 || !categoryOn('hint')) return;
     if (!canPlay('invalid')) return;
 
     woodHit({ res: 700, body: 120, volume: 0.16, dur: 0.05 });
@@ -7149,7 +7800,7 @@ window.XQ = {
   // 6. 按钮点击：极轻的木扣声
   function playClick() {
     ensureInit();
-    if (!enabled || volumeLevel === 0) return;
+    if (!enabled || volumeLevel === 0 || !categoryOn('hint')) return;
     if (!canPlay('click')) return;
 
     woodHit({ res: 3200, body: 280, volume: 0.16, dur: 0.025 });
@@ -7158,7 +7809,7 @@ window.XQ = {
   // 7. 悔棋：两下低而短的木扣
   function playUndo() {
     ensureInit();
-    if (!enabled || volumeLevel === 0) return;
+    if (!enabled || volumeLevel === 0 || !categoryOn('move')) return;
     if (!canPlay('undo')) return;
 
     woodHit({ res: 1900, body: 200, volume: 0.28, dur: 0.045 });
@@ -7168,7 +7819,7 @@ window.XQ = {
   // 8. 重新开始：三下上行木扣
   function playReset() {
     ensureInit();
-    if (!enabled || volumeLevel === 0) return;
+    if (!enabled || volumeLevel === 0 || !categoryOn('move')) return;
     if (!canPlay('reset')) return;
 
     woodHit({ res: 1800, body: 190, volume: 0.3, dur: 0.045 });
@@ -7179,7 +7830,7 @@ window.XQ = {
   // 9. 弹窗开关：一声轻木扣
   function playPopup(open) {
     ensureInit();
-    if (!enabled || volumeLevel === 0) return;
+    if (!enabled || volumeLevel === 0 || !categoryOn('hint')) return;
     if (!canPlay('click')) return;
 
     if (open) {
@@ -7228,6 +7879,10 @@ window.XQ = {
         volumeLevel = parseInt(vol, 10) || 3;
         enabled = volumeLevel > 0;
       }
+      ['move', 'check', 'hint'].forEach(function(cat) {
+        var v = localStorage.getItem('zzxq_sound_' + cat);
+        if (v !== null) categoryEnabled[cat] = v === '1';
+      });
     } catch(e) {}
   }
 
@@ -7241,6 +7896,8 @@ window.XQ = {
     isEnabled: isEnabled,
     setVolumeLevel: setVolumeLevel,
     getVolumeLevel: getVolumeLevel,
+    setCategoryEnabled: setCategoryEnabled,
+    getCategoryEnabled: function(cat) { return categoryOn(cat); },
     loadFromStorage: loadFromStorage,
     playMove: playMove,
     playCapture: playCapture,
@@ -9037,11 +9694,16 @@ window.XQ = {
     showDanger: true,
     effectOn: true,
     noCaptureHalfMoves: 0, // 连续未吃子的半回合数
-    posCounts: {},         // 局面出现次数（用于三次重复判和）
+    posCounts: {},         // 局面出现次数（重复局面提示/判和）
+    repeatWarnings: {},     // 已提示过的重复局面
+    repeatWarnText: '',     // 重复局面提示文案
     volumeLevel: 3, // 固定最高，音量交给手机系统控制
     brilliant: null,    // 妙招提示 { fromRow, fromCol, toRow, toCol }
     brilliantText: '',  // 妙招记谱
     killInfo: null,     // 杀法识别结果 { name, desc }
+    recordInitial: null, // 本局开局棋盘快照（用于复盘回放）
+    recordSaved: false,  // 当前对局是否已写入历史棋谱
+    recordOpen: false,   // 实时记谱面板是否展开
     puzzle: null,       // 杀法闯关 { def, levelIndex, step, wrong, hintText, hintsUsed }
     clock: { red: 1500, black: 1500, redMoves: 0, blackMoves: 0, moveElapsed: 0, timer: null, started: false },
     chat: [],
@@ -9076,6 +9738,20 @@ window.XQ = {
     undos: { red: 2, black: 2 },  // 联机双方各自剩余悔棋次数
     pendingUndo: false,           // 是否已有待对方同意的悔棋申请
     noticePeerLeft: false,        // 是否已弹出“对手离开”提示
+  };
+
+  var atlasQuery = ''; // 图鉴搜索关键词
+  var atlasTab = 'kills'; // kills | gambits
+
+  // 对局复盘状态：使用弹窗内独立棋盘，不改动正式对局局面
+  var review = {
+    active: false,
+    record: null,
+    index: 0,
+    timer: null,
+    board: null,
+    turn: 'red',
+    lastMove: null,
   };
 
   // 是否停留在开始界面（用于拦截后台 AI 延迟走子）
@@ -9192,6 +9868,22 @@ window.XQ = {
     els.btnResultRematch = document.getElementById('btn-result-rematch');
     els.resultBoardThumb = document.getElementById('result-board-thumb');
     els.resultBoardCanvas = document.getElementById('result-board-canvas');
+    els.btnResultReview = document.getElementById('btn-result-review');
+    els.recordPanel = document.getElementById('record-panel');
+    els.recordTitle = document.getElementById('record-title');
+    els.recordList = document.getElementById('record-list');
+    els.modalReview = document.getElementById('modal-review');
+    els.reviewMeta = document.getElementById('review-meta');
+    els.reviewList = document.getElementById('review-list');
+    els.reviewPoints = document.getElementById('review-points');
+    els.reviewPath = document.getElementById('review-path');
+    els.reviewHistory = document.getElementById('review-history');
+    els.reviewStart = document.getElementById('review-start');
+    els.reviewPrev = document.getElementById('review-prev');
+    els.reviewPlay = document.getElementById('review-play');
+    els.reviewNext = document.getElementById('review-next');
+    els.reviewEnd = document.getElementById('review-end');
+    els.btnReviewClose = document.getElementById('btn-review-close');
     els.btnResetOk = document.getElementById('btn-reset-ok');
     els.btnResetCancel = document.getElementById('btn-reset-cancel');
     els.btnDemoClose = document.getElementById('btn-demo-close');
@@ -9203,11 +9895,19 @@ window.XQ = {
     els.killDesc = document.getElementById('kill-desc');
     els.modalAtlas = document.getElementById('modal-atlas');
     els.atlasList = document.getElementById('atlas-list');
+    els.atlasTabs = document.querySelectorAll('[data-atlas-tab]');
+    els.atlasSearchRow = document.getElementById('atlas-search-row');
+    els.atlasSearch = document.getElementById('atlas-search');
+    els.gambitSection = document.getElementById('gambit-section');
+    els.atlasFooter = document.getElementById('atlas-footer');
+    els.reviewCopy = document.getElementById('review-copy');
+    els.reviewCopyTip = document.getElementById('review-copy-tip');
     els.btnAtlasClose = document.getElementById('btn-atlas-close');
     els.modalChallenge = document.getElementById('modal-challenge');
     els.btnChallengeClose = document.getElementById('btn-challenge-close');
     els.challengeGrid = document.getElementById('challenge-grid');
     els.practiceGrid = document.getElementById('practice-grid');
+    els.gambitGrid = document.getElementById('gambit-grid');
     els.challengeProgress = document.getElementById('challenge-progress');
     els.challengeViewHome = document.getElementById('challenge-view-home');
     els.challengeViewSettings = document.getElementById('challenge-view-settings');
@@ -9258,6 +9958,7 @@ window.XQ = {
     Screen.register('atlas', els.modalAtlas);
     Screen.register('challenge', els.modalChallenge);
     Screen.register('watchbook', els.modalWatchBook);
+    Screen.register('review', els.modalReview, function() { exitReview(); });
     // 开始界面默认可见，同步管理器状态
     Screen.current = 'start';
   }
@@ -9401,6 +10102,8 @@ window.XQ = {
       }
     } else if (state.gameResult) {
       text = state.gameResult.winner === 'red' ? '红方胜' : '黑方胜';
+    } else if (state.repeatWarnText) {
+      text = state.repeatWarnText;
     } else if (state.brilliantText) {
       text = '💡 提示：' + state.brilliantText;
     } else if (state.gameMode === 'online') {
@@ -9434,6 +10137,7 @@ window.XQ = {
       text = state.currentTurn === 'red' ? '红方走棋' : '黑方走棋';
     }
     els.hintText.textContent = text;
+    els.hintText.classList.toggle('warn', !!state.repeatWarnText && !state.gameResult);
   }
 
   function renderUndoBtn() {
@@ -9577,6 +10281,7 @@ window.XQ = {
     renderWatchBar();
     renderClock();
     renderChat();
+    renderRecordPanel();
   }
 
   // ============================================================
@@ -9719,6 +10424,7 @@ window.XQ = {
   function handleCellClick(r, c) {
     if (typeof r !== 'number' || typeof c !== 'number' || !isFinite(r) || !isFinite(c)) return;
     if (r < 0 || r > 9 || c < 0 || c > 8) return;
+    if (review.active) return;
     if (state.gameResult) return;
     if (state.isAiThinking) return;
     // 联机：只能在自己回合、且对手在线时走棋
@@ -9804,9 +10510,14 @@ window.XQ = {
       state.noCaptureHalfMoves = (state.noCaptureHalfMoves || 0) + 1;
     }
     var key = drawBoardKey();
+    state.repeatWarnText = '';
     state.posCounts[key] = (state.posCounts[key] || 0) + 1;
-    if (state.posCounts[key] >= 3) {
+    if (state.posCounts[key] >= 7) {
       return { winner: null, reason: 'repetition' };
+    }
+    if (state.posCounts[key] === 6 && !state.repeatWarnings[key]) {
+      state.repeatWarnings[key] = true;
+      state.repeatWarnText = '同一局面已出现 6 次，再重复出现将强制判和';
     }
     if (state.noCaptureHalfMoves >= 120) {
       return { winner: null, reason: 'sixtymove' };
@@ -9815,6 +10526,102 @@ window.XQ = {
       return { winner: null, reason: 'barepieces' };
     }
     return null;
+  }
+
+  // ============================================================
+  // 记谱与对局历史
+  // ============================================================
+  var LS_GAME_HISTORY = 'zzxq_game_history_v1';
+  var PIECE_NOTATION = {
+    red: { R: '车', N: '马', B: '相', A: '仕', K: '帅', C: '炮', P: '兵' },
+    black: { R: '车', N: '马', B: '象', A: '士', K: '将', C: '炮', P: '卒' }
+  };
+  var RED_NUM = ['一', '二', '三', '四', '五', '六', '七', '八', '九'];
+
+  function colLabel(color, col) {
+    // 红方从右往左数一至九；黑方从左往右数 1 至 9
+    return color === 'red' ? RED_NUM[8 - col] : String(col + 1);
+  }
+
+  function rankLabel(color, n) {
+    return color === 'red' ? RED_NUM[n - 1] : String(n);
+  }
+
+  function notationForMove(board, move) {
+    var piece = board[move.fromRow] && board[move.fromRow][move.fromCol];
+    if (!piece) return '';
+    var name = (PIECE_NOTATION[piece.color] || {})[piece.type] || piece.char;
+    var sameFile = false;
+    var sameRow = false;
+    var otherRow = -1;
+    for (var rr = 0; rr < 10; rr++) {
+      for (var cc = 0; cc < 9; cc++) {
+        var p = board[rr][cc];
+        if (!p || p.color !== piece.color || p.type !== piece.type || (rr === move.fromRow && cc === move.fromCol)) continue;
+        if (cc === move.fromCol) { sameFile = true; otherRow = rr; }
+        if (rr === move.fromRow) sameRow = true;
+      }
+    }
+    var prefix = name;
+    if (sameFile) {
+      var ahead = piece.color === 'red' ? move.fromRow < otherRow : move.fromRow > otherRow;
+      prefix = (ahead ? '前' : '后') + name;
+    } else if (sameRow) {
+      prefix = name + colLabel(piece.color, move.fromCol);
+    }
+    var forward = piece.color === 'red'
+      ? move.toRow < move.fromRow
+      : move.toRow > move.fromRow;
+
+    if (move.fromCol === move.toCol) {
+      var step = Math.abs(move.toRow - move.fromRow);
+      return prefix + (forward ? '进' : '退') + rankLabel(piece.color, step);
+    }
+    if (move.fromRow === move.toRow) {
+      return prefix + '平' + colLabel(piece.color, move.toCol);
+    }
+    return prefix + (forward ? '进' : '退') + colLabel(piece.color, move.toCol);
+  }
+
+  function loadGameHistory() {
+    try {
+      var arr = JSON.parse(localStorage.getItem(LS_GAME_HISTORY) || '[]');
+      return Array.isArray(arr) ? arr : [];
+    } catch (e) { return []; }
+  }
+
+  function saveGameHistory(list) {
+    try { localStorage.setItem(LS_GAME_HISTORY, JSON.stringify(list.slice(0, 20))); } catch (e) {}
+  }
+
+  function shouldSaveRecord() {
+    return (state.gameMode === 'pvp' || state.gameMode === 'pve' || state.gameMode === 'online')
+      && !state.puzzle && !state.watch.enabled && state.moveHistory.length > 0;
+  }
+
+  function saveGameRecord() {
+    if (!shouldSaveRecord() || state.recordSaved) return;
+    var r = state.gameResult || {};
+    var record = {
+      id: 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      ts: Date.now(),
+      mode: state.gameMode,
+      difficulty: state.difficulty,
+      playerColor: state.playerColor,
+      result: { winner: r.winner || null, reason: r.reason || 'ongoing', kill: state.killInfo ? state.killInfo.name : null },
+      initialBoard: state.recordInitial ? XQ.cloneBoard(state.recordInitial) : XQ.cloneBoard(XQ.INITIAL_BOARD),
+      moves: state.moveHistory.map(function(m) {
+        return {
+          fromRow: m.fromRow, fromCol: m.fromCol,
+          toRow: m.toRow, toCol: m.toCol,
+          color: m.color, notation: m.notation || ''
+        };
+      })
+    };
+    var list = loadGameHistory();
+    list.unshift(record);
+    saveGameHistory(list);
+    state.recordSaved = true;
   }
 
   function doMove(move) {
@@ -9842,6 +10649,7 @@ window.XQ = {
     var piece = state.board[move.fromRow][move.fromCol];
     var captured = state.board[move.toRow][move.toCol];
     var movingColor = state.currentTurn;
+    var moveNotation = notationForMove(state.board, move);
 
     // 更新吃子记录
     if (captured) {
@@ -9862,7 +10670,8 @@ window.XQ = {
       fromCol: move.fromCol,
       toRow: move.toRow,
       toCol: move.toCol,
-      color: state.currentTurn,
+      color: movingColor,
+      notation: moveNotation,
     });
 
     state.lastMove = { fromRow: move.fromRow, fromCol: move.fromCol, toRow: move.toRow, toCol: move.toCol };
@@ -10015,7 +10824,7 @@ window.XQ = {
     renderHintText();
     renderUndoBtn();
 
-    // 延迟一下，避免太快像没走
+    // 保留极短停顿用于界面刷新，避免长时间阻塞渲染
     var gen = gameGen;
     setTimeout(function() {
       if (menuOpen || gen !== gameGen) {
@@ -10032,7 +10841,7 @@ window.XQ = {
       } else {
         renderAll();
       }
-    }, 300);
+    }, 90);
   }
 
   // ============================================================
@@ -10094,6 +10903,8 @@ window.XQ = {
     // 悔棋后清空重复局面与无吃子计数，避免误判和棋
     state.noCaptureHalfMoves = 0;
     state.posCounts = {};
+    state.repeatWarnings = {};
+    state.repeatWarnText = '';
 
     updateDangerAnalysis();
     renderAll();
@@ -10162,8 +10973,13 @@ window.XQ = {
     state.capturedBlack = [];
     state.history = [];
     state.moveHistory = [];
+    state.recordInitial = XQ.cloneBoard(state.board);
+    state.recordSaved = false;
+    state.recordOpen = false;
     state.noCaptureHalfMoves = 0;
     state.posCounts = {};
+    state.repeatWarnings = {};
+    state.repeatWarnText = '';
     state.gameResult = null;
     state.chat = [];
     state.chatOpen = false;
@@ -10666,6 +11482,11 @@ window.XQ = {
       clearTimeout(state.watch.playTimer);
       state.watch.playTimer = null;
     }
+    if (review.timer) {
+      clearTimeout(review.timer);
+      review.timer = null;
+    }
+    review.active = false;
     state.board = XQ.cloneBoard(XQ.INITIAL_BOARD);
     // 杀法闯关中重开 = 重试当前关
     if (state.puzzle) {
@@ -10687,8 +11508,13 @@ window.XQ = {
     state.capturedBlack = [];
     state.history = [];
     state.moveHistory = [];
+    state.recordInitial = XQ.cloneBoard(state.board);
+    state.recordSaved = false;
+    state.recordOpen = false;
     state.noCaptureHalfMoves = 0;
     state.posCounts = {};
+    state.repeatWarnings = {};
+    state.repeatWarnText = '';
     state.gameResult = null;
     state.chat = [];
     state.chatOpen = false;
@@ -10783,7 +11609,11 @@ window.XQ = {
       return;
     }
     if (mode === 'atlas') {
-      showAtlasModal();
+      showAtlasModal('kills');
+      return;
+    }
+    if (mode === 'gambits') {
+      showAtlasModal('gambits');
       return;
     }
     // 从等待房间直接开始其他模式时，先退出联机
@@ -11211,8 +12041,8 @@ window.XQ = {
 
   function joinOnlineRoom(code) {
     code = String(code || '').trim().toUpperCase();
-    if (!/^[A-Z0-9]{4,8}$/.test(code)) {
-      setOnlineStatus('请输入正确的房号');
+    if (!/^[A-Z0-9]{6}$/.test(code)) {
+      setOnlineStatus('请输入 6 位房号（字母或数字）');
       return;
     }
     setOnlineStatus('正在加入房间…');
@@ -11561,6 +12391,8 @@ window.XQ = {
       ? state.moveHistory[state.moveHistory.length - 1] : null;
     state.noCaptureHalfMoves = 0;
     state.posCounts = {};
+    state.repeatWarnings = {};
+    state.repeatWarnText = '';
     updateDangerAnalysis();
     return mover;
   }
@@ -11993,6 +12825,7 @@ window.XQ = {
 
   function showResultModal() {
     var r = state.gameResult;
+    saveGameRecord();
     var winnerText;
     if (!r.winner) {
       winnerText = '和棋';
@@ -12008,7 +12841,7 @@ window.XQ = {
     els.resultWinner.textContent = winnerText;
     var reasonText = '困毙';
     if (r.reason === 'checkmate') reasonText = '将死';
-    else if (r.reason === 'repetition') reasonText = '三次重复局面';
+    else if (r.reason === 'repetition') reasonText = '重复局面判和';
     else if (r.reason === 'sixtymove') reasonText = '六十回合无吃子';
     else if (r.reason === 'barepieces') reasonText = '双方均无进攻子力';
     else if (r.reason === 'resign') reasonText = '认输';
@@ -12021,7 +12854,7 @@ window.XQ = {
     if (r.reason === 'checkmate') {
       desc = loser + '被将军且无合法应将手段';
     } else if (r.reason === 'repetition') {
-      desc = '同一局面出现三次，按和棋处理';
+      desc = '同一局面反复出现，提示后再重复，按和棋处理';
     } else if (r.reason === 'sixtymove') {
       desc = '连续六十回合未吃子，按和棋处理';
     } else if (r.reason === 'barepieces') {
@@ -12049,6 +12882,7 @@ window.XQ = {
       killBox.style.display = 'none';
     }
 
+    if (els.btnResultReview) els.btnResultReview.style.display = shouldSaveRecord() ? '' : 'none';
     var onlineActive = state.gameMode === 'online' && online.linked;
     if (els.resultBoardThumb) els.resultBoardThumb.style.display = onlineActive ? 'block' : 'none';
     if (onlineActive) drawResultBoardThumb();
@@ -12061,6 +12895,222 @@ window.XQ = {
   function hideResultModal() {
     Screen.close();
     sfx('popup-close');
+  }
+
+  // ============================================================
+  // 对局复盘
+  // ============================================================
+  function reviewModeLabel(mode) {
+    if (mode === 'pve') return '人机对战';
+    if (mode === 'online') return '联机对战';
+    return '双人对战';
+  }
+
+  function reviewResultText(record) {
+    var r = record && record.result;
+    if (!r) return '未结束';
+    if (!r.winner) return '和棋';
+    if (record.mode === 'pve') return r.winner === record.playerColor ? '你赢了' : 'AI 获胜';
+    if (record.mode === 'online') return r.winner === record.playerColor ? '你赢了' : '对手获胜';
+    return r.winner === 'red' ? '红方胜' : '黑方胜';
+  }
+
+  function currentRecordFromState() {
+    return {
+      id: 'current',
+      ts: Date.now(),
+      mode: state.gameMode,
+      difficulty: state.difficulty,
+      playerColor: state.playerColor,
+      result: state.gameResult || { winner: null, reason: 'ongoing' },
+      initialBoard: state.recordInitial ? XQ.cloneBoard(state.recordInitial) : XQ.cloneBoard(XQ.INITIAL_BOARD),
+      moves: state.moveHistory.map(function(m) {
+        return { fromRow: m.fromRow, fromCol: m.fromCol, toRow: m.toRow, toCol: m.toCol, color: m.color, notation: m.notation || '' };
+      })
+    };
+  }
+
+  function applyReviewStep(index) {
+    if (!review.record) return;
+    var moves = review.record.moves || [];
+    review.index = Math.max(0, Math.min(index, moves.length));
+    review.board = XQ.cloneBoard(review.record.initialBoard || XQ.INITIAL_BOARD);
+    for (var i = 0; i < review.index; i++) {
+      var m = moves[i];
+      var p = review.board[m.fromRow] && review.board[m.fromRow][m.fromCol];
+      if (!p) continue;
+      review.board[m.toRow][m.toCol] = p;
+      review.board[m.fromRow][m.fromCol] = null;
+    }
+    review.lastMove = review.index > 0 ? moves[review.index - 1] : null;
+    review.turn = review.index % 2 === 0 ? 'red' : 'black';
+    renderReviewBoard();
+    renderReviewPanel();
+  }
+
+  function renderReviewBoard() {
+    if (!els.reviewPoints) return;
+    var board = review.board || XQ.cloneBoard(XQ.INITIAL_BOARD);
+    var lm = review.lastMove;
+    var movedPiece = lm && board[lm.toRow] ? board[lm.toRow][lm.toCol] : null;
+    var html = '';
+    for (var r = 0; r < 10; r++) {
+      for (var c = 0; c < 9; c++) {
+        var piece = board[r][c];
+        var leftPct = (c * 100 / 8).toFixed(4);
+        var topPct = (r * 100 / 9).toFixed(4);
+        var isJustMoved = lm && lm.toRow === r && lm.toCol === c;
+        var isFrom = lm && lm.fromRow === r && lm.fromCol === c;
+        html += '<div class="point" style="left:' + leftPct + '%;top:' + topPct + '%">';
+        if (piece) {
+          var cls = 'piece ' + piece.color + (isJustMoved ? ' just-moved' : '');
+          html += '<div class="' + cls + '">' + piece.char + '</div>';
+        }
+        if (isFrom && !piece && movedPiece) {
+          html += '<div class="move-ghost ' + movedPiece.color + '">' + movedPiece.char + '</div>';
+        }
+        html += '</div>';
+      }
+    }
+    els.reviewPoints.innerHTML = html;
+    if (els.reviewPath) {
+      if (lm && movedPiece) {
+        els.reviewPath.innerHTML = '<line x1="' + lm.fromCol + '" y1="' + lm.fromRow + '" x2="' + lm.toCol + '" y2="' + lm.toRow + '"/>';
+      } else {
+        els.reviewPath.innerHTML = '';
+      }
+    }
+  }
+
+  function startReview(record) {
+    if (review.timer) { clearTimeout(review.timer); review.timer = null; }
+    review.record = record || currentRecordFromState();
+    review.active = true;
+    applyReviewStep(0);
+    Screen.openModal('review');
+    sfx('popup-open');
+  }
+
+  function exitReview() {
+    if (!review.active) return;
+    if (review.timer) { clearTimeout(review.timer); review.timer = null; }
+    review.active = false;
+    review.record = null;
+    review.board = null;
+    review.lastMove = null;
+    review.turn = 'red';
+    Screen.close();
+  }
+
+  function reviewStopPlayback() {
+    if (review.timer) { clearTimeout(review.timer); review.timer = null; }
+    if (els.reviewPlay) els.reviewPlay.textContent = '▶';
+  }
+
+  function reviewTogglePlay() {
+    if (!review.active || !review.record) return;
+    if (review.timer) { reviewStopPlayback(); return; }
+    var moves = review.record.moves || [];
+    if (review.index >= moves.length) applyReviewStep(0);
+    if (els.reviewPlay) els.reviewPlay.textContent = '⏸';
+    review.timer = setTimeout(function tick() {
+      review.timer = null;
+      if (!review.active) return;
+      if (review.index >= (review.record.moves || []).length) { reviewStopPlayback(); return; }
+      applyReviewStep(review.index + 1);
+      review.timer = setTimeout(tick, 800);
+    }, 300);
+  }
+
+  function reviewPrev() { reviewStopPlayback(); applyReviewStep(review.index - 1); }
+  function reviewNext() { reviewStopPlayback(); applyReviewStep(review.index + 1); }
+  function reviewStart() { reviewStopPlayback(); applyReviewStep(0); }
+  function reviewEnd() { reviewStopPlayback(); applyReviewStep((review.record.moves || []).length); }
+
+  function renderReviewPanel() {
+    if (!els.reviewList || !review.record) return;
+    var moves = review.record.moves || [];
+    var html = '';
+    for (var i = 0; i < moves.length; i += 2) {
+      var round = i / 2 + 1;
+      var red = moves[i];
+      var black = moves[i + 1];
+      html += '<div class="review-move' + (review.index > i ? ' active' : '') + '"><span class="num">' + round + '.</span><span class="txt">' + (red ? red.notation : '') + '</span></div>';
+      if (black) html += '<div class="review-move' + (review.index > i + 1 ? ' active' : '') + '"><span class="num">&nbsp;</span><span class="txt">' + black.notation + '</span></div>';
+    }
+    els.reviewList.innerHTML = html || '<div class="review-move"><span class="txt">暂无着法</span></div>';
+    if (els.reviewMeta) {
+      var d = new Date(review.record.ts || Date.now());
+      var timeText = d.getMonth() + 1 + '/' + d.getDate() + ' ' + d.getHours() + ':' + String(d.getMinutes()).padStart(2, '0');
+      els.reviewMeta.textContent = reviewModeLabel(review.record.mode) + ' · ' + reviewResultText(review.record) + ' · ' + moves.length + ' 着 · ' + timeText;
+    }
+    if (els.reviewHistory) {
+      var list = loadGameHistory().filter(function(x) { return x.id !== review.record.id; });
+      var h = '';
+      if (!list.length) h = '<div class="history-item"><small>暂无其他历史对局</small></div>';
+      list.forEach(function(item) {
+        h += '<button class="history-item" data-record-id="' + item.id + '">' +
+          reviewModeLabel(item.mode) + ' · ' + reviewResultText(item) + ' · ' + (item.moves || []).length + ' 着<small></small></button>';
+      });
+      els.reviewHistory.innerHTML = h;
+    }
+  }
+
+  function buildRecordText(record) {
+    if (!record) return '';
+    var moves = record.moves || [];
+    var lines = ['周周象棋对局记录', reviewModeLabel(record.mode) + ' · ' + reviewResultText(record) + ' · ' + moves.length + ' 着', ''];
+    for (var i = 0; i < moves.length; i += 2) {
+      var red = moves[i];
+      var black = moves[i + 1];
+      lines.push((i / 2 + 1) + '. ' + (red ? red.notation : '') + ' ' + (black ? black.notation : ''));
+    }
+    return lines.join('\n');
+  }
+
+  function copyReviewRecord() {
+    if (!review.record) return;
+    var text = buildRecordText(review.record);
+    var fallback = function() {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); } catch (e) {}
+      document.body.removeChild(ta);
+      showCopyTip('已复制');
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function() { showCopyTip('已复制'); }).catch(fallback);
+    } else {
+      fallback();
+    }
+  }
+
+  function showCopyTip(text) {
+    if (!els.reviewCopyTip) return;
+    els.reviewCopyTip.textContent = text;
+    setTimeout(function() { els.reviewCopyTip.textContent = ''; }, 1500);
+  }
+
+  function renderRecordPanel() {
+    if (!els.recordPanel || !els.recordList) return;
+    var show = shouldSaveRecord() && state.moveHistory.length > 0;
+    els.recordPanel.style.display = show ? 'block' : 'none';
+    els.recordPanel.classList.toggle('collapsed', !state.recordOpen);
+    if (!show) return;
+    var moves = state.moveHistory;
+    var html = '';
+    for (var i = 0; i < moves.length; i += 2) {
+      var round = i / 2 + 1;
+      var red = moves[i];
+      var black = moves[i + 1];
+      html += '<div class="record-move"><span class="num">' + round + '.</span><span class="txt">' + (red ? (red.notation || '') : '') + '</span></div>';
+      if (black) html += '<div class="record-move"><span class="num">&nbsp;</span><span class="txt">' + (black.notation || '') + '</span></div>';
+    }
+    els.recordList.innerHTML = html;
   }
 
   // ---- 通用确认弹窗 ----
@@ -12163,13 +13213,16 @@ window.XQ = {
     els.clockBlack.classList.toggle('active', state.currentTurn === 'black' && !state.gameResult);
     els.clockRed.classList.toggle('low', state.clock.red <= 300);
     els.clockBlack.classList.toggle('low', state.clock.black <= 300);
+    els.clockRed.classList.toggle('critical', state.clock.red <= 60);
+    els.clockBlack.classList.toggle('critical', state.clock.black <= 60);
     if (els.clockLabel) {
       if (state.gameMode === 'online') {
         var side = state.currentTurn;
         var left = moveLimit(side) - state.clock.moveElapsed;
-        els.clockLabel.textContent = '本步 ' + Math.max(0, left) + 's';
+        var sideMoves = side === 'red' ? state.clock.redMoves : state.clock.blackMoves;
+        els.clockLabel.textContent = '本步 ' + Math.max(0, left) + 's · 第' + (sideMoves + 1) + ' 手';
       } else {
-        els.clockLabel.textContent = '计时';
+        els.clockLabel.textContent = '总时制 ' + fmtClock(clockTotal());
       }
     }
   }
@@ -12769,6 +13822,8 @@ window.XQ = {
     state.history = []; // 重置历史栈
     state.noCaptureHalfMoves = 0;
     state.posCounts = {};
+    state.repeatWarnings = {};
+    state.repeatWarnText = '';
     state.gameResult = null;
     state.selectedPos = null;
     state.validMoves = [];
@@ -12855,9 +13910,36 @@ window.XQ = {
   // ============================================================
   // 杀法图鉴
   // ============================================================
-  function showAtlasModal() {
+  function getGambitBooks() {
+    if (!window.XQ || !window.XQ.OPENING_BOOKS) return [];
+    return window.XQ.OPENING_BOOKS.filter(function(b) { return b.group === '冷门邪门'; });
+  }
+
+  function renderAtlasTab() {
+    if (!els.atlasList || !els.gambitSection) return;
+    var kills = atlasTab === 'kills';
+    els.atlasList.style.display = kills ? '' : 'none';
+    els.gambitSection.classList.toggle('hidden', kills);
+    els.atlasSearchRow.classList.toggle('hidden', !kills);
+    if (els.atlasTabs) {
+      els.atlasTabs.forEach(function(btn) {
+        btn.classList.toggle('active', btn.getAttribute('data-atlas-tab') === atlasTab);
+      });
+    }
+    if (els.atlasFooter) {
+      var killCount = window.XQKill ? window.XQKill.getAtlasList().length : 0;
+      var gambitCount = getGambitBooks().length;
+      els.atlasFooter.textContent = kills
+        ? killCount + ' 种经典杀法 · 实战识别会在棋盘中显示'
+        : gambitCount + ' 个冷门布局参考 · 开局谱法思路';
+    }
+  }
+
+  function showAtlasModal(tab) {
     if (!els.modalAtlas) return;
+    if (tab === 'kills' || tab === 'gambits') atlasTab = tab;
     renderAtlasList();
+    renderAtlasTab();
     Screen.openModal('atlas');
   }
 
@@ -12881,9 +13963,15 @@ window.XQ = {
     if (!window.XQKill) return;
     var list = window.XQKill.getAtlasList();
     var puzzleList = window.XQKill.getPuzzleList ? window.XQKill.getPuzzleList() : [];
+    var doneSet = loadPuzzleDone();
+    var q = atlasQuery.trim().toLowerCase();
     var html = '';
+    var shown = 0;
     for (var i = 0; i < list.length; i++) {
       var item = list[i];
+      var haystack = (item.name + ' ' + item.desc + ' ' + item.pieces.join(' ')).toLowerCase();
+      if (q && haystack.indexOf(q) < 0) continue;
+      shown++;
       var pz = findPuzzleByKill(item.key);
       var puzzleNo = -1;
       if (pz) {
@@ -12891,7 +13979,8 @@ window.XQ = {
           if (puzzleList[j].id === pz.id) { puzzleNo = j + 1; break; }
         }
       }
-      html += '<div class="atlas-card">';
+      var done = pz && doneSet.indexOf(pz.id) >= 0;
+      html += '<div class="atlas-card' + (done ? ' done' : '') + '">';
       html +=   '<div class="atlas-head">';
       html +=     '<span class="atlas-no">图鉴 ' + padPracticeNo(i + 1) + '</span>';
       html +=     '<span class="atlas-name">' + item.name + '</span>';
@@ -12900,14 +13989,32 @@ window.XQ = {
       html +=   '<div class="atlas-pieces">兵种：' + item.pieces.join(' · ') + '</div>';
       html +=   '<div class="atlas-card-actions">';
       if (pz) {
-        html += '<button class="atlas-practice-btn" data-puzzle-id="' + pz.id + '">练习 ' + padPracticeNo(puzzleNo) + ' · 进入</button>';
+        html += '<button class="atlas-practice-btn' + (done ? ' done' : '') + '" data-puzzle-id="' + pz.id + '">' +
+          (done ? '✓ 已练 · 重练' : ('练习 ' + padPracticeNo(puzzleNo) + ' · 进入')) + '</button>';
       } else {
         html += '<button class="atlas-practice-btn" disabled>待收录练习</button>';
       }
       html +=   '</div>';
       html += '</div>';
     }
+    if (!shown) html = '<div class="atlas-empty">没有找到匹配的杀法</div>';
     els.atlasList.innerHTML = html;
+    renderGambitList();
+  }
+
+  function renderGambitList() {
+    if (!els.gambitGrid || !window.XQ || !window.XQ.OPENING_BOOKS) return;
+    var books = getGambitBooks();
+    var html = '';
+    for (var i = 0; i < books.length; i++) {
+      var b = books[i];
+      html += '<div class="gambit-card">';
+      html +=   '<div class="gambit-name">' + b.name + '</div>';
+      html +=   '<div class="gambit-desc">' + b.intent + '</div>';
+      html +=   '<span class="gambit-tag">冷门参考 · ' + b.moves.length + ' 步谱</span>';
+      html += '</div>';
+    }
+    els.gambitGrid.innerHTML = html;
   }
 
   // ============================================================
@@ -12922,6 +14029,7 @@ window.XQ = {
     try {
       var fx = localStorage.getItem(LS_FX_ON);
       if (fx !== null) state.effectOn = fx === '1';
+      if (window.XQSound) window.XQSound.loadFromStorage();
       var vol = localStorage.getItem('zzxq_vol');
       if (vol !== null && window.XQSound) {
         var lv = parseInt(vol, 10);
@@ -12939,6 +14047,15 @@ window.XQ = {
     var fxBtns = document.querySelectorAll('#seg-fx .seg-btn');
     for (var j = 0; j < fxBtns.length; j++) {
       fxBtns[j].classList.toggle('active', (fxBtns[j].getAttribute('data-fx') === '1') === !!state.effectOn);
+    }
+    var catGroups = document.querySelectorAll('[data-sound-category]');
+    for (var k = 0; k < catGroups.length; k++) {
+      var cat = catGroups[k].getAttribute('data-sound-category');
+      var on = window.XQSound ? window.XQSound.getCategoryEnabled(cat) : true;
+      var catBtns = catGroups[k].querySelectorAll('.seg-btn');
+      for (var n = 0; n < catBtns.length; n++) {
+        catBtns[n].classList.toggle('active', (catBtns[n].getAttribute('data-on') === '1') === on);
+      }
     }
   }
 
@@ -13023,6 +14140,11 @@ window.XQ = {
     els.btnReset.addEventListener('click', function() { sfx('click'); showResetModal(); });
     if (els.btnResign) els.btnResign.addEventListener('click', function() { sfx('click'); onResignClick(); });
     if (els.btnDraw) els.btnDraw.addEventListener('click', function() { sfx('click'); onDrawClick(); });
+    if (els.recordTitle) els.recordTitle.addEventListener('click', function() {
+      state.recordOpen = !state.recordOpen;
+      renderRecordPanel();
+      sfx('click');
+    });
     if (els.btnChat) els.btnChat.addEventListener('click', function() { sfx('click'); openChat(); });
     if (els.btnChatClose) els.btnChatClose.addEventListener('click', function() { sfx('popup-close'); closeChat(); });
     if (els.chatModal) els.chatModal.addEventListener('click', function(e) {
@@ -13072,6 +14194,17 @@ window.XQ = {
         if (lv > 0) sfx('click');
       });
     }
+    document.querySelectorAll('[data-sound-category]').forEach(function(group) {
+      group.addEventListener('click', function(e) {
+        var b = e.target.closest('.seg-btn');
+        if (!b) return;
+        var cat = group.getAttribute('data-sound-category');
+        var on = b.getAttribute('data-on') === '1';
+        if (window.XQSound) window.XQSound.setCategoryEnabled(cat, on);
+        refreshSettingsUI();
+        if (on) sfx('click');
+      });
+    });
     // 段位选择弹窗
     var levelList = document.getElementById('level-list');
     var btnLevelClose = document.getElementById('btn-level-close');
@@ -13165,6 +14298,7 @@ window.XQ = {
     var btnCreateRoom = document.getElementById('btn-create-room');
     var btnJoinRoom = document.getElementById('btn-join-room');
     var btnCopyLink = document.getElementById('btn-copy-link');
+    var btnCopyCode = document.getElementById('btn-copy-code');
     var btnOnlineClose = document.getElementById('btn-online-close');
     var btnOnlineCancel = document.getElementById('btn-online-cancel');
     if (btnCreateRoom) {
@@ -13174,6 +14308,13 @@ window.XQ = {
       btnJoinRoom.addEventListener('click', function() {
         sfx('click');
         joinOnlineRoom(els.onlineCodeInput ? els.onlineCodeInput.value : '');
+      });
+    }
+    if (btnCopyCode) {
+      btnCopyCode.addEventListener('click', function() {
+        sfx('click');
+        copyText(online.code || '');
+        if (els.onlineWaitStatus) els.onlineWaitStatus.textContent = '房号已复制，可发给好友输入加入';
       });
     }
     if (btnCopyLink) {
@@ -13210,6 +14351,22 @@ window.XQ = {
     if (els.btnAtlasClose) {
       els.btnAtlasClose.addEventListener('click', function() { sfx('popup-close'); hideAtlasModal(); });
     }
+    if (els.atlasTabs) {
+      els.atlasTabs.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          atlasTab = btn.getAttribute('data-atlas-tab') === 'gambits' ? 'gambits' : 'kills';
+          sfx('click');
+          renderAtlasList();
+          renderAtlasTab();
+        });
+      });
+    }
+    if (els.atlasSearch) {
+      els.atlasSearch.addEventListener('input', function() {
+        atlasQuery = els.atlasSearch.value || '';
+        renderAtlasList();
+      });
+    }
     if (els.atlasList) {
       els.atlasList.addEventListener('click', function(e) {
         var btn = e.target.closest('[data-puzzle-id]');
@@ -13217,6 +14374,9 @@ window.XQ = {
         sfx('click');
         startPuzzleById(btn.getAttribute('data-puzzle-id'), 'atlas');
       });
+    }
+    if (els.reviewCopy) {
+      els.reviewCopy.addEventListener('click', function() { sfx('click'); copyReviewRecord(); });
     }
     // 杀法闯关关闭
     if (els.btnChallengeClose) {
@@ -13310,6 +14470,26 @@ window.XQ = {
       }
       hideResultModal();
       handleReset();
+    });
+    if (els.btnResultReview) {
+      els.btnResultReview.addEventListener('click', function() {
+        sfx('click');
+        startReview(currentRecordFromState());
+      });
+    }
+    if (els.reviewStart) els.reviewStart.addEventListener('click', function() { sfx('click'); reviewStart(); });
+    if (els.reviewPrev) els.reviewPrev.addEventListener('click', function() { sfx('click'); reviewPrev(); });
+    if (els.reviewPlay) els.reviewPlay.addEventListener('click', function() { sfx('click'); reviewTogglePlay(); });
+    if (els.reviewNext) els.reviewNext.addEventListener('click', function() { sfx('click'); reviewNext(); });
+    if (els.reviewEnd) els.reviewEnd.addEventListener('click', function() { sfx('click'); reviewEnd(); });
+    if (els.btnReviewClose) els.btnReviewClose.addEventListener('click', function() { sfx('popup-close'); Screen.close(); });
+    if (els.modalReview) els.modalReview.addEventListener('click', function(e) { if (e.target === els.modalReview) Screen.close(); });
+    if (els.reviewHistory) els.reviewHistory.addEventListener('click', function(e) {
+      var btn = e.target.closest('[data-record-id]');
+      if (!btn) return;
+      var list = loadGameHistory();
+      var record = list.find(function(x) { return x.id === btn.dataset.recordId; });
+      if (record) { sfx('click'); startReview(record); }
     });
 
     // 演示弹窗
@@ -13512,6 +14692,14 @@ window.XQ = {
     showResultModal: showResultModal,
     rematchOnline: rematchOnline,
     drawResultBoardThumb: drawResultBoardThumb,
+    startReview: startReview,
+    exitReview: exitReview,
+    reviewNext: reviewNext,
+    reviewPrev: reviewPrev,
+    reviewStart: reviewStart,
+    reviewEnd: reviewEnd,
+    loadGameHistory: loadGameHistory,
+    saveGameRecord: saveGameRecord,
   };
 
 })();
