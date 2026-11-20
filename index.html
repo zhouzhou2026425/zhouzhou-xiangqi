@@ -827,10 +827,52 @@ html, body {
   font-size: 12px;
   padding: 6px 2px;
 }
-.review-move { display: flex; gap: 5px; min-width: 0; }
+.review-move { display: flex; gap: 5px; min-width: 0; align-items: center; }
 .review-move.active { font-weight: 700; color: #7a2020; }
 .review-move .num { color: #8b7355; width: 26px; flex-shrink: 0; }
 .review-move .txt { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.move-tag {
+  flex-shrink: 0;
+  font-size: 10px;
+  line-height: 1;
+  padding: 2px 5px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+.move-tag.good { color: #5a7a2a; background: #eef3dc; border: 1px solid #b7cc8a; }
+.move-tag.bad { color: #a82828; background: #fbe6e3; border: 1px solid #d99a92; }
+.move-tag.plain { color: #8b7355; background: #f3ead6; border: 1px solid #d8c69a; }
+.review-hint-tip {
+  min-height: 16px;
+  font-size: 11px;
+  color: #5a7a2a;
+  margin: 2px 0;
+}
+.review-hint-mark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 70%;
+  height: 70%;
+  border-radius: 50%;
+  border: 2px solid #5a9a3a;
+  background: rgba(90, 154, 58, 0.18);
+  z-index: 3;
+  pointer-events: none;
+}
+.review-hint-from {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 34%;
+  height: 34%;
+  border-radius: 50%;
+  background: rgba(90, 154, 58, 0.45);
+  z-index: 1;
+  pointer-events: none;
+}
 .review-controls { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 8px 0; }
 .review-controls .btn { min-height: 34px; padding: 6px 4px; }
 .review-history-title { font-size: 11px; color: #8b7355; margin-top: 6px; }
@@ -1745,6 +1787,13 @@ html, body {
   width: 100%;
   height: auto;
   border-radius: 6px;
+}
+.result-board-thumb.reviewable {
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.result-board-thumb.reviewable:active {
+  transform: scale(0.985);
 }
 .result-action-row {
   display: flex;
@@ -3595,8 +3644,10 @@ html, body {
     </div>
     <div class="review-copy-row">
       <button class="btn btn-ghost review-copy" id="review-copy" type="button">复制棋谱</button>
+      <button class="btn btn-ghost review-copy" id="review-hint" type="button">着法提示</button>
       <span class="review-copy-tip" id="review-copy-tip"></span>
     </div>
+    <div class="review-hint-tip" id="review-hint-tip"></div>
     <div class="review-list" id="review-list"></div>
     <div class="review-controls">
       <button class="btn btn-ghost" id="review-start" title="回到开局">⏮</button>
@@ -6850,23 +6901,37 @@ function aiGetMoveLight(board, aiColor, difficulty) {
     nb[m.toRow][m.toCol] = nb[m.fromRow][m.fromCol];
     nb[m.fromRow][m.fromCol] = null;
 
-    // 吃子加分
+    var enemy = aiColor === 'red' ? 'black' : 'red';
+    var myPiece = board[m.fromRow][m.fromCol];
+
+    // 吃子加分（按子力价值，车炮马优先）
     if (m.capture) {
-      score += PIECE_VALUE[m.capture.type] || 0;
+      score += (PIECE_VALUE[m.capture.type] || 0) * 1.05;
     }
 
-    // 走子后是否被白吃（减分）
-    var enemy = aiColor === 'red' ? 'black' : 'red';
+    // 走子后该子是否被对方白吃（减分）
     var enemyCaptures = analyzeCaptures(nb, enemy);
     var myKey = m.toRow + '-' + m.toCol;
     if (enemyCaptures[myKey]) {
-      var myPiece = board[m.fromRow][m.fromCol];
-      score -= PIECE_VALUE[myPiece.type] || 0;
+      score -= (PIECE_VALUE[myPiece.type] || 0) * 1.05;
+    }
+
+    // 走子后己方被将军：送将重罚，非必要不送
+    if (isInCheck(nb, aiColor)) {
+      score -= 260;
     }
 
     // 将军加分：优先选择能压迫对方将位的走法
     if (isInCheck(nb, enemy)) {
-      score += 120;
+      score += 150;
+    }
+
+    // 兵卒过河并逼近九宫给少量推进奖励
+    if (myPiece && myPiece.type === 'P') {
+      var crossed = aiColor === 'red' ? m.toRow <= 4 : m.toRow >= 5;
+      if (crossed) score += 12;
+      var nearPalace = aiColor === 'red' ? m.toRow <= 2 : m.toRow >= 7;
+      if (nearPalace) score += 10;
     }
 
     // 小随机数打散
@@ -7489,11 +7554,11 @@ function aiGetMove(board, aiColor, difficulty, movesHistory) {
   }
 
   var profile = {
-    3: [150, 3, false],
-    4: [220, 3, false],
-    5: [320, 4, false],
-    6: [500, 5, true],
-    7: [720, 5, true]
+    3: [180, 3, false],
+    4: [260, 4, false],
+    5: [380, 4, true],
+    6: [560, 5, true],
+    7: [760, 5, true]
   };
   var cfg = profile[rank] || [250, 3, false];
 
@@ -9752,6 +9817,8 @@ window.XQ = {
     board: null,
     turn: 'red',
     lastMove: null,
+    notes: [],
+    hintMove: null,
   };
 
   // 是否停留在开始界面（用于拦截后台 AI 延迟走子）
@@ -9878,6 +9945,8 @@ window.XQ = {
     els.reviewPoints = document.getElementById('review-points');
     els.reviewPath = document.getElementById('review-path');
     els.reviewHistory = document.getElementById('review-history');
+    els.reviewHint = document.getElementById('review-hint');
+    els.reviewHintTip = document.getElementById('review-hint-tip');
     els.reviewStart = document.getElementById('review-start');
     els.reviewPrev = document.getElementById('review-prev');
     els.reviewPlay = document.getElementById('review-play');
@@ -12802,23 +12871,35 @@ window.XQ = {
     ctx.fillText('汉 界', xAt(6.5), yAt(4.5));
 
     var radius = Math.min(innerW / 8, innerH / 9) * 0.42;
+    var flip = isBlackView();
+    var lm = state.lastMove;
     for (var rr = 0; rr < 10; rr++) {
       for (var cc = 0; cc < 9; cc++) {
         var row = state.board[rr];
         if (!row) continue;
         var piece = row[cc];
         if (!piece) continue;
+        var dr = flip ? 9 - rr : rr;
+        var dc = flip ? 8 - cc : cc;
+        var px = xAt(dc), py = yAt(dr);
         var red = piece.color === 'red';
         ctx.beginPath();
-        ctx.arc(xAt(cc), yAt(rr), radius, 0, Math.PI * 2);
+        ctx.arc(px, py, radius, 0, Math.PI * 2);
         ctx.fillStyle = red ? '#fff' : '#242424';
         ctx.fill();
         ctx.lineWidth = 2;
         ctx.strokeStyle = red ? '#8b1a1a' : '#111';
         ctx.stroke();
+        if (lm && lm.toRow === rr && lm.toCol === cc) {
+          ctx.beginPath();
+          ctx.arc(px, py, radius + 2.5, 0, Math.PI * 2);
+          ctx.lineWidth = 2.4;
+          ctx.strokeStyle = '#d9a521';
+          ctx.stroke();
+        }
         ctx.fillStyle = red ? '#8b1a1a' : '#fff';
         ctx.font = 'bold ' + Math.round(radius * 0.9) + 'px serif';
-        ctx.fillText(piece.char, xAt(cc), yAt(rr));
+        ctx.fillText(piece.char, px, py);
       }
     }
   }
@@ -12882,10 +12963,16 @@ window.XQ = {
       killBox.style.display = 'none';
     }
 
-    if (els.btnResultReview) els.btnResultReview.style.display = shouldSaveRecord() ? '' : 'none';
+    var canReview = shouldSaveRecord();
     var onlineActive = state.gameMode === 'online' && online.linked;
-    if (els.resultBoardThumb) els.resultBoardThumb.style.display = onlineActive ? 'block' : 'none';
-    if (onlineActive) drawResultBoardThumb();
+    var showBoard = !state.puzzle && !state.watch.enabled;
+    if (els.btnResultReview) els.btnResultReview.style.display = canReview ? '' : 'none';
+    if (els.resultBoardThumb) {
+      els.resultBoardThumb.style.display = showBoard ? 'block' : 'none';
+      els.resultBoardThumb.dataset.canReview = canReview ? '1' : '0';
+      els.resultBoardThumb.classList.toggle('reviewable', canReview);
+    }
+    if (showBoard) drawResultBoardThumb();
     if (els.btnResultRematch) els.btnResultRematch.style.display = onlineActive ? '' : 'none';
     els.btnResultRestart.textContent = state.gameMode === 'online' ? '退出对局' : '重新开始';
     Screen.openModal('result');
@@ -12930,6 +13017,37 @@ window.XQ = {
     };
   }
 
+  // 复盘着法简评：吃子/将军/送子启发式判定，good 好棋 / bad 恶手 / plain 普通
+  function computeReviewNotes(record) {
+    var moves = (record && record.moves) || [];
+    var board = XQ.cloneBoard((record && record.initialBoard) || XQ.INITIAL_BOARD);
+    var notes = [];
+    for (var i = 0; i < moves.length; i++) {
+      var m = moves[i];
+      var piece = board[m.fromRow] && board[m.fromRow][m.fromCol];
+      var victim = board[m.toRow] && board[m.toRow][m.toCol];
+      var gain = victim ? (PIECE_VALUE[victim.type] || 0) : 0;
+      var nb = XQ.cloneBoard(board);
+      if (piece) {
+        nb[m.toRow][m.toCol] = piece;
+        nb[m.fromRow][m.fromCol] = null;
+      }
+      var enemy = m.color === 'red' ? 'black' : 'red';
+      var caps = analyzeCaptures(nb, enemy);
+      var myKey = m.toRow + '-' + m.toCol;
+      var loss = (piece && caps[myKey]) ? (PIECE_VALUE[piece.type] || 0) : 0;
+      var check = piece ? isInCheck(nb, enemy) : false;
+      var grade = 'plain', note = '';
+      if (loss > gain + 50) { grade = 'bad'; note = '送子'; }
+      else if (check) { grade = 'good'; note = '将军'; }
+      else if (gain >= 400) { grade = 'good'; note = '得子'; }
+      else if (gain > 0) { grade = 'plain'; note = '吃子'; }
+      notes.push({ grade: grade, note: note, gain: gain, loss: loss, check: check });
+      board = nb;
+    }
+    return notes;
+  }
+
   function applyReviewStep(index) {
     if (!review.record) return;
     var moves = review.record.moves || [];
@@ -12944,6 +13062,7 @@ window.XQ = {
     }
     review.lastMove = review.index > 0 ? moves[review.index - 1] : null;
     review.turn = review.index % 2 === 0 ? 'red' : 'black';
+    review.hintMove = null;
     renderReviewBoard();
     renderReviewPanel();
   }
@@ -12952,6 +13071,7 @@ window.XQ = {
     if (!els.reviewPoints) return;
     var board = review.board || XQ.cloneBoard(XQ.INITIAL_BOARD);
     var lm = review.lastMove;
+    var hm = review.hintMove;
     var movedPiece = lm && board[lm.toRow] ? board[lm.toRow][lm.toCol] : null;
     var html = '';
     for (var r = 0; r < 10; r++) {
@@ -12961,7 +13081,10 @@ window.XQ = {
         var topPct = (r * 100 / 9).toFixed(4);
         var isJustMoved = lm && lm.toRow === r && lm.toCol === c;
         var isFrom = lm && lm.fromRow === r && lm.fromCol === c;
+        var isHintTo = hm && hm.toRow === r && hm.toCol === c;
+        var isHintFrom = hm && hm.fromRow === r && hm.fromCol === c;
         html += '<div class="point" style="left:' + leftPct + '%;top:' + topPct + '%">';
+        if (isHintFrom) html += '<div class="review-hint-from"></div>';
         if (piece) {
           var cls = 'piece ' + piece.color + (isJustMoved ? ' just-moved' : '');
           html += '<div class="' + cls + '">' + piece.char + '</div>';
@@ -12969,6 +13092,7 @@ window.XQ = {
         if (isFrom && !piece && movedPiece) {
           html += '<div class="move-ghost ' + movedPiece.color + '">' + movedPiece.char + '</div>';
         }
+        if (isHintTo) html += '<div class="review-hint-mark"></div>';
         html += '</div>';
       }
     }
@@ -12985,6 +13109,8 @@ window.XQ = {
   function startReview(record) {
     if (review.timer) { clearTimeout(review.timer); review.timer = null; }
     review.record = record || currentRecordFromState();
+    review.notes = computeReviewNotes(review.record);
+    review.hintMove = null;
     review.active = true;
     applyReviewStep(0);
     Screen.openModal('review');
@@ -12999,6 +13125,8 @@ window.XQ = {
     review.board = null;
     review.lastMove = null;
     review.turn = 'red';
+    review.notes = [];
+    review.hintMove = null;
     Screen.close();
   }
 
@@ -13027,6 +13155,36 @@ window.XQ = {
   function reviewStart() { reviewStopPlayback(); applyReviewStep(0); }
   function reviewEnd() { reviewStopPlayback(); applyReviewStep((review.record.moves || []).length); }
 
+  // 复盘推荐着法：基于当前局面用轻量引擎给一步参考，再点一次清除
+  function reviewToggleHint() {
+    if (!review.active || !review.board) return;
+    if (review.hintMove) {
+      review.hintMove = null;
+      renderReviewBoard();
+      renderReviewPanel();
+      return;
+    }
+    var legal = XQ.getLegalMoves(review.board, review.turn);
+    if (!legal.length) {
+      review.hintMove = null;
+      renderReviewPanel();
+      return;
+    }
+    var mv = XQ.aiGetMoveLight(review.board, review.turn, 'normal');
+    if (mv) {
+      mv.notation = notationForMove(review.board, mv);
+      review.hintMove = mv;
+    }
+    renderReviewBoard();
+    renderReviewPanel();
+  }
+
+  function reviewTagHtml(i) {
+    var n = review.notes[i];
+    if (!n || !n.note) return '';
+    return '<span class="move-tag ' + n.grade + '">' + n.note + '</span>';
+  }
+
   function renderReviewPanel() {
     if (!els.reviewList || !review.record) return;
     var moves = review.record.moves || [];
@@ -13035,10 +13193,19 @@ window.XQ = {
       var round = i / 2 + 1;
       var red = moves[i];
       var black = moves[i + 1];
-      html += '<div class="review-move' + (review.index > i ? ' active' : '') + '"><span class="num">' + round + '.</span><span class="txt">' + (red ? red.notation : '') + '</span></div>';
-      if (black) html += '<div class="review-move' + (review.index > i + 1 ? ' active' : '') + '"><span class="num">&nbsp;</span><span class="txt">' + black.notation + '</span></div>';
+      html += '<div class="review-move' + (review.index > i ? ' active' : '') + '"><span class="num">' + round + '.</span><span class="txt">' + (red ? red.notation : '') + '</span>' + reviewTagHtml(i) + '</div>';
+      if (black) html += '<div class="review-move' + (review.index > i + 1 ? ' active' : '') + '"><span class="num">&nbsp;</span><span class="txt">' + black.notation + '</span>' + reviewTagHtml(i + 1) + '</div>';
     }
     els.reviewList.innerHTML = html || '<div class="review-move"><span class="txt">暂无着法</span></div>';
+    if (els.reviewHintTip) {
+      if (review.hintMove) {
+        var hm = review.hintMove;
+        var hp = review.board[hm.fromRow] && review.board[hm.fromRow][hm.fromCol];
+        els.reviewHintTip.textContent = '推荐：' + (hp ? hp.char : '') + ' ' + (hm.notation || '');
+      } else {
+        els.reviewHintTip.textContent = '';
+      }
+    }
     if (els.reviewMeta) {
       var d = new Date(review.record.ts || Date.now());
       var timeText = d.getMonth() + 1 + '/' + d.getDate() + ' ' + d.getHours() + ':' + String(d.getMinutes()).padStart(2, '0');
@@ -14378,6 +14545,9 @@ window.XQ = {
     if (els.reviewCopy) {
       els.reviewCopy.addEventListener('click', function() { sfx('click'); copyReviewRecord(); });
     }
+    if (els.reviewHint) {
+      els.reviewHint.addEventListener('click', function() { sfx('click'); reviewToggleHint(); });
+    }
     // 杀法闯关关闭
     if (els.btnChallengeClose) {
       els.btnChallengeClose.addEventListener('click', function() { sfx('popup-close'); hideChallengeModal(); });
@@ -14473,6 +14643,13 @@ window.XQ = {
     });
     if (els.btnResultReview) {
       els.btnResultReview.addEventListener('click', function() {
+        sfx('click');
+        startReview(currentRecordFromState());
+      });
+    }
+    if (els.resultBoardThumb) {
+      els.resultBoardThumb.addEventListener('click', function() {
+        if (els.resultBoardThumb.dataset.canReview !== '1') return;
         sfx('click');
         startReview(currentRecordFromState());
       });
