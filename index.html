@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%238b1a1a'/%3E%3Ctext x='50' y='50' font-size='62' fill='%23f8e8c8' text-anchor='middle' dominant-baseline='central' font-family='KaiTi,STKaiti,serif'%3E%E8%B1%A1%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%238b1a1a'/%3E%3Ctext x='50' y='50' font-size='60' fill='%23f8e8c8' text-anchor='middle' dominant-baseline='central' font-family='KaiTi,STKaiti,serif'%3E%E5%91%A8%3C/text%3E%3C/svg%3E">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="周周象棋">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#f5efe0">
+<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%20%22%E5%91%A8%E5%91%A8%E8%B1%A1%E6%A3%8B%22%2C%20%22short_name%22%3A%20%22%E5%91%A8%E5%91%A8%E8%B1%A1%E6%A3%8B%22%2C%20%22display%22%3A%20%22standalone%22%2C%20%22start_url%22%3A%20%22.%22%2C%20%22theme_color%22%3A%20%22%23f5efe0%22%2C%20%22background_color%22%3A%20%22%23f5efe0%22%2C%20%22icons%22%3A%20%5B%7B%22src%22%3A%20%22data%3Aimage/svg%2Bxml%2C%253Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%20100%20100%27%253E%253Crect%20width%3D%27100%27%20height%3D%27100%27%20rx%3D%2722%27%20fill%3D%27%25238b1a1a%27/%253E%253Ctext%20x%3D%2750%27%20y%3D%2750%27%20font-size%3D%2760%27%20fill%3D%27%2523f8e8c8%27%20text-anchor%3D%27middle%27%20dominant-baseline%3D%27central%27%20font-family%3D%27KaiTi%2CSTKaiti%2Cserif%27%253E%25E5%2591%25A8%253C/text%253E%253C/svg%253E%22%2C%20%22sizes%22%3A%20%22192x192%20512x512%22%2C%20%22type%22%3A%20%22image/svg%2Bxml%22%2C%20%22purpose%22%3A%20%22any%22%7D%5D%7D">
 <title>周周象棋</title>
 <meta name="description" content="周周象棋：打开链接即可与好友联机对弈，也可同机双人或人机对战，包含杀法闯关与图鉴练习，适配手机屏幕，无需登录轻松开局。">
 <meta name="creative-medium" content="interactive-prototype">
@@ -41,9 +44,9 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 12px;
-  padding-top: calc(12px + env(safe-area-inset-top));
-  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  padding: 8px;
+  padding-top: calc(6px + env(safe-area-inset-top));
+  padding-bottom: calc(6px + env(safe-area-inset-bottom));
   position: relative;
 }
 
@@ -113,9 +116,7 @@ html, body {
   margin-bottom: 0;
   margin-top: 6px;
 }
-/* 执黑视角：己方吃子记录置于屏幕下方，河界文字左右对调 */
-#app.view-black .captured-bar.top { order: 2; margin-bottom: 0; margin-top: 6px; }
-#app.view-black .captured-bar.bottom { order: 1; margin-bottom: 6px; margin-top: 0; }
+/* 执黑视角：河界文字左右对调（吃子栏位置固定，标签与内容在脚本里交换） */
 #app.view-black .river-text span:first-child { order: 2; }
 #app.view-black .river-text span:last-child { order: 1; }
 
@@ -152,12 +153,12 @@ html, body {
 /* 棋盘容器 */
 .board-zone {
   width: 100%;
-  max-width: min(400px, calc((100vh - 330px) * 8 / 9));
+  max-width: min(400px, calc((100vh - 296px) * 8 / 9));
   flex-shrink: 0;
   margin: 0 auto;
 }
 @supports (height: 100dvh) {
-  .board-zone { max-width: min(400px, calc((100dvh - 330px) * 8 / 9)); }
+  .board-zone { max-width: min(400px, calc((100dvh - 296px) * 8 / 9)); }
 }
 
 .board-wrapper {
@@ -219,6 +220,43 @@ html, body {
   width: 100%;
   height: 100%;
   cursor: pointer;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* 拖拽中跟随手指的棋子 */
+.drag-ghost {
+  position: absolute;
+  width: 11.11%;
+  height: 10%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 30;
+  pointer-events: none;
+  will-change: left, top;
+}
+.drag-ghost .piece {
+  transform: scale(1.1);
+  box-shadow:
+    0 8px 16px rgba(50, 32, 6, 0.4),
+    0 2px 4px rgba(50, 32, 6, 0.3);
+  transition: none;
+}
+
+/* 拖拽悬停的合法落点高亮 */
+.point.drag-hover .move-hint {
+  animation: none;
+  background: rgba(60, 150, 60, 0.85);
+  transform: scale(1.25);
+}
+.point.drag-hover .move-hint.capture {
+  background: transparent;
+  border-color: rgba(60, 150, 60, 0.95);
+  border-width: 4px;
+  transform: scale(1.06);
 }
 
 /* 纵线路标：上排黑方视角 1~9，下排红方视角 一~九 */
@@ -279,7 +317,7 @@ html, body {
     1px 3px 6px rgba(60,38,6,0.35);
   z-index: 2;
   position: relative;
-  transition: transform 0.15s, box-shadow 0.15s;
+  transition: transform 0.1s, box-shadow 0.1s;
 }
 
 /* 棋子内圈（像真棋子的一圈刻线） */
@@ -309,12 +347,37 @@ html, body {
 }
 
 .piece.just-moved {
-  animation: pieceJustMoved 0.4s ease-out;
+  animation: pieceJustMoved 0.16s ease-out;
 }
 
 @keyframes pieceJustMoved {
-  0% { transform: scale(1.15); }
+  0% { transform: scale(1.06); }
   100% { transform: scale(1); }
+}
+
+/* 开局入场：棋子逐行落位，配一次淡金扫光 */
+.piece.piece-enter {
+  animation: pieceEnter 0.34s cubic-bezier(0.42, 0, 0.28, 1) both;
+}
+@keyframes pieceEnter {
+  0%   { opacity: 0; transform: translateY(-40px) scale(0.78); }
+  40%  { opacity: 1; }
+  72%  { transform: translateY(3px) scale(1.03); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.board-area.intro-wave::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background: linear-gradient(180deg, rgba(255, 228, 158, 0.6) 0%, rgba(255, 228, 158, 0.16) 34%, transparent 60%);
+  animation: introWave 0.9s ease-out both;
+}
+@keyframes introWave {
+  0%   { opacity: 0; transform: translateY(-12%); }
+  22%  { opacity: 1; }
+  100% { opacity: 0; transform: translateY(9%); }
 }
 
 /* 上一步移动路径 */
@@ -361,7 +424,8 @@ html, body {
 }
 
 .piece.in-check {
-  animation: checkPulse 0.9s ease-in-out infinite;
+  animation: none;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.8), 0 0 0 2px rgba(255,45,30,0.85), 1px 3px 6px rgba(60,38,6,0.32);
 }
 
 @keyframes checkPulse {
@@ -371,7 +435,8 @@ html, body {
 
 /* 棋子处于危险（会被白吃）：红色光圈 */
 .piece.in-danger {
-  animation: dangerBreath 0.95s ease-in-out infinite;
+  animation: none;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.8), 0 -3px 6px rgba(122,88,32,0.3), 0 0 0 2px rgba(255,45,30,0.9), 1px 3px 6px rgba(60,38,6,0.32);
 }
 
 @keyframes dangerBreath {
@@ -385,7 +450,8 @@ html, body {
 
 /* 棋子可以白吃（安全机会）：绿色光圈 */
 .piece.can-capture {
-  animation: safeBreath 1.15s ease-in-out infinite;
+  animation: none;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.8), 0 -3px 6px rgba(122,88,32,0.3), 0 0 0 2px rgba(34,200,90,0.9), 1px 3px 6px rgba(60,38,6,0.32);
 }
 
 @keyframes safeBreath {
@@ -434,7 +500,8 @@ html, body {
   border-radius: 50%;
   border: 3px dashed #ff2d1e;
   z-index: 1;
-  animation: dangerBlink 0.9s ease-in-out infinite;
+  animation: none;
+  opacity: 0.9;
   pointer-events: none;
 }
 
@@ -451,7 +518,8 @@ html, body {
   border-radius: 50%;
   border: 3px solid #22c85a;
   z-index: 1;
-  animation: safeBlink 1.15s ease-in-out infinite;
+  animation: none;
+  opacity: 0.95;
   pointer-events: none;
 }
 
@@ -473,13 +541,13 @@ html, body {
 
 .brilliant-from-mark {
   border: 2px dashed rgba(214, 158, 20, 0.9);
-  animation: brilliantPulse 1.1s ease-in-out infinite;
 }
 
 .brilliant-to-mark {
   border: 3px solid #ffc400;
   box-shadow: 0 0 0 3px rgba(255, 196, 0, 0.25);
-  animation: brilliantPulse 0.85s ease-in-out infinite;
+  animation: none;
+  opacity: 1;
 }
 
 @keyframes brilliantPulse {
@@ -493,8 +561,8 @@ html, body {
   max-width: 420px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-top: 12px;
+  gap: 6px;
+  margin-top: 6px;
   flex-shrink: 0;
   align-self: center;
 }
@@ -505,8 +573,27 @@ html, body {
   display: grid;
   grid-auto-flow: column;
   grid-auto-columns: 1fr;
-  gap: 8px;
+  gap: 6px;
   align-items: stretch;
+}
+
+/* 对局内按钮：整体收紧一档 */
+.bottom-bar .btn {
+  min-height: 34px;
+  padding: 5px 6px;
+  font-size: 11.5px;
+  border-radius: 9px;
+  gap: 3px;
+  box-shadow: 0 1px 3px rgba(90, 61, 26, 0.1);
+}
+.bottom-bar .btn-ghost {
+  border-radius: 9px;
+}
+.watch-bar .btn,
+.watch-bar .demo-btn {
+  min-height: 30px;
+  padding: 4px 8px;
+  font-size: 11.5px;
 }
 
 .btn-row-puzzle { display: none; }
@@ -704,9 +791,9 @@ html, body {
   width: 100%;
   max-width: 400px;
   text-align: center;
-  font-size: 13px;
+  font-size: 12px;
   color: #8a7050;
-  margin-top: 8px;
+  margin-top: 4px;
   flex-shrink: 0;
 }
 .hint-text.warn {
@@ -718,19 +805,19 @@ html, body {
   max-width: 400px;
   background: #fffbee;
   border: 1px solid #d4c09a;
-  border-radius: 12px;
-  padding: 8px 10px;
-  margin-top: 8px;
+  border-radius: 9px;
+  padding: 4px 8px;
+  margin-top: 4px;
   flex-shrink: 0;
 }
 .record-title {
   width: 100%;
   border: 0;
   background: transparent;
-  font-size: 12px;
+  font-size: 10.5px;
   font-weight: 700;
   color: #7a5a2a;
-  margin-bottom: 6px;
+  margin-bottom: 2px;
   padding: 0;
   text-align: left;
   cursor: pointer;
@@ -751,9 +838,10 @@ html, body {
 .record-move .txt { color: #5a3d1a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .modal-review { max-height: 82vh; display: flex; flex-direction: column; }
 .review-header { display: flex; justify-content: space-between; align-items: center; }
+.modal-review .btn-close { width: 28px; height: 28px; border-radius: 50%; font-size: 18px; }
 .review-meta { font-size: 12px; color: #8b7355; margin: 6px 0; }
-.review-copy-row { display: flex; align-items: center; gap: 8px; margin: 2px 0 6px; }
-.review-copy { min-height: 28px; padding: 4px 10px; font-size: 11px; }
+.review-copy-row { display: flex; align-items: center; gap: 6px; margin: 2px 0 4px; }
+.review-copy { min-height: 24px; padding: 3px 8px; font-size: 10.5px; border-radius: 8px; }
 .review-copy-tip { font-size: 11px; color: #5a7a2a; }
 .review-board {
   position: relative;
@@ -842,12 +930,24 @@ html, body {
 .move-tag.good { color: #5a7a2a; background: #eef3dc; border: 1px solid #b7cc8a; }
 .move-tag.bad { color: #a82828; background: #fbe6e3; border: 1px solid #d99a92; }
 .move-tag.plain { color: #8b7355; background: #f3ead6; border: 1px solid #d8c69a; }
+.review-move.worst-focus {
+  background: rgba(200, 60, 50, 0.12);
+  border-radius: 6px;
+  box-shadow: 0 0 0 1px rgba(200, 60, 50, 0.45);
+  animation: worstFlash 1.6s ease-out;
+}
+@keyframes worstFlash {
+  0% { background: rgba(200, 60, 50, 0.35); }
+  100% { background: rgba(200, 60, 50, 0.12); }
+}
 .review-hint-tip {
-  min-height: 16px;
+  min-height: 0;
   font-size: 11px;
   color: #5a7a2a;
   margin: 2px 0;
 }
+.review-hint-tip:empty { display: none; }
+.review-hint-tip.warn { color: #a82828; }
 .review-hint-mark {
   position: absolute;
   left: 50%;
@@ -873,8 +973,26 @@ html, body {
   z-index: 1;
   pointer-events: none;
 }
-.review-controls { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 8px 0; }
-.review-controls .btn { min-height: 34px; padding: 6px 4px; }
+.review-controls { display: flex; justify-content: center; align-items: center; gap: 8px; margin: 6px 0; }
+.modal-review .review-controls .btn {
+  flex: 0 1 auto;
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  min-height: 30px;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 13px;
+  box-shadow: 0 1px 3px rgba(90, 61, 26, 0.14);
+}
+.modal-review .review-controls .btn-primary {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  font-size: 14px;
+  border-radius: 50%;
+}
 .review-history-title { font-size: 11px; color: #8b7355; margin-top: 6px; }
 .review-history { max-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
 .history-item {
@@ -905,10 +1023,10 @@ html, body {
 
 .modal-overlay.show {
   display: flex;
-  animation: overlayFade 0.18s ease-out;
+  animation: overlayFade 0.1s linear;
 }
 .modal-overlay.show .modal {
-  animation: modalIn 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+  animation: none;
 }
 
 .modal {
@@ -996,6 +1114,38 @@ html, body {
   text-align: center;
   margin-bottom: 16px;
   line-height: 1.6;
+}
+
+/* 结果统计条 */
+.result-stats {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  margin-bottom: 14px;
+  padding: 9px 6px;
+  border-radius: 10px;
+  background: rgba(122, 88, 32, 0.06);
+  border: 1px solid rgba(170, 140, 90, 0.28);
+}
+.result-stat {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.result-stat + .result-stat { border-left: 1px solid rgba(170, 140, 90, 0.22); }
+.rs-num {
+  font-size: 15px;
+  font-weight: 700;
+  color: #7a2020;
+  line-height: 1.1;
+}
+.rs-label {
+  font-size: 10px;
+  color: #9a8050;
+  letter-spacing: 1px;
 }
 
 /* 模式选择 */
@@ -1454,10 +1604,10 @@ html, body {
 }
 
 .demo-btn {
-  width: 38px;
-  height: 38px;
+  width: 32px;
+  height: 32px;
   border: 1px solid #b89a6a;
-  border-radius: 12px;
+  border-radius: 50%;
   background: #fdf6e3;
   color: #5a3d1a;
   font-size: 17px;
@@ -1481,8 +1631,8 @@ html, body {
 }
 
 .demo-btn-play {
-  width: 42px;
-  height: 42px;
+  width: 36px;
+  height: 36px;
   background: #8b1a1a;
   color: #fdf6e3;
   border-color: #6b1414;
@@ -1610,13 +1760,13 @@ html, body {
   transform: translate(-50%, -50%) scale(0.3);
   border: 2px solid rgba(139, 105, 20, 0.6);
   opacity: 0;
-  transition: transform 0.45s ease-out, opacity 0.45s ease-out;
+  transition: transform 0.24s ease-out, opacity 0.24s ease-out;
 }
 
 .fx-ripple.fx-active {
   transform: translate(-50%, -50%) scale(1.4);
   opacity: 0;
-  animation: rippleFx 0.5s ease-out;
+  animation: rippleFx 0.3s ease-out;
 }
 
 @keyframes rippleFx {
@@ -1639,7 +1789,7 @@ html, body {
 }
 
 .fx-burst.fx-active {
-  animation: burstFx 0.45s ease-out forwards;
+  animation: burstFx 0.3s ease-out forwards;
 }
 
 @keyframes burstFx {
@@ -1665,7 +1815,7 @@ html, body {
 }
 
 .fx-gold-wave.fx-active {
-  animation: goldWaveFx 1.2s ease-in-out forwards;
+  animation: goldWaveFx 0.7s ease-in-out forwards;
 }
 
 @keyframes goldWaveFx {
@@ -1686,7 +1836,7 @@ html, body {
 }
 
 .check-vignette.active {
-  animation: checkVignette 1s ease-in-out infinite;
+  animation: checkVignette 0.4s ease-in-out 2;
 }
 
 @keyframes checkVignette {
@@ -1712,7 +1862,7 @@ html, body {
 
 .kill-overlay.show {
   opacity: 1;
-  animation: killShow 2s ease-out forwards;
+  animation: killShow 1.1s ease-out forwards;
 }
 
 @keyframes killShow {
@@ -1804,7 +1954,8 @@ html, body {
 
 /* 选中/可走点脉动（轻微） */
 .move-hint {
-  animation: hintPulse 1.8s ease-in-out infinite;
+  animation: none;
+  opacity: 0.75;
 }
 
 @keyframes hintPulse {
@@ -1813,7 +1964,8 @@ html, body {
 }
 
 .move-hint.capture {
-  animation: hintCapturePulse 1.6s ease-in-out infinite;
+  animation: none;
+  opacity: 0.9;
 }
 
 @keyframes hintCapturePulse {
@@ -1822,7 +1974,7 @@ html, body {
 }
 
 .piece.selected {
-  animation: selectPulse 1.5s ease-in-out infinite;
+  animation: none;
 }
 
 @keyframes selectPulse {
@@ -2348,13 +2500,13 @@ body { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
     repeating-linear-gradient(45deg, rgba(139, 26, 26, 0.025) 0 2px, transparent 2px 12px),
     linear-gradient(160deg, #f8f2e2 0%, #efe3c8 55%, #e8d9b8 100%);
   overflow-y: auto;
-  animation: screenFadeIn 0.24s ease-out;
+  animation: screenFadeIn 0.1s linear;
 }
 #start-screen.hidden { display: none; }
 
 @keyframes screenFadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .start-wrap {
@@ -2599,6 +2751,25 @@ body { overflow-y: auto !important; -webkit-overflow-scrolling: touch; }
   word-break: break-word;
 }
 
+.start-install {
+  margin-top: 4px;
+  padding: 5px 12px;
+  border: 1px solid #d8c49c;
+  border-radius: 999px;
+  background: rgba(255, 250, 238, 0.7);
+  color: #8a7050;
+  font-size: 11.5px;
+  font-family: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.start-install:active { background: #f2e5c8; }
+.start-install.hide { display: none; }
+.install-guide { max-width: 320px; }
+.install-guide .ig-title { font-size: 15px; font-weight: 700; color: #8b1a1a; margin-bottom: 8px; }
+.install-guide .ig-step { font-size: 12.5px; color: #5a3d1a; line-height: 1.7; margin-bottom: 6px; }
+.install-guide .ig-step b { color: #8b1a1a; }
+.install-guide .ig-foot { font-size: 11px; color: #8a7050; margin-top: 6px; }
 .start-foot {
   font-size: 11px;
   letter-spacing: 2px;
@@ -2979,6 +3150,164 @@ html, body {
 }
 
 /* 对局时钟 */
+
+/* ============================================================
+   对局页布局：上下阵营信息栏 + 圆环回合倒计时
+   ============================================================ */
+.app-head {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-shrink: 0;
+  margin-bottom: 2px;
+}
+.app-head .app-title {
+  font-size: 15px;
+  letter-spacing: 2px;
+  margin: 0;
+  line-height: 1.2;
+}
+.app-head .home-btn {
+  position: static;
+  min-height: 26px;
+  padding: 4px 10px;
+  font-size: 10.5px;
+  border-radius: 999px;
+  top: auto;
+  right: auto;
+}
+
+.side-bar {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 8px;
+  border-radius: 10px;
+  border: 1px solid rgba(201, 184, 150, 0.55);
+  background: rgba(255, 250, 238, 0.5);
+  flex-shrink: 0;
+  margin: 3px 0;
+  transition: background 0.15s, border-color 0.15s;
+}
+.side-bar.active {
+  background: #fff7e8;
+  border-color: #cfab6a;
+  box-shadow: 0 1px 4px rgba(120, 85, 30, 0.14);
+}
+.side-mid {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.side-name {
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: #8a7050;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.clock-slot {
+  display: flex;
+  align-items: center;
+}
+.side-bar .clock-chip {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: 0.5px;
+  color: #5a3d1a;
+  font-variant-numeric: tabular-nums;
+  text-align: left;
+}
+.side-bar .clock-chip.red { color: #b02a23; border: 0; }
+.side-bar .clock-chip.black { color: #34495e; border: 0; }
+.side-bar .clock-chip.low { color: #c0392b; }
+.side-bar .clock-chip.critical {
+  color: #8b1a1a;
+  animation: clockBlink 0.8s ease-in-out infinite;
+}
+.side-bar.active .side-name { color: #8b1a1a; font-weight: 700; }
+
+/* 回合倒计时圆环 */
+.side-ring {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+}
+.side-ring svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.ring-bg {
+  fill: none;
+  stroke: rgba(139, 107, 54, 0.16);
+  stroke-width: 3;
+}
+.ring-fg {
+  fill: none;
+  stroke: #b8791f;
+  stroke-width: 3;
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+  transition: stroke-dashoffset 0.4s linear, stroke 0.2s linear;
+}
+.side-ring.warn .ring-fg { stroke: #cf7b1e; }
+.side-ring.danger .ring-fg { stroke: #c0392b; }
+.side-ring.empty { display: none; }
+.ring-num {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: #6b4a22;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 吃子缩略 */
+.side-cap {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  max-width: 46%;
+  overflow: hidden;
+  flex-shrink: 1;
+}
+.side-cap .captured-side {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 2px;
+  overflow: hidden;
+  flex: 0 1 auto;
+  justify-content: flex-end;
+  width: auto;
+}
+
+@media (max-height: 700px) {
+  .side-bar { padding: 2px 6px; margin: 2px 0; }
+  .side-ring { width: 30px; height: 30px; }
+  .side-bar .clock-chip { font-size: 15px; }
+}
+
 .clock-bar {
   display: flex;
   align-items: center;
@@ -3120,6 +3449,66 @@ html, body {
 }
 #btn-chat { position: relative; }
 
+/* 新手引导 */
+.tutorial-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 26px;
+  background: rgba(38, 24, 8, 0.46);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease;
+}
+.tutorial-mask.show { opacity: 1; pointer-events: auto; }
+.tutorial-card {
+  width: 100%;
+  max-width: 320px;
+  padding: 18px 18px 14px;
+  border-radius: 16px;
+  border: 1px solid #d8c69a;
+  background: linear-gradient(180deg, #fffaf0 0%, #f7edda 100%);
+  box-shadow: 0 18px 44px rgba(40, 24, 6, 0.36);
+  transform: translateY(6px) scale(0.98);
+  transition: transform 0.22s ease;
+}
+.tutorial-mask.show .tutorial-card { transform: translateY(0) scale(1); }
+.tutorial-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #7a2020;
+  letter-spacing: 2px;
+  margin-bottom: 12px;
+  text-align: center;
+}
+.tutorial-step {
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+  font-size: 13px;
+  line-height: 1.55;
+  color: #5c4426;
+  margin-bottom: 9px;
+}
+.tutorial-num {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #9b2c22;
+  color: #fdf3e0;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+}
+.tutorial-ok { width: 100%; margin-top: 6px; }
+
 </style>
 </head>
 <body>
@@ -3131,13 +3520,24 @@ html, body {
   <div class="loading-text">正在加载…</div>
 </div>
 
+<!-- 新手引导（首次进入对局显示一次） -->
+<div class="tutorial-mask" id="tutorial-mask">
+  <div class="tutorial-card" id="tutorial-card">
+    <div class="tutorial-title">上手三步</div>
+    <div class="tutorial-step"><span class="tutorial-num">1</span><span>按住棋子，拖到亮起的位置松手</span></div>
+    <div class="tutorial-step"><span class="tutorial-num">2</span><span>不习惯拖？也可以点两下：先点棋子，再点亮起的点</span></div>
+    <div class="tutorial-step"><span class="tutorial-num">3</span><span>走错了不要紧，底部「悔棋」可以退回来</span></div>
+    <button class="btn btn-primary tutorial-ok" id="tutorial-ok" type="button">知道了，开始下棋</button>
+  </div>
+</div>
+
 <!-- ============================================================
      开始游戏界面
      ============================================================ -->
 <div id="start-screen">
   <div class="start-wrap">
     <div class="start-brand">
-      <div class="start-seal">象</div>
+      <div class="start-seal">周</div>
       <div class="start-title">周周象棋</div>
       <div class="start-sub">楚河汉界 · 一局定乾坤</div>
     </div>
@@ -3189,6 +3589,7 @@ html, body {
         <span class="st-name">设置</span>
       </button>
     </div>
+    <button class="start-install" id="btn-install-tip" type="button">＋ 添加到桌面</button>
     <div class="start-foot">无需登录 · 打开即玩</div>
   </div>
 </div>
@@ -3320,6 +3721,14 @@ html, body {
       </div>
     </div>
 
+    <div class="settings-row">
+      <div class="settings-label">落子震动</div>
+      <div class="seg-group" id="seg-vib">
+        <button class="seg-btn" data-vib="0">关</button>
+        <button class="seg-btn" data-vib="1">开</button>
+      </div>
+    </div>
+
     <p class="settings-tip">设置会自动保存，下次打开仍然生效。</p>
   </div>
 </div>
@@ -3327,6 +3736,16 @@ html, body {
 <!-- ============================================================
      联机对战面板
      ============================================================ -->
+<div class="modal-overlay" id="modal-install">
+  <div class="modal install-guide">
+    <div class="ig-title">把周周象棋放到桌面</div>
+    <div class="ig-body" id="install-guide-body"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btn-install-guide-ok" type="button">知道了</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modal-online">
   <div class="modal online-modal">
     <div class="online-head">
@@ -3349,9 +3768,8 @@ html, body {
       <div class="online-code-label">房间号</div>
       <div class="online-code" id="online-code">------</div>
       <div class="online-wait-status" id="online-wait-status">等待对方加入…</div>
-      <button class="btn online-main-btn" id="btn-copy-code">复制房号</button>
       <div class="online-link-box" id="online-link">链接生成中…</div>
-      <button class="btn btn-primary online-main-btn" id="btn-copy-link">复制邀请链接</button>
+      <button class="btn btn-primary online-main-btn" id="btn-copy-invite">复制邀请（房号+链接）</button>
       <p class="online-tip" style="margin-top:10px;">也可以点右上角「···」把本页转发给微信好友</p>
       <button class="btn" id="btn-online-cancel" style="width:100%;">取消并退出房间</button>
     </div>
@@ -3360,13 +3778,25 @@ html, body {
 
 <div id="app" style="display:none;">
 
-  <div class="app-title">周周象棋</div>
-  <button class="home-btn" id="btn-home">返回桌面</button>
+  <div class="app-head">
+    <span class="app-title">周周象棋</span>
+    <button class="home-btn" id="btn-home">返回桌面</button>
+  </div>
 
-  <!-- 黑方吃子记录（顶部） -->
-  <div class="captured-bar top">
-    <div class="captured-label">黑方吃子</div>
-    <div class="captured-side" id="captured-red"></div>
+  <!-- 上方阵营：时钟 + 本回合圆环倒计时 + 吃子 -->
+  <div class="side-bar" id="side-bar-top">
+    <div class="side-ring">
+      <svg viewBox="0 0 36 36" aria-hidden="true">
+        <circle class="ring-bg" cx="18" cy="18" r="15.5"/>
+        <circle class="ring-fg" id="ring-fg-top" cx="18" cy="18" r="15.5"/>
+      </svg>
+      <span class="ring-num" id="ring-num-top">--</span>
+    </div>
+    <div class="side-mid">
+      <span class="side-name" id="side-name-top">黑方</span>
+      <div class="clock-slot" id="clock-slot-top"><span class="clock-chip black" id="clock-black">25:00</span></div>
+    </div>
+    <div class="side-cap" id="cap-slot-top"><div class="captured-side" id="captured-red"></div></div>
   </div>
 
   <!-- 棋盘 -->
@@ -3446,10 +3876,20 @@ html, body {
   <!-- 将军屏幕边缘红边 -->
   <div class="check-vignette" id="check-vignette"></div>
 
-  <!-- 红方吃子记录（底部） -->
-  <div class="captured-bar bottom">
-    <div class="captured-label">红方吃子</div>
-    <div class="captured-side" id="captured-black"></div>
+  <!-- 下方阵营：己方时钟 + 本回合圆环倒计时 + 吃子 -->
+  <div class="side-bar" id="side-bar-bottom">
+    <div class="side-ring">
+      <svg viewBox="0 0 36 36" aria-hidden="true">
+        <circle class="ring-bg" cx="18" cy="18" r="15.5"/>
+        <circle class="ring-fg" id="ring-fg-bottom" cx="18" cy="18" r="15.5"/>
+      </svg>
+      <span class="ring-num" id="ring-num-bottom">--</span>
+    </div>
+    <div class="side-mid">
+      <span class="side-name" id="side-name-bottom">红方</span>
+      <div class="clock-slot" id="clock-slot-bottom"><span class="clock-chip red" id="clock-red">25:00</span></div>
+    </div>
+    <div class="side-cap" id="cap-slot-bottom"><div class="captured-side" id="captured-black"></div></div>
   </div>
 
   <!-- 观战模式控制栏 -->
@@ -3481,13 +3921,6 @@ html, body {
       <span id="online-bar-text">联机对战</span>
     </div>
     <button class="online-exit-btn" id="btn-online-exit">退出</button>
-  </div>
-
-  <!-- 对局时钟 -->
-  <div class="clock-bar" id="clock-bar">
-    <span class="clock-chip red" id="clock-red">10:00</span>
-    <span class="clock-label" id="clock-label">计时</span>
-    <span class="clock-chip black" id="clock-black">10:00</span>
   </div>
 
   <!-- 联机聊天弹窗 -->
@@ -3578,6 +4011,12 @@ html, body {
     <div class="result-winner" id="result-winner">红方胜</div>
     <div class="result-reason" id="result-reason">将死</div>
     <p class="result-desc" id="result-desc">黑方被将军且无合法应将手段</p>
+    <div class="result-stats" id="result-stats">
+      <div class="result-stat"><span class="rs-num" id="rs-moves">0</span><span class="rs-label">手数</span></div>
+      <div class="result-stat"><span class="rs-num" id="rs-captures">0</span><span class="rs-label">吃子</span></div>
+      <div class="result-stat"><span class="rs-num" id="rs-time">0:00</span><span class="rs-label">用时</span></div>
+      <div class="result-stat"><span class="rs-num" id="rs-checks">0</span><span class="rs-label">将军</span></div>
+    </div>
     <div class="result-kill-box" id="result-kill-box" style="display:none;">
       <div class="result-kill-name" id="result-kill-name">马后炮</div>
       <div class="result-kill-desc" id="result-kill-desc">马控将帅位置，炮隔马将军，无法躲避</div>
@@ -3645,6 +4084,7 @@ html, body {
     <div class="review-copy-row">
       <button class="btn btn-ghost review-copy" id="review-copy" type="button">复制棋谱</button>
       <button class="btn btn-ghost review-copy" id="review-hint" type="button">着法提示</button>
+      <button class="btn btn-ghost review-copy" id="review-worst" type="button">最差一手</button>
       <span class="review-copy-tip" id="review-copy-tip"></span>
     </div>
     <div class="review-hint-tip" id="review-hint-tip"></div>
@@ -6800,20 +7240,20 @@ var OPENING_BOOKS = [
     id: 'mate-shuangche',
     group: '车杀',
     name: '双车错·三步杀',
-    intent: '红先三步成杀，双车交替叫将形成「双车错」杀型',
+    intent: '红先三步成杀，一车封顶线、一车压二线，交替叫将形成「双车错」杀型',
     category: 'mate',
     mate: '双车错',
     hint: '红先，三步将死',
     setup: [
-      ['K', 'red', 9, 4],
+      ['K', 'red', 9, 5],
       ['K', 'black', 1, 4],
-      ['R', 'red', 0, 0],
-      ['R', 'red', 2, 8],
+      ['R', 'red', 2, 0],
+      ['R', 'red', 0, 8],
     ],
     moves: [
-      { fromRow: 0, fromCol: 0, toRow: 1, toCol: 0, notation: '车九进一' },
-      { fromRow: 1, fromCol: 4, toRow: 1, toCol: 3, notation: '将5平4' },
-      { fromRow: 2, fromCol: 8, toRow: 2, toCol: 3, notation: '车二平六' },
+      { fromRow: 2, fromCol: 0, toRow: 1, toCol: 0, notation: '车九进一' },
+      { fromRow: 1, fromCol: 4, toRow: 2, toCol: 4, notation: '将5进1' },
+      { fromRow: 0, fromCol: 8, toRow: 2, toCol: 8, notation: '车一退二' },
     ],
   },  {
     id: 'mate-tiemenshuan',
@@ -6838,23 +7278,21 @@ var OPENING_BOOKS = [
   },  {
     id: 'mate-dadao',
     group: '车杀',
-    name: '大刀剜心·三步杀',
-    intent: '车杀入中心逼将，次车跟进补杀，演示弃车穿心杀型',
+    name: '大刀剜心·两步破宫',
+    intent: '红车强行剜掉黑方中士贴脸叫将，将帅同线、黑将不敢吃车，撕开九宫防线',
     category: 'mate',
     mate: '大刀剜心',
-    hint: '红先，三步将死',
+    hint: '红先，两步破中士',
     setup: [
       ['K', 'red', 9, 4],
       ['K', 'black', 0, 4],
-      ['A', 'black', 0, 3],
-      ['A', 'black', 0, 5],
+      ['A', 'black', 1, 4],
       ['R', 'red', 2, 4],
       ['R', 'red', 3, 0],
     ],
     moves: [
       { fromRow: 2, fromCol: 4, toRow: 1, toCol: 4, notation: '车五进一' },
-      { fromRow: 0, fromCol: 4, toRow: 1, toCol: 4, notation: '将5进1' },
-      { fromRow: 3, fromCol: 0, toRow: 3, toCol: 4, notation: '车九平六' },
+      { fromRow: 0, fromCol: 4, toRow: 0, toCol: 3, notation: '将5平6' },
     ],
   },  {
     id: 'mate-haidilao',
@@ -7696,62 +8134,68 @@ window.XQ = {
     return noiseBuf;
   }
 
-  // 木子击板：一次完整的“啪”
-  //   res  噪声共振频率（木头硬度/清脆度）
+  // 木子击板 v4：低通白噪声瞬态 + 木体共鸣 + 轻微板体低鸣
+  // 相比 v3 下调共振频率、放缓下滑、削弱电子感，听感更接近真木棋
+  //   res  噪声共振中心（木头表面摩擦的脆度）
   //   body 木体共鸣基频（棋子大小、厚薄）
   //   dur  衰减时间
   function woodHit(o) {
     if (!initialized || !audioCtx || !masterGain) return;
     o = o || {};
     var t = audioCtx.currentTime + (o.delay || 0);
-    var vol = o.volume !== undefined ? o.volume : 0.45;
-    var res = o.res || 2100;
-    var body = o.body || 200;
-    var dur = o.dur || 0.06;
+    var vol = o.volume !== undefined ? o.volume : 0.42;
+    var res = o.res || 1350;
+    var body = o.body || 155;
+    var dur = o.dur || 0.075;
 
-    // 1) 撞击瞬态：短噪声 + 带通，模拟木料“嚓”的一声
+    // 1) 撞击瞬态：白噪声经低通削掉高频毛刺，再走窄带，收成“木面一擦”
     var src = audioCtx.createBufferSource();
     src.buffer = getNoiseBuffer();
+    var lp = audioCtx.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = 3400;
+    lp.Q.value = 0.7;
     var bp = audioCtx.createBiquadFilter();
     bp.type = 'bandpass';
     bp.frequency.value = res;
-    bp.Q.value = 7;
+    bp.Q.value = 2.6;
     var ng = audioCtx.createGain();
     ng.gain.setValueAtTime(0, t);
-    ng.gain.linearRampToValueAtTime(vol, t + 0.0015);
-    ng.gain.exponentialRampToValueAtTime(0.0005, t + dur);
-    src.connect(bp);
+    ng.gain.linearRampToValueAtTime(vol, t + 0.002);
+    ng.gain.exponentialRampToValueAtTime(0.0006, t + dur);
+    src.connect(lp);
+    lp.connect(bp);
     bp.connect(ng);
     ng.connect(masterGain);
     src.start(t);
     src.stop(t + dur + 0.01);
 
-    // 2) 木体共鸣：下滑的短促中低频
+    // 2) 木体共鸣：厚实的中低音，缓慢回落，不做过大的音高滑动
     var osc = audioCtx.createOscillator();
     osc.type = 'triangle';
     osc.frequency.setValueAtTime(body, t);
-    osc.frequency.exponentialRampToValueAtTime(Math.max(40, body * 0.68), t + dur * 1.1);
+    osc.frequency.exponentialRampToValueAtTime(Math.max(45, body * 0.86), t + dur * 1.6);
     var og = audioCtx.createGain();
     og.gain.setValueAtTime(0, t);
-    og.gain.linearRampToValueAtTime(vol * 0.5, t + 0.003);
-    og.gain.exponentialRampToValueAtTime(0.0005, t + dur * 1.5);
+    og.gain.linearRampToValueAtTime(vol * 0.62, t + 0.004);
+    og.gain.exponentialRampToValueAtTime(0.0006, t + dur * 1.9);
     osc.connect(og);
     og.connect(masterGain);
     osc.start(t);
-    osc.stop(t + dur * 1.5 + 0.02);
+    osc.stop(t + dur * 1.9 + 0.02);
 
-    // 3) 板体低鸣：棋墩传到木盘的闷响
+    // 3) 板体低鸣：棋子敲在木盘上的闷响，很短，只留一点点体积感
     var sub = audioCtx.createOscillator();
     sub.type = 'sine';
-    sub.frequency.setValueAtTime(body * 0.5, t);
+    sub.frequency.setValueAtTime(body * 0.46, t);
     var sg = audioCtx.createGain();
     sg.gain.setValueAtTime(0, t);
-    sg.gain.linearRampToValueAtTime(vol * 0.3, t + 0.004);
-    sg.gain.exponentialRampToValueAtTime(0.0005, t + 0.12);
+    sg.gain.linearRampToValueAtTime(vol * 0.2, t + 0.005);
+    sg.gain.exponentialRampToValueAtTime(0.0006, t + 0.1);
     sub.connect(sg);
     sg.connect(masterGain);
     sub.start(t);
-    sub.stop(t + 0.14);
+    sub.stop(t + 0.12);
   }
 
   // ============================================================
@@ -7791,10 +8235,10 @@ window.XQ = {
     if (!canPlay('move')) return;
 
     woodHit({
-      res: 2300 + Math.random() * 400,
-      body: 185 + Math.random() * 30,
-      volume: 0.48,
-      dur: 0.055,
+      res: 1150 + Math.random() * 220,
+      body: 148 + Math.random() * 24,
+      volume: 0.42,
+      dur: 0.075,
     });
   }
 
@@ -7804,10 +8248,10 @@ window.XQ = {
     if (!enabled || volumeLevel === 0 || !categoryOn('move')) return;
     if (!canPlay('capture')) return;
 
-    // 第一下：子与子相撞，更闷更重
-    woodHit({ res: 1400, body: 250, volume: 0.55, dur: 0.09 });
-    // 第二下：被吃的子/己子落盘，清脆一记
-    woodHit({ res: 2600, body: 175, volume: 0.32, dur: 0.05, delay: 0.07 });
+    // 第一下：子与子相撞，低沉厚实
+    woodHit({ res: 820, body: 122, volume: 0.5, dur: 0.11 });
+    // 第二下：被吃的子落盘，短促一记
+    woodHit({ res: 1150, body: 152, volume: 0.34, dur: 0.06, delay: 0.055 });
   }
 
   // 3. 将军：两下短促上扬的木鱼声
@@ -7816,8 +8260,9 @@ window.XQ = {
     if (!enabled || volumeLevel === 0 || !categoryOn('check')) return;
     if (!canPlay('check')) return;
 
-    woodHit({ res: 2500, body: 215, volume: 0.5, dur: 0.05 });
-    woodHit({ res: 3300, body: 255, volume: 0.45, dur: 0.05, delay: 0.12 });
+    // 关键节点：更沉的两记长木梆，第一记压住，第二记抬高提醒
+    woodHit({ res: 1500, body: 172, volume: 0.6, dur: 0.095 });
+    woodHit({ res: 2050, body: 200, volume: 0.52, dur: 0.085, delay: 0.14 });
   }
 
   // 4. 将死：一串敲击，胜局上行、败局下行
@@ -7828,28 +8273,28 @@ window.XQ = {
 
     var seq = isWin
       ? [
-          { d: 0.00, res: 1900, body: 200 },
-          { d: 0.13, res: 2200, body: 220 },
-          { d: 0.26, res: 2600, body: 240 },
-          { d: 0.39, res: 3100, body: 270 },
+          { d: 0.00, res: 1000, body: 128 },
+          { d: 0.11, res: 1300, body: 148 },
+          { d: 0.22, res: 1600, body: 168 },
+          { d: 0.33, res: 1900, body: 190 },
         ]
       : [
-          { d: 0.00, res: 2600, body: 250 },
-          { d: 0.15, res: 2100, body: 220 },
-          { d: 0.30, res: 1700, body: 195 },
-          { d: 0.48, res: 1300, body: 165 },
+          { d: 0.00, res: 1600, body: 180 },
+          { d: 0.13, res: 1300, body: 158 },
+          { d: 0.26, res: 1050, body: 136 },
+          { d: 0.40, res: 820, body: 112 },
         ];
 
     for (var i = 0; i < seq.length; i++) {
-      woodHit({ res: seq[i].res, body: seq[i].body, volume: 0.5, dur: 0.07, delay: seq[i].d });
+      woodHit({ res: seq[i].res, body: seq[i].body, volume: 0.58, dur: 0.085, delay: seq[i].d });
     }
-    // 收尾木磬长鸣：胜局偏高扬，败局偏低沉
+    // 关键节点：收尾一记重压 + 木磬长鸣，让胜负落点听得出来
     if (isWin) {
-      woodHit({ res: 1400, body: 150, volume: 0.38, dur: 0.14, delay: 0.55 });
-      gong({ freq: 196, volume: 0.3, dur: 1.1, delay: 0.58 });
+      woodHit({ res: 700, body: 108, volume: 0.5, dur: 0.15, delay: 0.48 });
+      gong({ freq: 174, volume: 0.34, dur: 1.15, delay: 0.5 });
     } else {
-      woodHit({ res: 1100, body: 120, volume: 0.34, dur: 0.16, delay: 0.62 });
-      gong({ freq: 147, volume: 0.26, dur: 1.0, delay: 0.65 });
+      woodHit({ res: 620, body: 96, volume: 0.44, dur: 0.16, delay: 0.54 });
+      gong({ freq: 138, volume: 0.3, dur: 1.05, delay: 0.6 });
     }
   }
 
@@ -7859,7 +8304,8 @@ window.XQ = {
     if (!enabled || volumeLevel === 0 || !categoryOn('hint')) return;
     if (!canPlay('invalid')) return;
 
-    woodHit({ res: 700, body: 120, volume: 0.16, dur: 0.05 });
+    // 闷住一声：低频钝响，不打耳
+    woodHit({ res: 460, body: 92, volume: 0.2, dur: 0.065 });
   }
 
   // 6. 按钮点击：极轻的木扣声
@@ -7868,7 +8314,7 @@ window.XQ = {
     if (!enabled || volumeLevel === 0 || !categoryOn('hint')) return;
     if (!canPlay('click')) return;
 
-    woodHit({ res: 3200, body: 280, volume: 0.16, dur: 0.025 });
+    woodHit({ res: 1650, body: 178, volume: 0.13, dur: 0.03 });
   }
 
   // 7. 悔棋：两下低而短的木扣
@@ -7877,8 +8323,8 @@ window.XQ = {
     if (!enabled || volumeLevel === 0 || !categoryOn('move')) return;
     if (!canPlay('undo')) return;
 
-    woodHit({ res: 1900, body: 200, volume: 0.28, dur: 0.045 });
-    woodHit({ res: 1500, body: 175, volume: 0.24, dur: 0.045, delay: 0.07 });
+    woodHit({ res: 1050, body: 142, volume: 0.26, dur: 0.055 });
+    woodHit({ res: 880, body: 126, volume: 0.22, dur: 0.055, delay: 0.065 });
   }
 
   // 8. 重新开始：三下上行木扣
@@ -7887,9 +8333,19 @@ window.XQ = {
     if (!enabled || volumeLevel === 0 || !categoryOn('move')) return;
     if (!canPlay('reset')) return;
 
-    woodHit({ res: 1800, body: 190, volume: 0.3, dur: 0.045 });
-    woodHit({ res: 2200, body: 205, volume: 0.3, dur: 0.045, delay: 0.07 });
-    woodHit({ res: 2600, body: 220, volume: 0.28, dur: 0.045, delay: 0.14 });
+    woodHit({ res: 900, body: 130, volume: 0.28, dur: 0.05 });
+    woodHit({ res: 1180, body: 150, volume: 0.28, dur: 0.05, delay: 0.065 });
+    woodHit({ res: 1450, body: 168, volume: 0.26, dur: 0.05, delay: 0.13 });
+  }
+
+  // 10. 开局列阵：由远及近的三记木击，配棋子逐行落位
+  function playIntro() {
+    ensureInit();
+    if (!enabled || volumeLevel === 0 || !categoryOn('move')) return;
+
+    woodHit({ res: 1420, body: 168, volume: 0.38, dur: 0.08 });
+    woodHit({ res: 1080, body: 142, volume: 0.34, dur: 0.08, delay: 0.2 });
+    woodHit({ res: 820, body: 112, volume: 0.28, dur: 0.13, delay: 0.48 });
   }
 
   // 9. 弹窗开关：一声轻木扣
@@ -7899,9 +8355,9 @@ window.XQ = {
     if (!canPlay('click')) return;
 
     if (open) {
-      woodHit({ res: 2800, body: 240, volume: 0.2, dur: 0.03 });
+      woodHit({ res: 1400, body: 165, volume: 0.15, dur: 0.035 });
     } else {
-      woodHit({ res: 2400, body: 220, volume: 0.18, dur: 0.03 });
+      woodHit({ res: 1100, body: 142, volume: 0.13, dur: 0.032 });
     }
   }
 
@@ -7973,6 +8429,7 @@ window.XQ = {
     playUndo: playUndo,
     playReset: playReset,
     playPopup: playPopup,
+    playIntro: playIntro,
   };
 
 })();
@@ -9742,6 +10199,7 @@ window.XQ = {
     difficulty: 'r3', // r1..r7 业余段位
     handicap: 'none', // none | horse | doublehorse | rook
     isAiThinking: false,
+    introPlaying: false,   // 开局入场特效进行中（期间不接受走子、不计时）
     // 观战模式状态
     watch: {
       enabled: false,
@@ -9758,6 +10216,7 @@ window.XQ = {
     lastMove: null,     // 最后一步，用于高亮
     showDanger: true,
     effectOn: true,
+    vibrateOn: true,
     noCaptureHalfMoves: 0, // 连续未吃子的半回合数
     posCounts: {},         // 局面出现次数（重复局面提示/判和）
     repeatWarnings: {},     // 已提示过的重复局面
@@ -9774,6 +10233,7 @@ window.XQ = {
     chat: [],
     chatOpen: false,
     chatUnread: 0,
+    checkCount: 0,
   };
 
   // 危险分析（缓存，落子后更新）
@@ -9886,6 +10346,18 @@ window.XQ = {
     els.boardPoints = document.getElementById('board-points');
     els.capturedBlack = document.getElementById('captured-black');
     els.capturedRed = document.getElementById('captured-red');
+    els.sideBarTop = document.getElementById('side-bar-top');
+    els.sideBarBottom = document.getElementById('side-bar-bottom');
+    els.sideNameTop = document.getElementById('side-name-top');
+    els.sideNameBottom = document.getElementById('side-name-bottom');
+    els.clockSlotTop = document.getElementById('clock-slot-top');
+    els.clockSlotBottom = document.getElementById('clock-slot-bottom');
+    els.capSlotTop = document.getElementById('cap-slot-top');
+    els.capSlotBottom = document.getElementById('cap-slot-bottom');
+    els.ringTop = document.getElementById('ring-fg-top');
+    els.ringBottom = document.getElementById('ring-fg-bottom');
+    els.ringNumTop = document.getElementById('ring-num-top');
+    els.ringNumBottom = document.getElementById('ring-num-bottom');
     els.hintText = document.getElementById('hint-text');
     els.watchBar = document.getElementById('watch-bar');
     els.watchInfo = document.getElementById('watch-info');
@@ -9947,6 +10419,9 @@ window.XQ = {
     els.reviewHistory = document.getElementById('review-history');
     els.reviewHint = document.getElementById('review-hint');
     els.reviewHintTip = document.getElementById('review-hint-tip');
+    els.reviewWorst = document.getElementById('review-worst');
+    els.tutorialMask = document.getElementById('tutorial-mask');
+    els.tutorialOk = document.getElementById('tutorial-ok');
     els.reviewStart = document.getElementById('review-start');
     els.reviewPrev = document.getElementById('review-prev');
     els.reviewPlay = document.getElementById('review-play');
@@ -10047,6 +10522,8 @@ window.XQ = {
     if (state.gameMode === 'pvp') return state.currentTurn;
     return localViewColor();
   }
+  // 记录最近一次已播放过位移缓动的着法，避免重复渲染时反复动画
+  var boardAnimKey = '';
 
   function renderBoard() {
     var html = '';
@@ -10124,6 +10601,40 @@ window.XQ = {
         pathSvg.innerHTML = '';
       }
     }
+
+    // 上一步落子的位移缓动：棋子从起点滑到落点
+    var animKey = lm ? (lm.fromRow + ',' + lm.fromCol + '>' + lm.toRow + ',' + lm.toCol + '#' + state.moveHistory.length) : '';
+    if (lm && animKey !== boardAnimKey) {
+      boardAnimKey = animKey;
+      if (state.skipMoveAnim) {
+        state.skipMoveAnim = false;
+      } else {
+        var toEl = els.boardPoints.querySelector('.point[data-row="' + lm.toRow + '"][data-col="' + lm.toCol + '"] .piece');
+        var rect = els.boardPoints.getBoundingClientRect();
+        if (toEl && rect.width) {
+          var afdr = flip ? 9 - lm.fromRow : lm.fromRow;
+          var afdc = flip ? 8 - lm.fromCol : lm.fromCol;
+          var atdr = flip ? 9 - lm.toRow : lm.toRow;
+          var atdc = flip ? 8 - lm.toCol : lm.toCol;
+          var adx = (afdc - atdc) * (rect.width / 8);
+          var ady = (afdr - atdr) * (rect.height / 9);
+          toEl.style.transition = 'none';
+          toEl.style.transform = 'translate(' + adx.toFixed(1) + 'px,' + ady.toFixed(1) + 'px)';
+          requestAnimationFrame(function(el) {
+            return function() {
+              el.style.transition = 'transform 0.11s cubic-bezier(0.25, 0.9, 0.35, 1)';
+              el.style.transform = 'translate(0,0)';
+              setTimeout(function() {
+                el.style.transition = '';
+                el.style.transform = '';
+              }, 230);
+            };
+          }(toEl));
+        }
+      }
+    } else if (!lm) {
+      boardAnimKey = '';
+    }
   }
 
   function getMoveInfoAt(r, c) {
@@ -10135,17 +10646,56 @@ window.XQ = {
   }
 
   function renderCaptured() {
-    var htmlB = '';
-    for (var i = 0; i < state.capturedBlack.length; i++) {
-      htmlB += '<div class="captured-piece black">' + state.capturedBlack[i].char + '</div>';
-    }
-    els.capturedBlack.innerHTML = htmlB;
+    // 各自的战果挂在自己那一侧：黑方吃到的红子跟黑方，红方吃到的黑子跟红方
+    var blackView = isBlackView();
+    var redSlot = blackView ? els.capSlotTop : els.capSlotBottom;
+    var blackSlot = blackView ? els.capSlotBottom : els.capSlotTop;
+    if (els.capturedBlack && redSlot && els.capturedBlack.parentNode !== redSlot) redSlot.appendChild(els.capturedBlack);
+    if (els.capturedRed && blackSlot && els.capturedRed.parentNode !== blackSlot) blackSlot.appendChild(els.capturedRed);
 
-    var htmlR = '';
-    for (var j = 0; j < state.capturedRed.length; j++) {
-      htmlR += '<div class="captured-piece red">' + state.capturedRed[j].char + '</div>';
+    function sideHtml(list, color) {
+      var html = '';
+      for (var i = 0; i < list.length; i++) {
+        html += '<div class="captured-piece ' + color + '">' + list[i].char + '</div>';
+      }
+      return html;
     }
-    els.capturedRed.innerHTML = htmlR;
+    if (els.capturedRed) els.capturedRed.innerHTML = sideHtml(state.capturedRed, 'red');
+    if (els.capturedBlack) els.capturedBlack.innerHTML = sideHtml(state.capturedBlack, 'black');
+  }
+
+  // 本回合限时：联机按 30/75 秒，本地对局放宽到 60/120 秒，闯关不限
+  function turnLimitFor(side) {
+    if (state.puzzle || state.watch.enabled) return 0;
+    if (state.gameMode === 'online') return moveLimit(side);
+    var moves = side === 'red' ? state.clock.redMoves : state.clock.blackMoves;
+    return moves < 3 ? 60 : 120;
+  }
+
+  function renderRing(fgEl, numEl, side, isActive) {
+    if (!fgEl || !numEl) return;
+    var wrap = fgEl.closest ? fgEl.closest('.side-ring') : null;
+    var limit = turnLimitFor(side);
+    if (wrap) wrap.classList.toggle('empty', !limit);
+    if (!limit || !isActive || state.gameResult) {
+      fgEl.style.strokeDashoffset = '0';
+      fgEl.style.opacity = isActive ? '0.9' : '0.35';
+      var txt = limit ? String(limit) : '--';
+      numEl.textContent = txt;
+      numEl.style.fontSize = txt.length >= 3 ? '8.5px' : '10px';
+      if (wrap) wrap.classList.remove('warn', 'danger');
+      return;
+    }
+    var left = Math.max(0, limit - state.clock.moveElapsed);
+    var C = 97.39; // 2 * PI * 15.5
+    var ratio = Math.max(0, Math.min(1, left / limit));
+    fgEl.style.opacity = '1';
+    fgEl.style.strokeDashoffset = String(C * (1 - ratio));
+    numEl.textContent = String(left);
+    if (wrap) {
+      wrap.classList.toggle('warn', ratio <= 0.5 && ratio > 0.2);
+      wrap.classList.toggle('danger', ratio <= 0.2);
+    }
   }
 
   function renderHintText() {
@@ -10475,6 +11025,7 @@ window.XQ = {
       case 'reset': s.playReset(); break;
       case 'popup-open': s.playPopup(true); break;
       case 'popup-close': s.playPopup(false); break;
+      case 'intro': s.playIntro(); break;
     }
   }
 
@@ -10494,6 +11045,7 @@ window.XQ = {
     if (typeof r !== 'number' || typeof c !== 'number' || !isFinite(r) || !isFinite(c)) return;
     if (r < 0 || r > 9 || c < 0 || c > 8) return;
     if (review.active) return;
+    if (state.introPlaying) return;
     if (state.gameResult) return;
     if (state.isAiThinking) return;
     // 联机：只能在自己回合、且对手在线时走棋
@@ -10751,6 +11303,12 @@ window.XQ = {
 
     // 切换回合
     state.currentTurn = state.currentTurn === 'red' ? 'black' : 'red';
+
+    // 本局将军次数统计
+    try {
+      if (XQ.isInCheck(state.board, state.currentTurn)) state.checkCount = (state.checkCount || 0) + 1;
+    } catch (err) {}
+
     if (movingColor === 'red') state.clock.redMoves += 1;
     else state.clock.blackMoves += 1;
     state.clock.moveElapsed = 0;
@@ -10768,10 +11326,16 @@ window.XQ = {
     if (captured) {
       sfx('capture');
       playCaptureEffect(move.toRow, move.toCol, movingColor);
+      pulseVibrate([10, 34, 12]);
     } else {
       sfx('move');
       playMoveEffect(move.toRow, move.toCol, movingColor);
+      pulseVibrate(9);
     }
+    // 将军时再加一次明显的震动
+    try {
+      if (XQ.isInCheck(state.board, state.currentTurn)) pulseVibrate([16, 46, 16]);
+    } catch (err) {}
 
     // 检查对局结束
     var result = XQ.checkGameEnd(state.board, state.currentTurn);
@@ -11046,6 +11610,7 @@ window.XQ = {
     state.recordSaved = false;
     state.recordOpen = false;
     state.noCaptureHalfMoves = 0;
+    state.checkCount = 0;
     state.posCounts = {};
     state.repeatWarnings = {};
     state.repeatWarnText = '';
@@ -11544,6 +12109,82 @@ window.XQ = {
     }
   }
 
+  // ============================================================
+  // 开局入场特效：棋子逐行落位，特效结束才开始走子与计时
+  // ============================================================
+  var introTimer = null;
+
+  function introEligible() {
+    if (state.watch.enabled || state.puzzle || review.active) return false;
+    if (state.gameMode !== 'pvp' && state.gameMode !== 'pve' && state.gameMode !== 'online') return false;
+    return true;
+  }
+
+  function clearBoardIntro() {
+    if (introTimer) { clearTimeout(introTimer); introTimer = null; }
+    state.introPlaying = false;
+    var area = document.querySelector('.board-area');
+    if (area) area.classList.remove('intro-wave');
+    if (els.boardPoints) {
+      var ps = els.boardPoints.querySelectorAll('.piece-enter');
+      for (var i = 0; i < ps.length; i++) {
+        ps[i].classList.remove('piece-enter');
+        ps[i].style.animationDelay = '';
+      }
+    }
+  }
+
+  function pColorOf(el) {
+    return el && el.classList.contains('red') ? 'red' : 'black';
+  }
+
+  function playBoardIntro(onDone) {
+    clearBoardIntro();
+    if (!introEligible()) { if (onDone) onDone(); return false; }
+    var pts = els.boardPoints ? els.boardPoints.querySelectorAll('.point') : [];
+    var flip = isBlackView();
+    var maxDelay = 0;
+    var pieces = [];
+    for (var i = 0; i < pts.length; i++) {
+      var p = pts[i].querySelector('.piece');
+      if (!p) continue;
+      var r = parseInt(pts[i].getAttribute('data-row'), 10);
+      var c = parseInt(pts[i].getAttribute('data-col'), 10);
+      // 从各自的帅/将出发：先落中轴，再向两侧铺开，同时由本方底线向河界推进
+      var kingRow = pColorOf(p) === 'red' ? 9 : 0;
+      var colDist = Math.abs(c - 4);
+      var rowDist = Math.abs(r - kingRow);
+      var delay = colDist * 50 + rowDist * 20;
+      p.classList.add('piece-enter');
+      p.style.animationDelay = delay + 'ms';
+      pieces.push(p);
+      if (delay > maxDelay) maxDelay = delay;
+    }
+    if (!pieces.length) { if (onDone) onDone(); return false; }
+
+    state.introPlaying = true;
+    var area = document.querySelector('.board-area');
+    if (area) {
+      area.classList.remove('intro-wave');
+      void area.offsetWidth;
+      area.classList.add('intro-wave');
+    }
+    sfx('intro');
+
+    introTimer = setTimeout(function() {
+      introTimer = null;
+      for (var j = 0; j < pieces.length; j++) {
+        pieces[j].classList.remove('piece-enter');
+        pieces[j].style.animationDelay = '';
+      }
+      if (area) area.classList.remove('intro-wave');
+      state.introPlaying = false;
+      startClock();
+      if (onDone) onDone();
+    }, maxDelay + 340);
+    return true;
+  }
+
   function handleReset() {
     gameGen++;
     // 清理观战定时器
@@ -11581,6 +12222,7 @@ window.XQ = {
     state.recordSaved = false;
     state.recordOpen = false;
     state.noCaptureHalfMoves = 0;
+    state.checkCount = 0;
     state.posCounts = {};
     state.repeatWarnings = {};
     state.repeatWarnText = '';
@@ -11609,14 +12251,22 @@ window.XQ = {
     hideResultModal();
     hideKillInfo();
     updatePuzzleBar();
-    sfx('reset');
     // 观战模式自动开始播放
     if (state.watch.enabled) {
       watchTogglePlay();
     }
-    // 人机模式玩家执黑：重置后轮到 AI 执红，由 AI 先走
-    if (state.gameMode === 'pve' && !state.puzzle && !state.gameResult && state.currentTurn !== state.playerColor) {
-      aiMove();
+    // 正式对局先播入场特效，特效结束后才允许走子、开始计时
+    var introStarted = playBoardIntro(function() {
+      // 人机模式玩家执黑：入场结束后轮到 AI 执红，由 AI 先走
+      if (state.gameMode === 'pve' && !state.puzzle && !state.gameResult && state.currentTurn !== state.playerColor) {
+        aiMove();
+      }
+    });
+    if (!introStarted) {
+      sfx('reset');
+      if (state.gameMode === 'pve' && !state.puzzle && !state.gameResult && state.currentTurn !== state.playerColor) {
+        aiMove();
+      }
     }
   }
 
@@ -11632,10 +12282,36 @@ window.XQ = {
     menuOpen = false;
     if (els.startScreen) els.startScreen.classList.add('hidden');
     if (Screen.current === 'start') Screen.current = null;
+    maybeShowTutorial();
+  }
+
+  // ---- 新手引导：首次进入对局显示一次 ----
+  var TUTORIAL_KEY = 'zzxq_tutorial_v1';
+
+  function tutorialSeen() {
+    try { return localStorage.getItem(TUTORIAL_KEY) === '1'; } catch (e) { return true; }
+  }
+
+  function maybeShowTutorial() {
+    if (tutorialSeen()) return;
+    setTimeout(function() {
+      // 只有真正停在棋盘界面时才提示；有弹窗（选难度、闯关、联机）则跳过
+      if (Screen.current) return;
+      if (state.gameMode === 'watch' || state.puzzle || state.gameResult) return;
+      if (!els.tutorialMask) return;
+      els.tutorialMask.classList.add('show');
+    }, 900);
+  }
+
+  function hideTutorial() {
+    if (!els.tutorialMask) return;
+    els.tutorialMask.classList.remove('show');
+    try { localStorage.setItem(TUTORIAL_KEY, '1'); } catch (e) {}
   }
 
   // 游戏内“返回桌面”：回到开始界面，保留当前棋局
   function returnToMenu() {
+    clearBoardIntro();
     if (state.gameMode === 'online') {
       exitOnlineToMenu();
       return;
@@ -11971,6 +12647,7 @@ window.XQ = {
   }
 
   function exitOnlineToMenu() {
+    clearBoardIntro();
     onlineLeave();
     stopClock();
     hideResultModal();
@@ -11985,6 +12662,10 @@ window.XQ = {
     if (!online.code) return '';
     if (location.protocol === 'file:') return '请部署后再生成链接';
     return location.origin + location.pathname + '?room=' + online.code;
+  }
+
+  function inviteText() {
+    return '周周象棋 · 房间号 ' + (online.code || '------') + '\n' + onlineInviteLink();
   }
 
   function updateOnlinePanelView() {
@@ -12003,6 +12684,12 @@ window.XQ = {
   function showOnlinePanel() {
     if (!els.modalOnline) return;
     setOnlineStatus('');
+    if (els.onlineCodeInput && !els.onlineCodeInput.value) {
+      try {
+        var lastRoom = localStorage.getItem('zzxq_last_room');
+        if (lastRoom) els.onlineCodeInput.value = lastRoom;
+      } catch (e) {}
+    }
     updateOnlinePanelView();
     Screen.openModal('online');
 
@@ -12184,6 +12871,52 @@ window.XQ = {
     if (online.code && online.ws) sendRelay({ type: 'leave' });
   });
 
+  // ============================================================
+  // 添加到桌面
+  // ============================================================
+  var deferredInstallPrompt = null;
+
+  window.addEventListener('beforeinstallprompt', function(e) {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+  });
+
+  function isStandalone() {
+    try {
+      if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) return true;
+    } catch (e) {}
+    return navigator.standalone === true;
+  }
+
+  function installGuideHtml() {
+    var ua = navigator.userAgent || '';
+    var isWx = /MicroMessenger/i.test(ua);
+    var isIOS = /iPhone|iPad|iPod/i.test(ua);
+    var isAndroid = /Android/i.test(ua);
+    var html = '';
+    if (isWx) {
+      html += '<div class="ig-step">微信里不能直接添加，需要先转到浏览器。</div>';
+      html += '<div class="ig-step"><b>第 1 步</b> 点右上角「···」</div>';
+      html += '<div class="ig-step"><b>第 2 步</b> 选「在浏览器打开」</div>';
+      html += '<div class="ig-step"><b>第 3 步</b> 在浏览器里再按下面的方法添加</div>';
+    }
+    if (isIOS) {
+      html += '<div class="ig-step"><b>第 1 步</b> 点底部中间的「分享」按钮（方框向上箭头）</div>';
+      html += '<div class="ig-step"><b>第 2 步</b> 下滑找到「添加到主屏幕」</div>';
+      html += '<div class="ig-step"><b>第 3 步</b> 点右上角「添加」</div>';
+    } else if (isAndroid) {
+      html += '<div class="ig-step"><b>第 1 步</b> 点浏览器右上角「⋮」菜单</div>';
+      html += '<div class="ig-step"><b>第 2 步</b> 选「添加到主屏幕」或「安装应用」</div>';
+      html += '<div class="ig-step"><b>第 3 步</b> 确认「添加」</div>';
+    } else {
+      html += '<div class="ig-step"><b>第 1 步</b> 点地址栏右侧的安装图标</div>';
+      html += '<div class="ig-step"><b>第 2 步</b> 在弹出的提示里点「安装」</div>';
+      html += '<div class="ig-step">没有安装图标时，把本页收藏到书签栏也一样方便</div>';
+    }
+    html += '<div class="ig-foot">添加后桌面会出现「周」字图标，点一下直接开局，不用再翻聊天记录找链接。</div>';
+    return html;
+  }
+
   function handleOnlineMessage(msg) {
     if (!msg || !msg.type) return;
 
@@ -12195,6 +12928,8 @@ window.XQ = {
       updateOnlinePanelView();
       setOnlineStatus('');
       if (els.onlineWaitStatus) els.onlineWaitStatus.textContent = '等待对方加入…';
+      // 建房后自动复制邀请（剪贴板被浏览器拦截时静默，仍可手动点按钮复制）
+      setTimeout(function() { copyText(inviteText(), '邀请已复制，发给好友即可'); }, 150);
       return;
     }
 
@@ -12202,6 +12937,7 @@ window.XQ = {
       online.code = msg.code || online.code;
       online.color = msg.color || 'black';
       online.waiting = false;
+      try { if (online.code) localStorage.setItem('zzxq_last_room', online.code); } catch (e) {}
       updateOnlinePanelView();
       setOnlineStatus('已加入房间，正在开局…');
       return;
@@ -12574,9 +13310,9 @@ window.XQ = {
     hideResultModal();
   }
 
-  function copyText(text) {
+  function copyText(text, tip) {
     var ok = function() {
-      if (els.onlineWaitStatus) els.onlineWaitStatus.textContent = '链接已复制，发给好友吧';
+      if (els.onlineWaitStatus) els.onlineWaitStatus.textContent = tip || '链接已复制，发给好友吧';
     };
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(text).then(ok).catch(function() {
@@ -12951,6 +13687,22 @@ window.XQ = {
     }
     els.resultDesc.textContent = desc;
 
+    // 本局统计
+    var statsBox = document.getElementById('result-stats');
+    if (statsBox) {
+      var total = clockTotal();
+      var used = Math.max(0, (total - state.clock.red) + (total - state.clock.black));
+      var mEl = document.getElementById('rs-moves');
+      var cEl = document.getElementById('rs-captures');
+      var tEl = document.getElementById('rs-time');
+      var kEl = document.getElementById('rs-checks');
+      if (mEl) mEl.textContent = state.moveHistory.length;
+      if (cEl) cEl.textContent = state.capturedRed.length + state.capturedBlack.length;
+      if (tEl) tEl.textContent = fmtDuration(used);
+      if (kEl) kEl.textContent = state.checkCount || 0;
+      statsBox.style.display = state.watch.enabled ? 'none' : 'flex';
+    }
+
     // 杀法名称显示
     var killBox = document.getElementById('result-kill-box');
     var killNameEl = document.getElementById('result-kill-name');
@@ -13042,7 +13794,7 @@ window.XQ = {
       else if (check) { grade = 'good'; note = '将军'; }
       else if (gain >= 400) { grade = 'good'; note = '得子'; }
       else if (gain > 0) { grade = 'plain'; note = '吃子'; }
-      notes.push({ grade: grade, note: note, gain: gain, loss: loss, check: check });
+      notes.push({ grade: grade, note: note, gain: gain, loss: loss, check: check, pieceChar: piece ? piece.char : '', color: m.color });
       board = nb;
     }
     return notes;
@@ -13154,6 +13906,41 @@ window.XQ = {
   function reviewNext() { reviewStopPlayback(); applyReviewStep(review.index + 1); }
   function reviewStart() { reviewStopPlayback(); applyReviewStep(0); }
   function reviewEnd() { reviewStopPlayback(); applyReviewStep((review.record.moves || []).length); }
+
+  // 最差一手：定位本局损失最大的一步，跳过去并高亮
+  function reviewJumpWorst() {
+    if (!review.active || !review.notes.length) return;
+    var worst = -1;
+    var maxLoss = 0;
+    var i, n;
+    for (i = 0; i < review.notes.length; i++) {
+      n = review.notes[i];
+      if (n.grade === 'bad' && n.loss > maxLoss) { maxLoss = n.loss; worst = i; }
+    }
+    if (worst < 0) {
+      for (i = 0; i < review.notes.length; i++) {
+        if (review.notes[i].loss > maxLoss) { maxLoss = review.notes[i].loss; worst = i; }
+      }
+    }
+    if (worst < 0 || maxLoss <= 0) {
+      if (els.reviewHintTip) els.reviewHintTip.textContent = '本局没有明显恶手，下得不错';
+      return;
+    }
+    reviewStopPlayback();
+    applyReviewStep(worst + 1);
+    n = review.notes[worst];
+    var round = Math.floor(worst / 2) + 1;
+    var side = n.color === 'red' ? '红方' : '黑方';
+    if (els.reviewHintTip) {
+      els.reviewHintTip.textContent = '第 ' + round + ' 回合 ' + side + ' ' + n.pieceChar + '被白吃（送子）';
+    }
+    var row = els.reviewList.children[worst];
+    if (row) {
+      row.classList.add('worst-focus');
+      try { row.scrollIntoView({ block: 'nearest' }); } catch (err) {}
+      setTimeout(function() { row.classList.remove('worst-focus'); }, 1600);
+    }
+  }
 
   // 复盘推荐着法：基于当前局面用轻量引擎给一步参考，再点一次清除
   function reviewToggleHint() {
@@ -13372,27 +14159,59 @@ window.XQ = {
     var s = sec % 60;
     return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
   }
+  // 轻震动：优先用 navigator.vibrate，不可用时静默跳过
+  function pulseVibrate(pattern) {
+    if (!state.vibrateOn) return;
+    try {
+      if (navigator.vibrate) navigator.vibrate(pattern);
+    } catch (e) {}
+  }
+
+  // 结果页用时：不足一分钟显示秒，否则分:秒
+  function fmtDuration(sec) {
+    sec = Math.max(0, Math.floor(sec));
+    if (sec < 60) return sec + 's';
+    var m = Math.floor(sec / 60);
+    var s = sec % 60;
+    return m + ':' + (s < 10 ? '0' : '') + s;
+  }
   function renderClock() {
     if (!els.clockRed || !els.clockBlack) return;
+
+    // 上方永远是「对方」、下方永远是「己方」；执黑翻转棋盘时随之交换
+    var blackView = isBlackView();
+    var topColor = blackView ? 'red' : 'black';
+    var botColor = blackView ? 'black' : 'red';
+    var topChip = topColor === 'red' ? els.clockRed : els.clockBlack;
+    var botChip = botColor === 'red' ? els.clockRed : els.clockBlack;
+    if (els.clockSlotTop && topChip && topChip.parentNode !== els.clockSlotTop) els.clockSlotTop.appendChild(topChip);
+    if (els.clockSlotBottom && botChip && botChip.parentNode !== els.clockSlotBottom) els.clockSlotBottom.appendChild(botChip);
+
     els.clockRed.textContent = fmtClock(state.clock.red);
     els.clockBlack.textContent = fmtClock(state.clock.black);
-    els.clockRed.classList.toggle('active', state.currentTurn === 'red' && !state.gameResult);
-    els.clockBlack.classList.toggle('active', state.currentTurn === 'black' && !state.gameResult);
-    els.clockRed.classList.toggle('low', state.clock.red <= 300);
-    els.clockBlack.classList.toggle('low', state.clock.black <= 300);
-    els.clockRed.classList.toggle('critical', state.clock.red <= 60);
-    els.clockBlack.classList.toggle('critical', state.clock.black <= 60);
-    if (els.clockLabel) {
-      if (state.gameMode === 'online') {
-        var side = state.currentTurn;
-        var left = moveLimit(side) - state.clock.moveElapsed;
-        var sideMoves = side === 'red' ? state.clock.redMoves : state.clock.blackMoves;
-        els.clockLabel.textContent = '本步 ' + Math.max(0, left) + 's · 第' + (sideMoves + 1) + ' 手';
-      } else {
-        els.clockLabel.textContent = '总时制 ' + fmtClock(clockTotal());
-      }
-    }
+
+    var meColor = null;
+    if (!state.watch.enabled && (state.gameMode === 'pve' || state.gameMode === 'online')) meColor = state.playerColor;
+
+    if (els.sideNameTop) els.sideNameTop.textContent = (topColor === 'red' ? '红方' : '黑方') + (meColor === topColor ? ' · 你' : '');
+    if (els.sideNameBottom) els.sideNameBottom.textContent = (botColor === 'red' ? '红方' : '黑方') + (meColor === botColor ? ' · 你' : '');
+
+    var topActive = state.currentTurn === topColor && !state.gameResult;
+    var botActive = state.currentTurn === botColor && !state.gameResult;
+    if (els.sideBarTop) els.sideBarTop.classList.toggle('active', topActive);
+    if (els.sideBarBottom) els.sideBarBottom.classList.toggle('active', botActive);
+
+    [els.clockRed, els.clockBlack].forEach(function(el) {
+      if (!el) return;
+      var val = el === els.clockRed ? state.clock.red : state.clock.black;
+      el.classList.toggle('low', val <= 300);
+      el.classList.toggle('critical', val <= 60);
+    });
+
+    renderRing(els.ringTop, els.ringNumTop, topColor, topActive);
+    renderRing(els.ringBottom, els.ringNumBottom, botColor, botActive);
   }
+
   function resetClock() {
     stopClock();
     var total = clockTotal();
@@ -13404,14 +14223,14 @@ window.XQ = {
     renderClock();
   }
   function startClock() {
-    if (!clockAvailable() || state.clock.started || state.gameResult) return;
+    if (!clockAvailable() || state.clock.started || state.gameResult || state.introPlaying) return;
     state.clock.started = true;
     state.clock.timer = setInterval(function() {
       if (state.gameResult || !clockAvailable() || menuOpen) return;
       var side = state.currentTurn;
       state.clock[side] -= 1;
       state.clock.moveElapsed += 1;
-      var limit = state.gameMode === 'online' ? moveLimit(side) : Infinity;
+      var limit = turnLimitFor(side) || Infinity;
       if (state.clock[side] <= 0 || state.clock.moveElapsed > limit) {
         state.clock[side] = Math.max(0, state.clock[side]);
         renderClock();
@@ -14191,11 +15010,14 @@ window.XQ = {
   // 设置面板（音效档位 / 特效开关）
   // ============================================================
   var LS_FX_ON = 'zzxq_fx_on';
+  var LS_VIB_ON = 'zzxq_vib_on';
 
   function loadSettingsFromStorage() {
     try {
       var fx = localStorage.getItem(LS_FX_ON);
       if (fx !== null) state.effectOn = fx === '1';
+      var vib = localStorage.getItem(LS_VIB_ON);
+      if (vib !== null) state.vibrateOn = vib === '1';
       if (window.XQSound) window.XQSound.loadFromStorage();
       var vol = localStorage.getItem('zzxq_vol');
       if (vol !== null && window.XQSound) {
@@ -14214,6 +15036,10 @@ window.XQ = {
     var fxBtns = document.querySelectorAll('#seg-fx .seg-btn');
     for (var j = 0; j < fxBtns.length; j++) {
       fxBtns[j].classList.toggle('active', (fxBtns[j].getAttribute('data-fx') === '1') === !!state.effectOn);
+    }
+    var vibBtns = document.querySelectorAll('#seg-vib .seg-btn');
+    for (var vb = 0; vb < vibBtns.length; vb++) {
+      vibBtns[vb].classList.toggle('active', (vibBtns[vb].getAttribute('data-vib') === '1') === !!state.vibrateOn);
     }
     var catGroups = document.querySelectorAll('[data-sound-category]');
     for (var k = 0; k < catGroups.length; k++) {
@@ -14280,9 +15106,193 @@ window.XQ = {
     if (m) m.classList.remove('show');
   }
 
+  // ---- 棋盘交互：点击走子 + 拖拽走子 ----
+  var drag = {
+    active: false,
+    fromR: 0,
+    fromC: 0,
+    sx: 0,
+    sy: 0,
+    moved: false,
+    ghost: null,
+    lastUp: null,
+  };
+
+  function boardPointFromEvent(e) {
+    var rect = els.boardPoints.getBoundingClientRect();
+    if (!rect.width || !rect.height) return null;
+    var fx = (e.clientX - rect.left) / rect.width * 8;
+    var fy = (e.clientY - rect.top) / rect.height * 9;
+    if (!isFinite(fx) || !isFinite(fy)) return null;
+    var r = Math.round(fy);
+    var c = Math.round(fx);
+    // 执黑视角为镜像布局，需把屏幕坐标反算回原始棋盘坐标
+    if (isBlackView()) { r = 9 - r; c = 8 - c; }
+    if (r < 0) r = 0; else if (r > 9) r = 9;
+    if (c < 0) c = 0; else if (c > 8) c = 8;
+    return { r: r, c: c };
+  }
+
+  // 该点上的棋子是否可以由玩家拖起
+  function canDragFrom(r, c) {
+    if (review.active || state.gameResult || state.isAiThinking) return false;
+    if (state.puzzle) return false;
+    if (state.gameMode === 'online') {
+      if (!online.linked) return false;
+      if (state.currentTurn !== state.playerColor) return false;
+    }
+    if (state.gameMode === 'pve' && state.currentTurn !== state.playerColor) return false;
+    if (state.watch.enabled) {
+      var isAiSide = state.currentTurn === 'red' ? state.watch.aiRed : state.watch.aiBlack;
+      if (isAiSide) return false;
+    }
+    var p = state.board[r][c];
+    if (!p || p.color !== state.currentTurn) return false;
+    if (state.gameMode === 'pve' && p.color !== state.playerColor) return false;
+    return true;
+  }
+
+  function dragPointEl(r, c) {
+    return els.boardPoints.querySelector('.point[data-row="' + r + '"][data-col="' + c + '"]');
+  }
+
+  function dragStartGhost() {
+    var p = state.board[drag.fromR][drag.fromC];
+    if (!p) return;
+    var g = document.createElement('div');
+    g.className = 'drag-ghost';
+    g.innerHTML = '<div class="piece ' + p.color + '">' + p.char + '</div>';
+    els.boardPoints.appendChild(g);
+    drag.ghost = g;
+    // 源位置的棋子淡出，避免出现两个棋子
+    var src = dragPointEl(drag.fromR, drag.fromC);
+    if (src) {
+      var sp = src.querySelector('.piece');
+      if (sp) sp.style.opacity = '0.25';
+    }
+    dragMoveGhost();
+  }
+
+  function dragMoveGhost() {
+    if (!drag.ghost) return;
+    var rect = els.boardPoints.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+    drag.ghost.style.left = ((drag.cx - rect.left) / rect.width * 100) + '%';
+    drag.ghost.style.top = ((drag.cy - rect.top) / rect.height * 100) + '%';
+  }
+
+  function dragClearGhost() {
+    if (drag.ghost && drag.ghost.parentNode) drag.ghost.parentNode.removeChild(drag.ghost);
+    drag.ghost = null;
+    var el = els.boardPoints.querySelector('.point.drag-hover');
+    if (el) el.classList.remove('drag-hover');
+  }
+
+  function dragUpdateHover(pos) {
+    var el = els.boardPoints.querySelector('.point.drag-hover');
+    if (el) el.classList.remove('drag-hover');
+    if (!pos) return;
+    for (var i = 0; i < state.validMoves.length; i++) {
+      if (state.validMoves[i].toRow === pos.r && state.validMoves[i].toCol === pos.c) {
+        var target = dragPointEl(pos.r, pos.c);
+        if (target) target.classList.add('drag-hover');
+        return;
+      }
+    }
+  }
+
+  function onBoardPointerDown(e) {
+    if (drag.active) return;
+    if (state.introPlaying) return;
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    var pos = boardPointFromEvent(e);
+    if (!pos) return;
+    if (!canDragFrom(pos.r, pos.c)) return;
+    drag.active = true;
+    drag.fromR = pos.r;
+    drag.fromC = pos.c;
+    drag.sx = e.clientX;
+    drag.sy = e.clientY;
+    drag.cx = e.clientX;
+    drag.cy = e.clientY;
+    drag.moved = false;
+    // 按住即选中，显示可走位置
+    state.selectedPos = { row: pos.r, col: pos.c };
+    state.validMoves = XQ.getLegalMovesForPiece(state.board, pos.r, pos.c);
+    renderBoard();
+    try { els.boardPoints.setPointerCapture(e.pointerId); } catch (err) {}
+  }
+
+  function onBoardPointerMove(e) {
+    if (!drag.active) return;
+    drag.cx = e.clientX;
+    drag.cy = e.clientY;
+    if (!drag.moved) {
+      if (Math.abs(e.clientX - drag.sx) + Math.abs(e.clientY - drag.sy) < 8) return;
+      drag.moved = true;
+      dragStartGhost();
+    }
+    dragMoveGhost();
+    dragUpdateHover(boardPointFromEvent(e));
+  }
+
+  function onBoardPointerUp(e) {
+    if (!drag.active) return;
+    var wasMoved = drag.moved;
+    var fromR = drag.fromR;
+    var fromC = drag.fromC;
+    drag.active = false;
+    drag.moved = false;
+    try { els.boardPoints.releasePointerCapture(e.pointerId); } catch (err) {}
+    if (!wasMoved) {
+      // 没真正拖动 → 交给 click 处理，保持原有轻点手感
+      return;
+    }
+    dragClearGhost();
+    // 记录本次拖拽结束位置：仅吞掉紧跟其后的同位置 click，避免误吞后续真实点击
+    drag.lastUp = { x: e.clientX, y: e.clientY, t: Date.now() };
+    var pos = boardPointFromEvent(e);
+    var picked = null;
+    if (pos) {
+      for (var i = 0; i < state.validMoves.length; i++) {
+        var m = state.validMoves[i];
+        if (m.toRow === pos.r && m.toCol === pos.c) { picked = m; break; }
+      }
+    }
+    if (picked) {
+      state.skipMoveAnim = true;
+      doMove(picked);
+    } else {
+      sfx('invalid');
+      // 落点非法：复位棋盘，选中的棋子保持选中
+      var p = state.board[fromR][fromC];
+      if (p) {
+        state.selectedPos = { row: fromR, col: fromC };
+        state.validMoves = XQ.getLegalMovesForPiece(state.board, fromR, fromC);
+      }
+      renderBoard();
+    }
+  }
+
+  function onBoardPointerCancel(e) {
+    if (!drag.active) return;
+    drag.active = false;
+    drag.moved = false;
+    dragClearGhost();
+    renderBoard();
+  }
+
   function bindEvents() {
     // 棋盘点击（事件委托）
     els.boardPoints.addEventListener('click', function(e) {
+      // 拖拽结束后浏览器补发的同位置 click 需要忽略，否则会二次处理
+      var lu = drag.lastUp;
+      if (lu && Date.now() - lu.t < 140 &&
+          Math.abs(e.clientX - lu.x) < 14 && Math.abs(e.clientY - lu.y) < 14) {
+        drag.lastUp = null;
+        return;
+      }
+      drag.lastUp = null;
       // 90 个交叉点与棋盘区域严格一一对应：按点击位置四舍五入到最近的交叉点
       // 8 个横向间隔、9 个纵向间隔，边界取整后夹取到 0..8 / 0..9
       var rect = els.boardPoints.getBoundingClientRect();
@@ -14298,6 +15308,11 @@ window.XQ = {
       if (c < 0) c = 0; else if (c > 8) c = 8;
       handleCellClick(r, c);
     });
+
+    els.boardPoints.addEventListener('pointerdown', onBoardPointerDown);
+    els.boardPoints.addEventListener('pointermove', onBoardPointerMove);
+    els.boardPoints.addEventListener('pointerup', onBoardPointerUp);
+    els.boardPoints.addEventListener('pointercancel', onBoardPointerCancel);
 
     // 底部按钮（仅保留对局操作：妙招/悔棋/重开）
     els.btnUndo.addEventListener('click', function() { if (state.history.length > 0 && !state.isAiThinking) { sfx('click'); } handleUndo(); });
@@ -14460,12 +15475,23 @@ window.XQ = {
         sfx('click');
       });
     }
+    var segVib = document.getElementById('seg-vib');
+    if (segVib) {
+      segVib.addEventListener('click', function(e) {
+        var b = e.target.closest('.seg-btn');
+        if (!b) return;
+        state.vibrateOn = b.getAttribute('data-vib') === '1';
+        try { localStorage.setItem(LS_VIB_ON, state.vibrateOn ? '1' : '0'); } catch(err) {}
+        refreshSettingsUI();
+        sfx('click');
+        pulseVibrate(10);
+      });
+    }
 
     // 联机面板
     var btnCreateRoom = document.getElementById('btn-create-room');
     var btnJoinRoom = document.getElementById('btn-join-room');
-    var btnCopyLink = document.getElementById('btn-copy-link');
-    var btnCopyCode = document.getElementById('btn-copy-code');
+    var btnCopyInvite = document.getElementById('btn-copy-invite');
     var btnOnlineClose = document.getElementById('btn-online-close');
     var btnOnlineCancel = document.getElementById('btn-online-cancel');
     if (btnCreateRoom) {
@@ -14477,17 +15503,10 @@ window.XQ = {
         joinOnlineRoom(els.onlineCodeInput ? els.onlineCodeInput.value : '');
       });
     }
-    if (btnCopyCode) {
-      btnCopyCode.addEventListener('click', function() {
+    if (btnCopyInvite) {
+      btnCopyInvite.addEventListener('click', function() {
         sfx('click');
-        copyText(online.code || '');
-        if (els.onlineWaitStatus) els.onlineWaitStatus.textContent = '房号已复制，可发给好友输入加入';
-      });
-    }
-    if (btnCopyLink) {
-      btnCopyLink.addEventListener('click', function() {
-        sfx('click');
-        copyText(onlineInviteLink());
+        copyText(inviteText(), '邀请已复制，发给好友即可');
       });
     }
     if (btnOnlineClose || btnOnlineCancel) {
@@ -14501,8 +15520,55 @@ window.XQ = {
       });
       els.onlineCodeInput.addEventListener('input', function() {
         this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        if (this.value.length === 6) {
+          var v = this.value;
+          setTimeout(function() {
+            var inp = els.onlineCodeInput;
+            if (inp && inp.value === v && v.length === 6) joinOnlineRoom(v);
+          }, 150);
+        }
       });
     }
+    // 添加到桌面
+    var btnInstall = document.getElementById('btn-install-tip');
+    var modalInstall = document.getElementById('modal-install');
+    var installBody = document.getElementById('install-guide-body');
+    var btnInstallOk = document.getElementById('btn-install-guide-ok');
+    if (isStandalone() && btnInstall) btnInstall.classList.add('hide');
+    if (btnInstall) {
+      btnInstall.addEventListener('click', function() {
+        sfx('click');
+        if (isStandalone()) {
+          if (installBody) installBody.innerHTML = '<div class="ig-step">已经添加到桌面了，直接从桌面图标打开即可。</div>';
+          if (modalInstall) modalInstall.classList.add('show');
+          return;
+        }
+        if (deferredInstallPrompt) {
+          var promptEvent = deferredInstallPrompt;
+          deferredInstallPrompt = null;
+          try { promptEvent.prompt(); } catch (e) {}
+          return;
+        }
+        if (installBody) installBody.innerHTML = installGuideHtml();
+        if (modalInstall) modalInstall.classList.add('show');
+      });
+    }
+    if (btnInstallOk && modalInstall) {
+      btnInstallOk.addEventListener('click', function() {
+        sfx('popup-close');
+        modalInstall.classList.remove('show');
+      });
+    }
+    if (modalInstall) {
+      modalInstall.addEventListener('click', function(e) {
+        if (e.target === modalInstall) modalInstall.classList.remove('show');
+      });
+    }
+    window.addEventListener('appinstalled', function() {
+      if (btnInstall) btnInstall.classList.add('hide');
+      if (modalInstall) modalInstall.classList.remove('show');
+    });
+
     if (els.btnOnlineExit) {
       els.btnOnlineExit.addEventListener('click', function() {
         exitOnlineToMenu();
@@ -14547,6 +15613,18 @@ window.XQ = {
     }
     if (els.reviewHint) {
       els.reviewHint.addEventListener('click', function() { sfx('click'); reviewToggleHint(); });
+    }
+    if (els.reviewWorst) {
+      els.reviewWorst.addEventListener('click', function() { sfx('click'); reviewJumpWorst(); });
+    }
+    // 新手引导关闭
+    if (els.tutorialOk) {
+      els.tutorialOk.addEventListener('click', function() { sfx('click'); hideTutorial(); });
+    }
+    if (els.tutorialMask) {
+      els.tutorialMask.addEventListener('click', function(e) {
+        if (e.target === els.tutorialMask) hideTutorial();
+      });
     }
     // 杀法闯关关闭
     if (els.btnChallengeClose) {
@@ -14826,8 +15904,8 @@ window.XQ = {
 
       // 读取本地保存的音效档位与特效开关
       if (window.XQSound) {
-        window.XQSound.setVolumeLevel(3);
-        state.volumeLevel = 3;
+        // 只同步当前值，不写存储，避免覆盖用户保存的音量档位
+        state.volumeLevel = window.XQSound.getVolumeLevel();
       }
       loadSettingsFromStorage();
 
